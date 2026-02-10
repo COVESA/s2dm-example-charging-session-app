@@ -1,0 +1,7 @@
+schema: ../backend/schema/schema.graphql
+documents:
+  - ./src/graphql/operations/**/*.graphql
+generates:
+  ./src/graphql/generated/:
+    preset: client
+    plugins: []

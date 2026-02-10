@@ -1,0 +1,62 @@
+services:
+  mongodb:
+    image: mongo:8
+    container_name: ev-demo-mongodb
+    env_file:
+      - .env
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+
+  simulator:
+    build:
+      context: ./simulator
+      dockerfile: Dockerfile
+    container_name: ev-demo-simulator
+    env_file:
+      - .env
+    environment:
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/charging_demo}
+      MONGODB_DATABASE: charging_demo
+      SIMULATION_INTERVAL_SECONDS: ${SIMULATION_INTERVAL_SECONDS:-2}
+      SIMULATOR_PORT: ${SIMULATOR_PORT:-8000}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ev-demo-backend
+    env_file:
+      - .env
+    environment:
+      BACKEND_PORT: ${BACKEND_PORT:-4000}
+      BACKEND_CORS_ORIGIN: ${BACKEND_CORS_ORIGIN:-http://localhost:3000}
+      SIMULATOR_BASE_URL: ${SIMULATOR_BASE_URL:-http://simulator:8000}
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/charging_demo}
+    ports:
+      - "4000:4000"
+    depends_on:
+      - simulator
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ev-demo-frontend
+    env_file:
+      - .env
+    environment:
+      NEXT_PUBLIC_GRAPHQL_URL: ${NEXT_PUBLIC_GRAPHQL_URL:-http://localhost:4000/graphql}
+      NEXT_PUBLIC_SIMULATOR_URL: ${NEXT_PUBLIC_SIMULATOR_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  mongodb-data:
