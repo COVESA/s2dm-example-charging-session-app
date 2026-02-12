@@ -20,7 +20,7 @@ services:
       MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/charging_demo}
       MONGODB_DATABASE: charging_demo
       SIMULATION_INTERVAL_SECONDS: ${SIMULATION_INTERVAL_SECONDS:-2}
-      SIMULATOR_PORT: ${SIMULATOR_PORT:-8000}
+      SIMULATOR_URL: ${SIMULATOR_URL:-http://localhost:8000}
     ports:
       - "8000:8000"
     depends_on:
@@ -34,10 +34,9 @@ services:
     env_file:
       - .env
     environment:
-      BACKEND_PORT: ${BACKEND_PORT:-4000}
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:4000}
       BACKEND_CORS_ORIGIN: ${BACKEND_CORS_ORIGIN:-http://localhost:3000}
-      SIMULATOR_BASE_URL: ${SIMULATOR_BASE_URL:-http://simulator:8000}
-      MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/charging_demo}
+      SIMULATOR_URL: http://simulator:8000
     ports:
       - "4000:4000"
     depends_on:

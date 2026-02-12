@@ -4,6 +4,6 @@ export type GraphQLContext = {
 
 export const createGraphQLContext = (): GraphQLContext => {
   return {
-    simulatorBaseUrl: process.env.SIMULATOR_BASE_URL ?? "http://localhost:8000"
+    simulatorBaseUrl: process.env.SIMULATOR_URL ?? "http://localhost:8000"
   };
 };

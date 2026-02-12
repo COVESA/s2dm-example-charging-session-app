@@ -41,7 +41,8 @@ const startServer = async (): Promise<void> => {
     res.json({ ok: true });
   });
 
-  const port = Number(process.env.BACKEND_PORT ?? 4000);
+  const backendUrl = process.env.BACKEND_URL ?? "http://localhost:4000";
+  const port = Number(new URL(backendUrl).port || 4000);
   app.listen(port, () => {
     // eslint-disable-next-line no-console
     console.log(`Backend GraphQL server listening on port ${port}`);
