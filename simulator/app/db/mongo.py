@@ -22,3 +22,11 @@ def get_database() -> Database:
 
 def get_telemetry_collection() -> Collection:
     return get_database()["telemetry"]
+
+
+def get_charging_points_collection() -> Collection:
+    return get_database()["chargingPoints"]
+
+
+def get_charging_stations_collection() -> Collection:
+    return get_database()["chargingStations"]

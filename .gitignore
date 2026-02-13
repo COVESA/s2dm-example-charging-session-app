@@ -56,9 +56,5 @@ venv/
 ENV/
 env/
 
-# --- Local data / Docker volumes (if created) ---
-data/
-mongo-data/
-mongodb-data/
-*.sqlite
+
 

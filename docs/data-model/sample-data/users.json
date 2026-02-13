@@ -1,0 +1,30 @@
+[
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9a111" },
+    "email": "alex@example.com",
+    "displayName": "Alex Martin",
+    "roles": ["USER"],
+    "createdAt": { "$date": "2026-02-01T10:00:00Z" },
+    "lastLoginAt": { "$date": "2026-02-12T08:10:00Z" },
+    "preferences": {
+      "preferredConnectorTypes": ["CCS", "TYPE2"],
+      "preferDcFast": true,
+      "maxPriceCentsPerKwh": 65,
+      "searchRadiusMeters": 8000
+    }
+  },
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9a112" },
+    "email": "admin@example.com",
+    "displayName": "Demo Admin",
+    "roles": ["ADMIN"],
+    "createdAt": { "$date": "2026-01-15T09:00:00Z" },
+    "lastLoginAt": { "$date": "2026-02-12T08:05:00Z" },
+    "preferences": {
+      "preferredConnectorTypes": ["CCS"],
+      "preferDcFast": true,
+      "maxPriceCentsPerKwh": 999,
+      "searchRadiusMeters": 20000
+    }
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9a221" },
+    "userId": { "$oid": "65c8f2e2d2f4c3a9b3b9a111" },
+    "vin": "WVWZZZ1JZXW000001",
+    "make": "Volkswagen",
+    "model": "ID.4",
+    "year": 2024,
+    "batteryCapacityKwh": 77,
+    "maxChargePowerKw": 135,
+    "connectorTypes": ["CCS", "TYPE2"],
+    "createdAt": { "$date": "2026-02-01T10:05:00Z" }
+  },
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9a222" },
+    "userId": { "$oid": "65c8f2e2d2f4c3a9b3b9a111" },
+    "vin": "WBY8P2C51K7D00002",
+    "make": "BMW",
+    "model": "i3",
+    "year": 2020,
+    "batteryCapacityKwh": 42.2,
+    "maxChargePowerKw": 50,
+    "connectorTypes": ["CCS", "TYPE2"],
+    "createdAt": { "$date": "2026-02-10T12:00:00Z" }
+  }
+]

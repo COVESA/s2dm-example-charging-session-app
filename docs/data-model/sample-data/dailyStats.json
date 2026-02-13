@@ -1,0 +1,26 @@
+[
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9aa01" },
+    "day": { "$date": "2026-02-11T00:00:00Z" },
+    "currency": "EUR",
+    "kpis": {
+      "sessionsCompleted": 18,
+      "energyDeliveredKwh": 412.6,
+      "revenueCents": 24790,
+      "incidentsOpened": 3
+    },
+    "updatedAt": { "$date": "2026-02-11T23:59:00Z" }
+  },
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9aa02" },
+    "day": { "$date": "2026-02-12T00:00:00Z" },
+    "currency": "EUR",
+    "kpis": {
+      "sessionsCompleted": 9,
+      "energyDeliveredKwh": 201.4,
+      "revenueCents": 13240,
+      "incidentsOpened": 1
+    },
+    "updatedAt": { "$date": "2026-02-12T08:20:00Z" }
+  }
+]

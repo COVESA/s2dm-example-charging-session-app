@@ -1,0 +1,58 @@
+[
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9f001" },
+    "timestamp": { "$date": "2026-02-12T08:11:58Z" },
+    "meta": {
+      "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b001" },
+      "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b101" },
+      "stationCode": "station-001",
+      "chargingPointCode": "cp_station-001_01",
+      "evseId": "CH*CITY*E12345*1"
+    },
+    "messageType": "HEARTBEAT",
+    "ok": true,
+    "powerKw": 0.0,
+    "energyKwhDelta": 0.0,
+    "voltageV": 400,
+    "currentA": 0,
+    "temperatureC": 31.2,
+    "errorCodes": []
+  },
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9f002" },
+    "timestamp": { "$date": "2026-02-12T08:11:59Z" },
+    "meta": {
+      "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b002" },
+      "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b201" },
+      "stationCode": "station-002",
+      "chargingPointCode": "cp_station-002_01",
+      "evseId": "CH*ROAD*F90000*1"
+    },
+    "messageType": "SESSION_SAMPLE",
+    "ok": true,
+    "sessionId": { "$oid": "65c8f2e2d2f4c3a9b3b9d002" },
+    "powerKw": 118.4,
+    "energyKwhDelta": 0.22,
+    "voltageV": 800,
+    "currentA": 148,
+    "temperatureC": 38.7,
+    "errorCodes": []
+  },
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9f003" },
+    "timestamp": { "$date": "2026-02-12T08:12:01Z" },
+    "meta": {
+      "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b001" },
+      "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b102" },
+      "stationCode": "station-001",
+      "chargingPointCode": "cp_station-001_02",
+      "evseId": "CH*CITY*E12345*2"
+    },
+    "messageType": "FAULT",
+    "ok": false,
+    "powerKw": 0.0,
+    "energyKwhDelta": 0.0,
+    "temperatureC": 45.1,
+    "errorCodes": ["E_OVERHEAT_WARN"]
+  }
+]

@@ -1,0 +1,102 @@
+[
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9b101" },
+    "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b001" },
+    "chargingPointCode": "cp_station-001_01",
+    "label": "Bay 1",
+    "evseId": "CH*CITY*E12345*1",
+    "power": { "maxKw": 150, "currentType": "DC" },
+    "connectors": [
+      { "connectorId": "c1", "type": "CCS", "maxKw": 150 },
+      { "connectorId": "c2", "type": "TYPE2", "maxKw": 22 }
+    ],
+    "status": {
+      "operational": "OPERATIONAL",
+      "availability": "RESERVED",
+      "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+    },
+    "telemetry": {
+      "lastHeartbeatAt": { "$date": "2026-02-12T08:11:58Z" },
+      "lastOkAt": { "$date": "2026-02-12T08:11:58Z" },
+      "lastSample": {
+        "timestamp": { "$date": "2026-02-12T08:11:58Z" },
+        "powerKw": 0.0,
+        "energyKwhDelta": 0.0,
+        "temperatureC": 31.2,
+        "errorCodes": []
+      }
+    },
+    "currentSessionId": null,
+    "nextReservation": {
+      "sessionId": { "$oid": "65c8f2e2d2f4c3a9b3b9d001" },
+      "startsAt": { "$date": "2026-02-12T09:00:00Z" },
+      "endsAt": { "$date": "2026-02-12T10:00:00Z" }
+    },
+    "pricingOverride": null,
+    "createdAt": { "$date": "2026-01-10T09:05:00Z" },
+    "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+  },
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9b102" },
+    "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b001" },
+    "chargingPointCode": "cp_station-001_02",
+    "label": "Bay 2",
+    "evseId": "CH*CITY*E12345*2",
+    "power": { "maxKw": 22, "currentType": "AC" },
+    "connectors": [{ "connectorId": "c1", "type": "TYPE2", "maxKw": 22 }],
+    "status": {
+      "operational": "OPERATIONAL",
+      "availability": "AVAILABLE",
+      "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+    },
+    "telemetry": {
+      "lastHeartbeatAt": { "$date": "2026-02-12T08:11:50Z" },
+      "lastOkAt": { "$date": "2026-02-12T08:11:50Z" },
+      "lastSample": {
+        "timestamp": { "$date": "2026-02-12T08:11:50Z" },
+        "powerKw": 0.0,
+        "energyKwhDelta": 0.0,
+        "temperatureC": 29.4,
+        "errorCodes": []
+      }
+    },
+    "currentSessionId": null,
+    "nextReservation": null,
+    "pricingOverride": null,
+    "createdAt": { "$date": "2026-01-10T09:05:00Z" },
+    "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+  },
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9b201" },
+    "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b002" },
+    "chargingPointCode": "cp_station-002_01",
+    "label": "Ultra 1",
+    "evseId": "CH*ROAD*F90000*1",
+    "power": { "maxKw": 300, "currentType": "DC" },
+    "connectors": [{ "connectorId": "c1", "type": "CCS", "maxKw": 300 }],
+    "status": {
+      "operational": "OPERATIONAL",
+      "availability": "CHARGING",
+      "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+    },
+    "telemetry": {
+      "lastHeartbeatAt": { "$date": "2026-02-12T08:11:59Z" },
+      "lastOkAt": { "$date": "2026-02-12T08:11:59Z" },
+      "lastSample": {
+        "timestamp": { "$date": "2026-02-12T08:11:59Z" },
+        "powerKw": 118.4,
+        "energyKwhDelta": 0.22,
+        "temperatureC": 38.7,
+        "errorCodes": []
+      }
+    },
+    "currentSessionId": { "$oid": "65c8f2e2d2f4c3a9b3b9d002" },
+    "nextReservation": null,
+    "pricingOverride": {
+      "currency": "EUR",
+      "tariff": { "priceCentsPerKwh": 79, "priceCentsPerMinuteIdleAfterMinutes": 35 }
+    },
+    "createdAt": { "$date": "2026-01-05T07:45:00Z" },
+    "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+  }
+]

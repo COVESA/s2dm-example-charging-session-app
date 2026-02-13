@@ -1,0 +1,44 @@
+[
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9e001" },
+    "createdAt": { "$date": "2026-02-12T08:15:00Z" },
+    "updatedAt": { "$date": "2026-02-12T08:18:00Z" },
+    "type": "NO_HEARTBEAT",
+    "severity": "HIGH",
+    "status": "OPEN",
+    "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b001" },
+    "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b102" },
+    "sessionId": null,
+    "detection": {
+      "source": "SYSTEM",
+      "rule": "heartbeat_missing_180s"
+    },
+    "description": "Heartbeat delayed for charging point cp_station-001_02 (threshold 180s).",
+    "resolution": {
+      "resolvedAt": null,
+      "resolvedByUserId": null,
+      "notes": null
+    }
+  },
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9e002" },
+    "createdAt": { "$date": "2026-02-11T19:05:00Z" },
+    "updatedAt": { "$date": "2026-02-11T19:20:00Z" },
+    "type": "USER_REPORT",
+    "severity": "MEDIUM",
+    "status": "RESOLVED",
+    "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b002" },
+    "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b201" },
+    "sessionId": null,
+    "detection": {
+      "source": "USER",
+      "rule": null
+    },
+    "description": "Connector latch feels loose; charging still works but needs inspection.",
+    "resolution": {
+      "resolvedAt": { "$date": "2026-02-11T19:20:00Z" },
+      "resolvedByUserId": { "$oid": "65c8f2e2d2f4c3a9b3b9a112" },
+      "notes": "Marked for inspection; no immediate safety risk."
+    }
+  }
+]
