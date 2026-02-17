@@ -1,32 +1,27 @@
-* {
-  box-sizing: border-box;
-}
+@import "tailwindcss";
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #f8fafc;
-  color: #0f172a;
-}
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
 
-main {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 24px;
-}
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    @apply bg-slate-50 text-slate-900;
+  }
 
-button {
-  margin-right: 8px;
-  padding: 8px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background: #ffffff;
-  cursor: pointer;
-}
+  main {
+    @apply max-w-[900px] mx-auto p-6;
+  }
 
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  button {
+    @apply mr-2 px-3 py-2 border border-slate-300 rounded-md bg-white cursor-pointer;
+  }
+
+  button:disabled {
+    @apply opacity-60 cursor-not-allowed;
+  }
 }

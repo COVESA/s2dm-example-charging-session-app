@@ -1,6 +1,6 @@
 schema: ../backend/schema/schema.graphql
 documents:
-  - ./src/graphql/operations/**/*.graphql
+  - ./app/**/_graphql/**/*.graphql
 generates:
   ./src/graphql/generated/:
     preset: client
