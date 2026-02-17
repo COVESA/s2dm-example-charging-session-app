@@ -2,10 +2,8 @@
   "name": "s2dm-example-charging-session-app",
   "private": true,
   "version": "0.1.0",
-  "workspaces": [
-    "backend",
-    "frontend"
-  ],
+  "packageManager": "npm@11.8.0",
+  "workspaces": ["backend", "frontend"],
   "scripts": {
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
