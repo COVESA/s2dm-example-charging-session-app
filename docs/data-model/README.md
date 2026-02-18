@@ -84,11 +84,11 @@ This document proposes a MongoDB document schema for an EV Charging Stations dem
 ### 2.3 ChargingPoint → ChargingSession (1:N over time)
 
 - **Cardinality**: unbounded (sessions accumulate).
-- **Decision**: **Reference** sessions in `chargingSessions` (avoid unbounded arrays). Keep a small computed subset on `chargingPoints` (e.g., `currentSessionId`, `nextReservation`) to speed up common reads.
+- **Decision**: **Reference** sessions in `chargingSessions` (avoid unbounded arrays).
 
 ### 2.4 ChargingPoint → Telemetry (1:N, high rate, unbounded)
 
-- **Decision**: **Separate telemetry** collection, ideally a **time-series** collection with **TTL/retention**. Store latest heartbeat/status in `chargingPoints` (Computed Pattern).
+- **Decision**: **Separate telemetry** collection, ideally a **time-series** collection with **TTL/retention**.
 
 ### 2.5 Station/Point/Session → Incidents (1:N)
 
@@ -101,7 +101,7 @@ This document proposes a MongoDB document schema for an EV Charging Stations dem
 - `users`: identities, roles, preferences
 - `vehicles`: vehicles owned by users (connector compatibility, max charge power)
 - `chargingStations`: location/searchable station metadata + computed availability counts
-- `chargingPoints`: EVSE-specific capabilities + operational/availability status + computed “latest telemetry” + next reservation summary
+- `chargingPoints`: EVSE-specific capabilities + operational/availability status
 - `chargingSessions`: bookings + active sessions + history, including station/point/vehicle snapshots
 - `incidents`: operational issues (auto-detected or user/admin reported)
 - `telemetry`: time-series telemetry events for diagnostics/troubleshooting (retained for limited time)
@@ -166,10 +166,7 @@ Station documents are optimized for **map/search/listing** reads:
   _id: ObjectId("65c8f2e2d2f4c3a9b3b9b001"),
   stationCode: "station-001",
   name: "Downtown Mall Charging",
-  operator: {
-    operatorId: ObjectId("65c8f2e2d2f4c3a9b3b9c001"),
-    name: "CityCharge"
-  },
+  operator: "CityCharge",
 
   location: { type: "Point", coordinates: [8.5417, 47.3769] }, // [lon, lat]
   address: {
@@ -206,10 +203,10 @@ Station documents are optimized for **map/search/listing** reads:
   chargingPoints: [
     {
       chargingPointId: ObjectId("65c8f2e2d2f4c3a9b3b9b101"),
-      power: { maxKw: 150, currentType: "DC" }, // AC | DC
-      connectorTypes: ["CCS", "TYPE2"],
-      powerBucket: "DC_150", // e.g., AC_22 | DC_50 | DC_150
-
+      connectors: [
+        { type: "CCS", power: 150, tethered: true },
+        { type: "TYPE2", power: 22, tethered: false }
+      ],
       // Optional flags (denormalized from chargingPoints.status.*)
       // NOTE: these change more often; include only if it materially improves search UX
       availableNow: false,
@@ -226,11 +223,6 @@ Station documents are optimized for **map/search/listing** reads:
     lastComputedAt: ISODate("2026-02-12T08:12:00Z")
   },
 
-  // Free-text search helpers (optional)
-  search: {
-    tags: ["city center", "shopping", "fast charging"]
-  },
-
   createdAt: ISODate("2026-01-10T09:00:00Z"),
   updatedAt: ISODate("2026-02-12T08:12:00Z")
 }
@@ -239,7 +231,6 @@ Station documents are optimized for **map/search/listing** reads:
 ### 4.4 `chargingPoints`
 
 Charging points are optimized for the **station detail panel** and operational monitoring.
-They store **computed latest telemetry** and minimal reservation summaries.
 
 ```js
 {
@@ -247,43 +238,17 @@ They store **computed latest telemetry** and minimal reservation summaries.
   stationId: ObjectId("65c8f2e2d2f4c3a9b3b9b001"),
   chargingPointCode: "cp_station-001_01",
   label: "Bay 1",
-  evseId: "CH*CITY*E12345*1",
-
-  power: {
-    maxKw: 150,
-    currentType: "DC" // AC | DC
-  },
+  evseId: "DE*CITY*E12345*1",
 
   connectors: [
-    { connectorId: "c1", type: "CCS", maxKw: 150 },
-    { connectorId: "c2", type: "TYPE2", maxKw: 22 }
+    { type: "CCS", current: "DC", power: 150, tethered: true },
+    { type: "TYPE2", current: "AC", power: 22, tethered: false }
   ],
 
   status: {
     operational: "OPERATIONAL",     // OPERATIONAL | MAINTENANCE | BROKEN | OFFLINE
     availability: "AVAILABLE",      // AVAILABLE | RESERVED | CHARGING | OUT_OF_SERVICE
     updatedAt: ISODate("2026-02-12T08:12:00Z")
-  },
-
-  // Computed Pattern: derived from telemetry + sessions
-  telemetry: {
-    lastHeartbeatAt: ISODate("2026-02-12T08:11:58Z"),
-    lastOkAt: ISODate("2026-02-12T08:11:58Z"),
-    lastSample: {
-      timestamp: ISODate("2026-02-12T08:11:58Z"),
-      powerKw: 0.0,
-      energyKwhDelta: 0.0,
-      temperatureC: 31.2,
-      errorCodes: []
-    }
-  },
-
-  // Session linkage (bounded)
-  currentSessionId: null, // set when CHARGING
-  nextReservation: {
-    sessionId: ObjectId("65c8f2e2d2f4c3a9b3b9d001"),
-    startsAt: ISODate("2026-02-12T09:00:00Z"),
-    endsAt: ISODate("2026-02-12T10:00:00Z")
   },
 
   // Optional override; else station.pricing.defaultTariff applies
@@ -316,9 +281,10 @@ Sessions represent **bookings + active + completed** charging activity. They inc
   },
   chargingPointSnapshot: {
     label: "Bay 1",
-    powerMaxKw: 150,
-    currentType: "DC",
-    connectorTypes: ["CCS", "TYPE2"]
+    connectors: [
+      { type: "CCS", power: 150, tethered: true },
+      { type: "TYPE2", power: 22, tethered: false }
+    ]
   },
   vehicleSnapshot: {
     vinLast6: "000001",
@@ -405,7 +371,7 @@ This should be implemented as a **time-series** collection with retention (TTL) 
     // Optional: helpful for integration/log correlation
     stationCode: "station-001",
     chargingPointCode: "cp_station-001_01",
-    evseId: "CH*CITY*E12345*1"
+    evseId: "DE*CITY*E12345*1"
   },
 
   messageType: "HEARTBEAT", // HEARTBEAT | SAMPLE | SESSION_SAMPLE | FAULT
@@ -431,7 +397,7 @@ Below are recommended indexes. Adjust to actual query patterns and volumes.
 
 - **Geo**: nearby stations for map view
 - **Text**: free-text search (if not using Atlas Search)
-- **Capability filters**: fast filtering by connector types / power / AC/DC without joining into `chargingPoints`
+- **Capability filters**: fast filtering by connector type without joining into `chargingPoints`
 
 ```js
 db.chargingStations.createIndex({ location: "2dsphere" });
@@ -440,11 +406,9 @@ db.chargingStations.createIndex({
   name: "text",
   "address.street": "text",
   "address.city": "text",
-  "search.tags": "text",
 });
 db.chargingStations.createIndex({ "availability.availableNowPoints": -1 });
-db.chargingStations.createIndex({ "chargingPoints.connectorTypes": 1 });
-db.chargingStations.createIndex({ "chargingPoints.powerBucket": 1 });
+db.chargingStations.createIndex({ "chargingPoints.connectors.type": 1 });
 db.chargingStations.createIndex({ "chargingPoints.availableNow": 1 });
 db.chargingStations.createIndex({ "chargingPoints.outOfService": 1 });
 ```
@@ -462,13 +426,8 @@ db.chargingPoints.createIndex({
   "status.operational": 1,
   "status.availability": 1,
 });
-db.chargingPoints.createIndex({
-  stationId: 1,
-  "power.currentType": 1,
-  "power.maxKw": -1,
-});
 db.chargingPoints.createIndex({ stationId: 1, "connectors.type": 1 });
-db.chargingPoints.createIndex({ "telemetry.lastHeartbeatAt": -1 });
+db.chargingPoints.createIndex({ stationId: 1, "connectors.power": -1 });
 ```
 
 ### 5.3 `chargingSessions`
@@ -535,8 +494,6 @@ db.telemetry.createIndex(
 
 - **Computed Pattern**:
   - `chargingStations.availability.*` for map bubble counts
-  - `chargingPoints.telemetry.lastHeartbeatAt` + `status.*` derived from telemetry/session transitions
-  - `chargingPoints.nextReservation` and `currentSessionId` to avoid scanning many sessions for common UI reads
 - **Extended Reference Pattern**:
   - `chargingSessions.stationSnapshot`, `chargingPointSnapshot`, `vehicleSnapshot` so session list/detail doesn’t need `$lookup`
 - **Extended Reference Pattern (search projection)**:
@@ -560,16 +517,11 @@ Solution: use the **Extended Reference Pattern** to store a **bounded projection
 
 Include fields that **don’t change frequently**:
 
-- connector types (e.g., `["CCS","TYPE2"]`)
-- AC/DC (`currentType`)
-- max power kW
-- optional “buckets” used for filters (e.g., `DC_50`, `DC_150`)
+- `connectors[]` with `type`, `power`, `tethered` per connector
 
 Exclude fields that change often:
 
-- telemetry heartbeat timestamps / samples
 - `availability` / `operational` status if driven by telemetry (unless you explicitly accept higher update frequency)
-- `nextReservation` / `currentSessionId`
 
 ### 6.1.2 Document shape
 
@@ -584,16 +536,15 @@ Exclude fields that change often:
   chargingPoints: [
     {
       chargingPointId: ObjectId("65c8f2e2d2f4c3a9b3b9b101"),
-      power: { maxKw: 150, currentType: "DC" },
-      connectorTypes: ["CCS", "TYPE2"],
-      powerBucket: "DC_150",
+      connectors: [
+        { type: "CCS", power: 150, tethered: true },
+        { type: "TYPE2", power: 22, tethered: false }
+      ],
       availableNow: false,
       outOfService: false
     }
     // ... bounded by number of points in this station ...
-  ],
-
-  // (No searchSummary needed if you query directly on chargingPoints.*)
+  ]
 }
 ```
 
@@ -603,12 +554,13 @@ Exclude fields that change often:
   - query `chargingStations` using:
     - `location` (geo)
     - station text/amenities
-    - `chargingPoints.connectorTypes`, `chargingPoints.powerBucket`
+    - `chargingPoints.connectors.type`, `chargingPoints.connectors.power`
     - optionally `chargingPoints.availableNow` / `chargingPoints.outOfService`
   - return station list + `availability.availableNowPoints` for map bubbles
 
 - **Station details**:
   - load live point state from `chargingPoints.find({ stationId })`
+  - sort by `label` / `connectors.power`
 
 - **Availability by date/time**:
   - use station search to narrow candidates
@@ -633,18 +585,17 @@ Because `chargingPoints[]` contains stable capability data, you can keep it corr
     - `chargingPoints.*`
   - then, when the user opens a station, query `chargingPoints` for live operational state and availability.
 - **Station detail**:
-  - `chargingStations.findOne({_id})` + `chargingPoints.find({stationId})` sorted by `label` / `power.maxKw`.
+  - `chargingStations.findOne({_id})` + `chargingPoints.find({stationId})` sorted by `label` / `connectors.power`.
 - **Booking a point**:
   - perform overlap check in `chargingSessions` using the point/time window
   - insert a session with `status: "BOOKED"`
-  - update `chargingPoints.nextReservation` (best-effort computed field)
   - optionally update station computed availability
 
 ### 7.2 View 2 — Sessions (history, booked, active) + details
 
 - **List sessions**: `chargingSessions.find({ userId })` with status/time filters + pagination.
 - **Details**: load one `chargingSessions` document; use snapshots to render station/point/vehicle info without joins.
-- **Cancel**: update session status to `CANCELED`; recompute `chargingPoints.nextReservation` for that point (e.g., by querying the next future booking).
+- **Cancel**: update session status to `CANCELED`.
 
 ### 7.3 View 3 — Admin
 
@@ -663,15 +614,14 @@ Because `chargingPoints[]` contains stable capability data, you can keep it corr
 On each telemetry insert:
 
 - insert event into `telemetry`
-- update `chargingPoints.telemetry.lastHeartbeatAt` and `telemetry.lastSample`
 - if message indicates error, set `chargingPoints.status.operational = "BROKEN"` and open an `incidents` record (if not already open)
 
 ### 8.2 Heartbeat monitor job (recommended)
 
 Run periodically (e.g., every minute):
 
-- find points where `telemetry.lastHeartbeatAt < now - threshold`
-- set `status.operational = "OFFLINE"` or `"BROKEN"` depending on policy
+- query `telemetry` to find charging points with no recent events (e.g., `max(timestamp) < now - threshold` per point)
+- for those points, set `chargingPoints.status.operational = "OFFLINE"` or `"BROKEN"` depending on policy
 - open/update `incidents` of type `NO_HEARTBEAT`
 
 This avoids relying on TTL or missing inserts as a detection mechanism.

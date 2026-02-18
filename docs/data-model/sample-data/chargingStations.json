@@ -3,10 +3,7 @@
     "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9b001" },
     "stationCode": "station-001",
     "name": "Downtown Mall Charging",
-    "operator": {
-      "operatorId": { "$oid": "65c8f2e2d2f4c3a9b3b9c001" },
-      "name": "CityCharge"
-    },
+    "operator": "CityCharge",
     "location": { "type": "Point", "coordinates": [8.5417, 47.3769] },
     "address": {
       "street": "Main St 10",
@@ -41,17 +38,16 @@
     "chargingPoints": [
       {
         "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b101" },
-        "power": { "maxKw": 150, "currentType": "DC" },
-        "connectorTypes": ["CCS", "TYPE2"],
-        "powerBucket": "DC_150",
+        "connectors": [
+          { "type": "CCS", "power": 150, "tethered": true },
+          { "type": "TYPE2", "power": 22, "tethered": false }
+        ],
         "availableNow": false,
         "outOfService": false
       },
       {
         "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b102" },
-        "power": { "maxKw": 22, "currentType": "AC" },
-        "connectorTypes": ["TYPE2"],
-        "powerBucket": "AC_22",
+        "connectors": [{ "type": "TYPE2", "power": 22, "tethered": false }],
         "availableNow": true,
         "outOfService": false
       }
@@ -62,7 +58,6 @@
       "availableNowPoints": 1,
       "lastComputedAt": { "$date": "2026-02-12T08:12:00Z" }
     },
-    "search": { "tags": ["city center", "shopping", "fast charging"] },
     "createdAt": { "$date": "2026-01-10T09:00:00Z" },
     "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
   },
@@ -70,10 +65,7 @@
     "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9b002" },
     "stationCode": "station-002",
     "name": "Highway Service Area East",
-    "operator": {
-      "operatorId": { "$oid": "65c8f2e2d2f4c3a9b3b9c002" },
-      "name": "RoadFast"
-    },
+    "operator": "RoadFast",
     "location": { "type": "Point", "coordinates": [8.725, 47.47] },
     "address": {
       "street": "A1 Service Area East",
@@ -97,9 +89,7 @@
     "chargingPoints": [
       {
         "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b201" },
-        "power": { "maxKw": 300, "currentType": "DC" },
-        "connectorTypes": ["CCS"],
-        "powerBucket": "DC_300",
+        "connectors": [{ "type": "CCS", "power": 300, "tethered": true }],
         "availableNow": false,
         "outOfService": false
       }
@@ -110,7 +100,6 @@
       "availableNowPoints": 0,
       "lastComputedAt": { "$date": "2026-02-12T08:12:00Z" }
     },
-    "search": { "tags": ["highway", "ultra fast", "24/7"] },
     "createdAt": { "$date": "2026-01-05T07:30:00Z" },
     "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
   }

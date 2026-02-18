@@ -12,9 +12,10 @@
     },
     "chargingPointSnapshot": {
       "label": "Bay 1",
-      "powerMaxKw": 150,
-      "currentType": "DC",
-      "connectorTypes": ["CCS", "TYPE2"]
+      "connectors": [
+        { "type": "CCS", "power": 150, "tethered": true },
+        { "type": "TYPE2", "power": 22, "tethered": false }
+      ]
     },
     "vehicleSnapshot": {
       "vinLast6": "000002",
@@ -63,9 +64,7 @@
     },
     "chargingPointSnapshot": {
       "label": "Ultra 1",
-      "powerMaxKw": 300,
-      "currentType": "DC",
-      "connectorTypes": ["CCS"]
+      "connectors": [{ "type": "CCS", "power": 300, "tethered": true }]
     },
     "vehicleSnapshot": {
       "vinLast6": "000001",
@@ -114,9 +113,7 @@
     },
     "chargingPointSnapshot": {
       "label": "Bay 2",
-      "powerMaxKw": 22,
-      "currentType": "AC",
-      "connectorTypes": ["TYPE2"]
+      "connectors": [{ "type": "TYPE2", "power": 22, "tethered": false }]
     },
     "vehicleSnapshot": {
       "vinLast6": "000001",
