@@ -10,18 +10,154 @@
     margin: 0;
     padding: 0;
     font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    @apply bg-slate-50 text-slate-900;
+    background-color: rgb(248 250 252);
+    color: rgb(15 23 42);
   }
 
   main {
-    @apply max-w-[900px] mx-auto p-6;
+    max-width: 900px;
+    margin-inline: auto;
+    padding: 1.5rem;
+  }
+
+  [data-route="map"] main {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    height: 100%;
   }
 
   button {
-    @apply mr-2 px-3 py-2 border border-slate-300 rounded-md bg-white cursor-pointer;
+    margin-right: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid rgb(203 213 225);
+    border-radius: 0.375rem;
+    background-color: white;
+    cursor: pointer;
   }
 
   button:disabled {
-    @apply opacity-60 cursor-not-allowed;
+    opacity: 0.6;
+    cursor: not-allowed;
   }
+}
+
+@keyframes sim-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* Map station pins */
+.station-pin-wrapper,
+.cluster-marker-wrapper {
+  background: none !important;
+  border: none !important;
+  cursor: pointer;
+}
+
+.station-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.station-pin-box {
+  background: white;
+  border: 1px solid rgb(100 116 139);
+  border-radius: 6px;
+  padding: 4px 8px;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}
+
+.station-pin-content {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.station-pin-icon {
+  display: flex;
+  color: rgb(15 23 42);
+}
+
+.station-pin-fast-arrow {
+  color: rgb(37 99 235);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.station-pin-count {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.station-pin-available {
+  color: rgb(15 23 42);
+}
+
+.station-pin-sep {
+  color: rgb(100 116 139);
+}
+
+.station-pin-total {
+  color: rgb(34 197 94);
+}
+
+.station-pin-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(34 197 94);
+  margin-top: 2px;
+}
+
+/* Cluster markers */
+.cluster-marker-box {
+  background: white;
+  border: 1px solid rgb(203 213 225);
+  border-radius: 6px;
+  padding: 6px 10px;
+  min-width: 36px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}
+
+.cluster-marker-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgb(15 23 42);
+}
+
+/* Location pin (car icon) */
+.location-pin-wrapper {
+  background: none !important;
+  border: none !important;
+}
+
+.location-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.location-pin-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgb(71 85 105);
+  border: 3px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.3);
+}
+
+.location-pin-teardrop {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 14px solid rgb(71 85 105);
+  margin-top: -2px;
 }

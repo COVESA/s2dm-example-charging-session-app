@@ -49,6 +49,8 @@ __pycache__/
 coverage.xml
 htmlcov/
 .tox/
+simulator/data
+simulator/scripts/output/
 
 # Virtualenvs
 .venv/

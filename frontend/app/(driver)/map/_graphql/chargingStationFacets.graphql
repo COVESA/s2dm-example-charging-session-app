@@ -1,0 +1,17 @@
+query ChargingStationFacets {
+  chargingStationFacets {
+    connectorTypes {
+      type
+      count
+    }
+    powerRange {
+      min
+      max
+    }
+    priceRange {
+      min
+      max
+    }
+    availableNowCount
+  }
+}

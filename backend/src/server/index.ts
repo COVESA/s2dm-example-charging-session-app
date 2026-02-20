@@ -20,6 +20,11 @@ const loadTypeDefs = async (): Promise<string> => {
 const startServer = async (): Promise<void> => {
   const db = await connectMongo();
 
+  await db.collection("chargingStations").createIndex(
+    { location: "2dsphere" },
+    { name: "location_2dsphere" }
+  ).catch(() => {});
+
   const app = express();
   app.use(express.json());
 

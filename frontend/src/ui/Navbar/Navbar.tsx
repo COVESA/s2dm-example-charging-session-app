@@ -7,11 +7,14 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useUserContext } from "@/contexts/UserContext";
+import { useSimulatorControls } from "@/hooks/useSimulatorControls";
 import {
   UsersDocument,
   UserRole,
   type User
 } from "@/graphql/generated/graphql";
+
+import { SimulatorControl } from "./SimulatorControl";
 
 const NAV_LINKS = [
   { href: "/map", label: "Station Finder" },
@@ -35,6 +38,7 @@ export function Navbar() {
   const pathname = usePathname();
   const { data, loading } = useQuery(UsersDocument);
   const { selectedUser, setSelectedUser } = useUserContext();
+  const { status, pending, error, toggle } = useSimulatorControls();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -73,7 +77,7 @@ export function Navbar() {
       <div className="flex-shrink-0">
         <Link
           href="/"
-          className="flex items-center gap-3 text-inherit no-underline hover:opacity-85"
+          className="flex cursor-pointer items-center gap-3 text-inherit no-underline"
         >
           <Image
             src="/logo.png"
@@ -104,8 +108,15 @@ export function Navbar() {
         ))}
       </nav>
 
-      <div className="flex-shrink-0" ref={dropdownRef}>
-        <div className="relative">
+      <div className="flex flex-shrink-0 items-center gap-6">
+        <SimulatorControl
+          status={status}
+          pending={pending}
+          error={error}
+          onToggle={toggle}
+        />
+        <div ref={dropdownRef}>
+          <div className="relative">
           <button
             type="button"
             onClick={() => setIsOpen((prev) => !prev)}
@@ -179,6 +190,7 @@ export function Navbar() {
               ))}
             </ul>
           )}
+          </div>
         </div>
       </div>
     </header>

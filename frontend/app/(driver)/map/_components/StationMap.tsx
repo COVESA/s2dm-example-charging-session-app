@@ -1,0 +1,143 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { MapContainer, TileLayer } from "react-leaflet";
+import { useMap } from "react-leaflet";
+import { useMapBounds } from "../_hooks/useMapBounds";
+import { useChargingStationsQuery } from "../_hooks/useChargingStationsQuery";
+import { useStationClusters } from "../_hooks/useStationClusters";
+import type { MapStation } from "../_hooks/useChargingStationsQuery";
+import { StationPin } from "./StationPin";
+import { ClusterMarker } from "./ClusterMarker";
+import { LocationPin } from "./LocationPin";
+import type { ChargingStationFiltersInput } from "@/graphql/generated/graphql";
+
+const MARIENPLATZ: [number, number] = [48.1374, 11.5755];
+const DEFAULT_ZOOM = 16;
+const MAP_MAX_ZOOM = 19;
+
+interface StationsLayerProps {
+  filters: ChargingStationFiltersInput | undefined;
+  locationPin: { lat: number; lng: number } | null;
+}
+
+interface FocusControllerProps {
+  focusLocation: { lat: number; lng: number } | null;
+  focusRequestId: number;
+}
+
+function MapFocusController({ focusLocation, focusRequestId }: FocusControllerProps) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!focusLocation) return;
+    map.setView([focusLocation.lat, focusLocation.lng], DEFAULT_ZOOM, {
+      animate: false
+    });
+  }, [focusLocation, focusRequestId, map]);
+
+  return null;
+}
+
+function StationsLayer({ filters, locationPin }: StationsLayerProps) {
+  const { bounds, zoom } = useMapBounds();
+  const {
+    stations,
+    serverClusters,
+    isServerClustered,
+  } = useChargingStationsQuery(bounds, zoom, filters);
+  const clientClusters = useStationClusters(
+    stations,
+    bounds ? [bounds.minLng, bounds.minLat, bounds.maxLng, bounds.maxLat] : undefined,
+    zoom
+  );
+
+  return (
+    <>
+      {locationPin && (
+        <LocationPin lat={locationPin.lat} lng={locationPin.lng} />
+      )}
+      {isServerClustered
+        ? serverClusters.map((cluster) => (
+            <ClusterMarker
+              key={`cluster-${cluster.id}`}
+              lat={cluster.lat}
+              lng={cluster.lng}
+              count={cluster.count}
+            />
+          ))
+        : clientClusters.map((cluster) => {
+            const [lng, lat] = cluster.geometry.coordinates;
+            const props = cluster.properties as {
+              cluster?: boolean;
+              point_count?: number;
+            } & MapStation;
+
+            if (props.cluster && props.point_count !== undefined) {
+              return (
+                <ClusterMarker
+                  key={`cluster-${cluster.id}`}
+                  lat={lat}
+                  lng={lng}
+                  count={props.point_count}
+                />
+              );
+            }
+
+            const station = props as MapStation;
+            return <StationPin key={station.id} station={station} />;
+          })}
+    </>
+  );
+}
+
+interface StationMapProps {
+  filters: ChargingStationFiltersInput | undefined;
+  locationPin: { lat: number; lng: number } | null;
+  focusRequestId: number;
+}
+
+export function StationMap({ filters, locationPin, focusRequestId }: StationMapProps) {
+  const [mounted, setMounted] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || typeof window === "undefined") {
+    return (
+      <div className="h-full min-h-[400px] w-full bg-slate-100 animate-pulse" aria-hidden="true" />
+    );
+  }
+
+  return (
+    <div className="h-full w-full">
+      <MapContainer
+        center={MARIENPLATZ}
+        zoom={DEFAULT_ZOOM}
+        maxZoom={MAP_MAX_ZOOM}
+        className="h-full w-full"
+        scrollWheelZoom
+        zoomControl={false}
+        whenReady={() => setMapReady(true)}
+      >
+        {mapReady && (
+          <>
+            <TileLayer
+              attribution='&copy; OpenStreetMap contributors &copy; CARTO'
+              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+              subdomains="abcd"
+              maxZoom={MAP_MAX_ZOOM}
+            />
+            <MapFocusController
+              focusLocation={locationPin}
+              focusRequestId={focusRequestId}
+            />
+            <StationsLayer filters={filters} locationPin={locationPin} />
+          </>
+        )}
+      </MapContainer>
+    </div>
+  );
+}

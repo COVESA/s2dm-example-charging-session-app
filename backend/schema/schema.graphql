@@ -10,8 +10,82 @@ type User {
   roles: [UserRole!]!
 }
 
+# Geo types
+type GeoPoint {
+  lat: Float!
+  lng: Float!
+}
+
+# Map-optimized station (matches data model availability + pricing)
+type ChargingStation {
+  id: ID!
+  name: String!
+  stationCode: String!
+  location: GeoPoint!
+  availability: StationAvailability!
+  priceCentsPerKwh: Int!
+  hasFastCharging: Boolean!
+  connectorTypes: [String!]!
+  maxPowerKw: Float!
+}
+
+type StationAvailability {
+  totalPoints: Int!
+  availableNowPoints: Int!
+}
+
+# Facet types for filter options (from MongoDB aggregation)
+type ConnectorFacet {
+  type: String!
+  count: Int!
+}
+
+type NumericRange {
+  min: Float!
+  max: Float!
+}
+
+type ChargingStationFacets {
+  connectorTypes: [ConnectorFacet!]!
+  powerRange: NumericRange!
+  priceRange: NumericRange!
+  availableNowCount: Int!
+}
+
+# Filters for map query
+input ChargingStationFiltersInput {
+  connectorTypes: [String!]
+  minPowerKw: Float
+  maxPowerKw: Float
+  minPriceCentsPerKwh: Int
+  maxPriceCentsPerKwh: Int
+  availableNow: Boolean
+}
+
+# Bounds: [minLng, minLat, maxLng, maxLat]
+input BoundsInput {
+  minLng: Float!
+  minLat: Float!
+  maxLng: Float!
+  maxLat: Float!
+}
+
+# Server-side cluster for zoomed-out map view
+type StationCluster {
+  id: ID!
+  location: GeoPoint!
+  count: Int!
+}
+
+# Union: either individual stations or pre-aggregated clusters
+union MapItem = ChargingStation | StationCluster
+
 type Query {
-  hello: String!
-  simulationStatus: String!
   users: [User!]!
+  chargingStationsInBounds(
+    bounds: BoundsInput!
+    zoom: Int!
+    filters: ChargingStationFiltersInput
+  ): [MapItem!]!
+  chargingStationFacets: ChargingStationFacets!
 }

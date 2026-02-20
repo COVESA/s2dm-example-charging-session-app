@@ -1,0 +1,35 @@
+query ChargingStationsInBounds(
+  $bounds: BoundsInput!
+  $zoom: Int!
+  $filters: ChargingStationFiltersInput
+) {
+  chargingStationsInBounds(bounds: $bounds, zoom: $zoom, filters: $filters) {
+    ... on ChargingStation {
+      __typename
+      id
+      name
+      stationCode
+      location {
+        lat
+        lng
+      }
+      availability {
+        totalPoints
+        availableNowPoints
+      }
+      priceCentsPerKwh
+      hasFastCharging
+      connectorTypes
+      maxPowerKw
+    }
+    ... on StationCluster {
+      __typename
+      id
+      location {
+        lat
+        lng
+      }
+      count
+    }
+  }
+}
