@@ -1,0 +1,40 @@
+{
+  "bsonType": "object",
+  "required": ["timestamp", "meta", "messageType"],
+  "additionalProperties": true,
+  "properties": {
+    "_id": {
+      "bsonType": "objectId"
+    },
+    "timestamp": {
+      "bsonType": "date"
+    },
+    "meta": {
+      "bsonType": "object",
+      "additionalProperties": true,
+      "properties": {
+        "stationId": { "bsonType": "objectId" },
+        "chargingPointId": { "bsonType": "objectId" },
+        "stationCode": { "bsonType": "string" },
+        "chargingPointCode": { "bsonType": "string" },
+        "evseId": { "bsonType": "string" }
+      }
+    },
+    "messageType": {
+      "bsonType": "string",
+      "enum": ["HEARTBEAT", "SAMPLE", "SESSION_SAMPLE", "FAULT"]
+    },
+    "ok": {
+      "bsonType": "bool"
+    },
+    "powerKw": { "bsonType": "double" },
+    "energyKwhDelta": { "bsonType": "double" },
+    "voltageV": { "bsonType": "double" },
+    "currentA": { "bsonType": "double" },
+    "temperatureC": { "bsonType": "double" },
+    "errorCodes": {
+      "bsonType": "array",
+      "items": { "bsonType": "string" }
+    }
+  }
+}

@@ -628,13 +628,49 @@ This avoids relying on TTL or missing inserts as a detection mechanism.
 
 ---
 
-## 9. Optional schema validation (JSON Schema)
+## 9. Schema Validation Strategy
 
-For a demo, you can add lightweight validators to keep key invariants:
+### 9.1 Why enforce schema?
 
-- required fields (`stationId`, `status`, `timestamp`, etc.)
-- enumerated values (`status`, connector types)
-- correct types (dates as `Date`, money as `int`)
+Even in a flexible database like MongoDB, "schema-on-write" is critical for app stability, especially for core entities.
+
+- **Data Integrity**: Prevents "bad data" (e.g., negative prices, missing timestamps, string-as-number) from entering the system.
+- **Contract Enforcement**: Ensures the database matches the GraphQL type definitions (e.g., non-nullable fields are actually non-nullable).
+- **Bug Detection**: Catches backend logic errors early (e.g., simulator sending strings instead of numbers).
+
+### 9.2 Validation Strategy per Collection
+
+For this demo, we apply validation levels based on the collection's role:
+
+| Collection | Strictness | Validation Action | Rationale |
+| :--- | :--- | :--- | :--- |
+| `users`, `vehicles` | **High** | `error` | Low-volume, structured data. App logic depends heavily on fields like `role` or `connectorTypes`. |
+| `chargingStations`, `chargingPoints` | **High** | `error` | Core inventory. Incorrect coordinates or status enums would break the map/booking UI. |
+| `chargingSessions` | **High** | `error` | Financial/Booking records. Must be strictly validated to prevent billing errors or double bookings. |
+| `incidents` | **Medium** | `error` | structured core (type/status) + flexible `description`. |
+| `telemetry` | **Core Strict** + **Flexible Payload** | `error` on core fields | **Real IoT Strategy**: Enforce core fields (`timestamp`, `stationId`, `messageType`) to ensure routing/indexing works, but allow `additionalProperties: true` for the measurement payload (`powerKw`, `voltageV`) so new sensors or firmware versions can send extra data without breaking ingestion. |
+
+### 9.3 Implementation
+
+We use MongoDB's native JSON Schema validation. The schema definitions are located in `docs/data-model/schemas/*.json` and use BSON types (`int`, `double`, `objectId`, `date`) instead of standard JSON types to match the storage engine.
+
+Example `chargingPoints` validation rule:
+```javascript
+{
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["status", "connectors"],
+    properties: {
+      status: {
+        bsonType: "object",
+        properties: {
+          operational: { enum: ["OPERATIONAL", "MAINTENANCE", "BROKEN", "OFFLINE"] }
+        }
+      }
+    }
+  }
+}
+```
 
 ---
 

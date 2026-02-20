@@ -1,0 +1,67 @@
+{
+  "bsonType": "object",
+  "required": ["stationId", "chargingPointCode", "connectors", "status", "createdAt"],
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "bsonType": "objectId"
+    },
+    "stationId": {
+      "bsonType": "objectId"
+    },
+    "chargingPointCode": {
+      "bsonType": "string"
+    },
+    "label": {
+      "bsonType": "string"
+    },
+    "evseId": {
+      "bsonType": "string"
+    },
+    "connectors": {
+      "bsonType": "array",
+      "items": {
+        "bsonType": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": { "bsonType": "string" },
+          "current": { "bsonType": "string", "enum": ["AC", "DC"] },
+          "power": { "bsonType": "double" },
+          "tethered": { "bsonType": "bool" }
+        }
+      }
+    },
+    "status": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operational": {
+          "bsonType": "string",
+          "enum": ["OPERATIONAL", "MAINTENANCE", "BROKEN", "OFFLINE"]
+        },
+        "availability": {
+          "bsonType": "string",
+          "enum": ["AVAILABLE", "RESERVED", "CHARGING", "OUT_OF_SERVICE"]
+        },
+        "updatedAt": { "bsonType": "date" }
+      }
+    },
+    "pricingOverride": {
+      "bsonType": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "currency": { "bsonType": "string" },
+        "defaultTariff": {
+          "bsonType": "object",
+          "additionalProperties": false,
+          "properties": {
+            "priceCentsPerKwh": { "bsonType": "int" },
+            "priceCentsPerMinuteIdleAfterMinutes": { "bsonType": "int" }
+          }
+        }
+      }
+    },
+    "createdAt": { "bsonType": "date" },
+    "updatedAt": { "bsonType": "date" }
+  }
+}

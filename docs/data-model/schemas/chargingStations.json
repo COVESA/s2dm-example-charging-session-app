@@ -1,0 +1,135 @@
+{
+  "bsonType": "object",
+  "required": ["stationCode", "name", "location", "chargingPoints", "availability", "createdAt"],
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "bsonType": "objectId"
+    },
+    "stationCode": {
+      "bsonType": "string"
+    },
+    "name": {
+      "bsonType": "string"
+    },
+    "operator": {
+      "bsonType": "string"
+    },
+    "location": {
+      "bsonType": "object",
+      "required": ["type", "coordinates"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "bsonType": "string",
+          "enum": ["Point"]
+        },
+        "coordinates": {
+          "bsonType": "array",
+          "items": {
+            "bsonType": "double"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "address": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "street": { "bsonType": "string" },
+        "city": { "bsonType": "string" },
+        "country": { "bsonType": "string" },
+        "postalCode": { "bsonType": "string" }
+      }
+    },
+    "timezone": {
+      "bsonType": "string"
+    },
+    "characteristics": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "parkingType": {
+          "bsonType": "string",
+          "enum": ["PUBLIC", "PRIVATE", "CUSTOMER_ONLY"]
+        },
+        "amenities": {
+          "bsonType": "array",
+          "items": { "bsonType": "string" }
+        },
+        "access": {
+          "bsonType": "object",
+          "additionalProperties": false,
+          "properties": {
+            "open24h": { "bsonType": "bool" },
+            "openingHours": {
+              "bsonType": "array",
+              "items": {
+                "bsonType": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "day": { "bsonType": "string" },
+                  "open": { "bsonType": "string" },
+                  "close": { "bsonType": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "pricing": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "currency": { "bsonType": "string" },
+        "defaultTariff": {
+          "bsonType": "object",
+          "additionalProperties": false,
+          "properties": {
+            "priceCentsPerKwh": { "bsonType": "int" },
+            "priceCentsPerMinuteIdleAfterMinutes": { "bsonType": "int" }
+          }
+        }
+      }
+    },
+    "chargingPoints": {
+      "bsonType": "array",
+      "items": {
+        "bsonType": "object",
+        "additionalProperties": false,
+        "properties": {
+          "chargingPointId": { "bsonType": "objectId" },
+          "connectors": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "object",
+              "additionalProperties": false,
+              "properties": {
+                "type": { "bsonType": "string" },
+                "power": { "bsonType": "double" },
+                "tethered": { "bsonType": "bool" }
+              }
+            }
+          },
+          "availableNow": { "bsonType": "bool" },
+          "outOfService": { "bsonType": "bool" }
+        }
+      }
+    },
+    "availability": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "totalPoints": { "bsonType": "int" },
+        "operationalPoints": { "bsonType": "int" },
+        "availableNowPoints": { "bsonType": "int" },
+        "lastComputedAt": { "bsonType": "date" }
+      }
+    },
+    "createdAt": { "bsonType": "date" },
+    "updatedAt": { "bsonType": "date" }
+  }
+}

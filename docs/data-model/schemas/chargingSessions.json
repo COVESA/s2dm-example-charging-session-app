@@ -1,0 +1,120 @@
+{
+  "bsonType": "object",
+  "required": ["userId", "vehicleId", "stationId", "chargingPointId", "status", "booking", "createdAt"],
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "bsonType": "objectId"
+    },
+    "userId": {
+      "bsonType": "objectId"
+    },
+    "vehicleId": {
+      "bsonType": "objectId"
+    },
+    "stationId": {
+      "bsonType": "objectId"
+    },
+    "chargingPointId": {
+      "bsonType": "objectId"
+    },
+    "stationSnapshot": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "bsonType": "string" },
+        "location": {
+          "bsonType": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": { "bsonType": "string", "enum": ["Point"] },
+            "coordinates": { "bsonType": "array", "items": { "bsonType": "double" }, "minItems": 2, "maxItems": 2 }
+          }
+        },
+        "addressShort": { "bsonType": "string" }
+      }
+    },
+    "chargingPointSnapshot": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": { "bsonType": "string" },
+        "connectors": {
+          "bsonType": "array",
+          "items": {
+            "bsonType": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": { "bsonType": "string" },
+              "power": { "bsonType": "double" },
+              "tethered": { "bsonType": "bool" }
+            }
+          }
+        }
+      }
+    },
+    "vehicleSnapshot": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "vinLast6": { "bsonType": "string" },
+        "make": { "bsonType": "string" },
+        "model": { "bsonType": "string" },
+        "connectorTypes": { "bsonType": "array", "items": { "bsonType": "string" } }
+      }
+    },
+    "status": {
+      "bsonType": "string",
+      "enum": ["BOOKED", "ACTIVE", "COMPLETED", "CANCELED", "NO_SHOW", "FAILED"]
+    },
+    "booking": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bookedAt": { "bsonType": "date" },
+        "scheduledStartAt": { "bsonType": "date" },
+        "scheduledEndAt": { "bsonType": "date" },
+        "canceledAt": { "bsonType": ["date", "null"] },
+        "cancelReason": { "bsonType": ["string", "null"] }
+      }
+    },
+    "charging": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "startedAt": { "bsonType": ["date", "null"] },
+        "endedAt": { "bsonType": ["date", "null"] },
+        "meterStartKwh": { "bsonType": ["double", "null"] },
+        "meterStopKwh": { "bsonType": ["double", "null"] },
+        "energyDeliveredKwh": { "bsonType": ["double", "null"] }
+      }
+    },
+    "pricingSnapshot": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "currency": { "bsonType": "string" },
+        "priceCentsPerKwh": { "bsonType": "int" },
+        "idleFee": {
+          "bsonType": "object",
+          "additionalProperties": false,
+          "properties": {
+            "priceCentsPerMinute": { "bsonType": "int" },
+            "afterMinutes": { "bsonType": "int" }
+          }
+        }
+      }
+    },
+    "cost": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "totalCents": { "bsonType": ["int", "null"] },
+        "energyCents": { "bsonType": ["int", "null"] },
+        "idleCents": { "bsonType": ["int", "null"] }
+      }
+    },
+    "createdAt": { "bsonType": "date" },
+    "updatedAt": { "bsonType": "date" }
+  }
+}

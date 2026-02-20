@@ -1,0 +1,51 @@
+{
+  "bsonType": "object",
+  "required": ["type", "severity", "status", "stationId", "createdAt"],
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "bsonType": "objectId"
+    },
+    "createdAt": { "bsonType": "date" },
+    "updatedAt": { "bsonType": "date" },
+    "type": {
+      "bsonType": "string",
+      "enum": ["NO_HEARTBEAT", "CONNECTOR_FAULT", "POWER_DERATE", "USER_REPORT", "MAINTENANCE"]
+    },
+    "severity": {
+      "bsonType": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    },
+    "status": {
+      "bsonType": "string",
+      "enum": ["OPEN", "ACKNOWLEDGED", "RESOLVED"]
+    },
+    "stationId": {
+      "bsonType": "objectId"
+    },
+    "chargingPointId": {
+      "bsonType": ["objectId", "null"]
+    },
+    "sessionId": {
+      "bsonType": ["objectId", "null"]
+    },
+    "detection": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": { "bsonType": "string", "enum": ["SYSTEM", "ADMIN", "USER"] },
+        "rule": { "bsonType": "string" }
+      }
+    },
+    "description": { "bsonType": "string" },
+    "resolution": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "resolvedAt": { "bsonType": ["date", "null"] },
+        "resolvedByUserId": { "bsonType": ["objectId", "null"] },
+        "notes": { "bsonType": ["string", "null"] }
+      }
+    }
+  }
+}
