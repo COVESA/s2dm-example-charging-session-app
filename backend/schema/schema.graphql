@@ -32,6 +32,7 @@ type ChargingStation {
 type StationAvailability {
   totalPoints: Int!
   availableNowPoints: Int!
+  operationalPoints: Int!
 }
 
 # Facet types for filter options (from MongoDB aggregation)

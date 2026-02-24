@@ -53,6 +53,12 @@
   background: none !important;
   border: none !important;
   cursor: pointer;
+  /* Ensure content aligns to bottom so expansion goes upwards */
+  display: flex !important;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  overflow: visible !important;
 }
 
 .station-pin {
@@ -61,13 +67,58 @@
   align-items: center;
 }
 
+/* Speech balloon: rounded box with subtle tail pointing down */
 .station-pin-box {
+  position: relative;
   background: white;
-  border: 1px solid rgb(100 116 139);
-  border-radius: 6px;
-  padding: 4px 8px;
+  border: none;
+  border-radius: 8px;
+  /* Remove padding here, move to clipper/content to avoid animation jumps if needed, 
+     but keeping it here is fine if we animate dimensions including padding. */
+  padding: 4px 8px; 
   white-space: nowrap;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+  /* Subtle shadow to compensate for lack of border and lift off map */
+  box-shadow: 0 2px 8px -1px rgb(0 0 0 / 0.15), 0 0 1px rgb(0 0 0 / 0.1);
+  /* Ensure centering logic works with width animation */
+  margin: 0 auto; 
+}
+
+.station-pin-clipper {
+  overflow: hidden;
+  /* Ensure content layout doesn't break during resize */
+  display: flex;
+  flex-direction: column;
+}
+
+.station-pin-box::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid white;
+  /* Match the box shadow intensity on the tail */
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.1));
+}
+
+.station-pin-box-expanded {
+  /* Animate width and height for a "grow" effect */
+  animation: expandBubble 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes expandBubble {
+  0% {
+    width: 80px;
+    height: 36px;
+  }
+  100% {
+    width: 200px;
+    height: 110px;
+  }
 }
 
 .station-pin-content {
@@ -78,7 +129,18 @@
 
 .station-pin-icon {
   display: flex;
-  color: rgb(15 23 42);
+}
+
+.station-pin-icon-green {
+  color: rgb(34 197 94);
+}
+
+.station-pin-icon-light-green {
+  color: rgb(134 239 172);
+}
+
+.station-pin-icon-gray {
+  color: rgb(100 116 139);
 }
 
 .station-pin-fast-arrow {
@@ -92,16 +154,16 @@
   font-weight: 500;
 }
 
-.station-pin-available {
-  color: rgb(15 23 42);
-}
-
-.station-pin-sep {
-  color: rgb(100 116 139);
-}
-
+.station-pin-available,
+.station-pin-sep,
 .station-pin-total {
   color: rgb(34 197 94);
+}
+
+.station-pin-maintenance .station-pin-available,
+.station-pin-maintenance .station-pin-sep,
+.station-pin-maintenance .station-pin-total {
+  color: rgb(100 116 139);
 }
 
 .station-pin-dot {
@@ -110,6 +172,44 @@
   border-radius: 50%;
   background: rgb(34 197 94);
   margin-top: 2px;
+}
+
+.station-pin-expanded {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgb(203 213 225);
+  /* Fade in the content to prevent it from showing before the bubble expands */
+  opacity: 0;
+  animation: contentFadeIn 0.2s ease-out 0.1s forwards;
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.station-pin-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(15 23 42);
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.station-pin-meta {
+  font-size: 11px;
+  color: rgb(100 116 139);
+}
+
+.station-pin-fast {
+  margin-left: 6px;
+  color: rgb(37 99 235);
 }
 
 /* Cluster markers */

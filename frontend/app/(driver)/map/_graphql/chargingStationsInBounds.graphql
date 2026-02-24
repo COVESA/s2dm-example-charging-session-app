@@ -16,6 +16,7 @@ query ChargingStationsInBounds(
       availability {
         totalPoints
         availableNowPoints
+        operationalPoints
       }
       priceCentsPerKwh
       hasFastCharging

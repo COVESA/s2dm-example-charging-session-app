@@ -16,7 +16,7 @@ export type ChargingStationForMap = {
   name: string;
   stationCode: string;
   location: { lat: number; lng: number };
-  availability: { totalPoints: number; availableNowPoints: number };
+  availability: { totalPoints: number; availableNowPoints: number; operationalPoints: number };
   priceCentsPerKwh: number;
   hasFastCharging: boolean;
   connectorTypes: string[];
@@ -52,7 +52,8 @@ function mapDocToGraphQL(doc: ChargingStationDoc): ChargingStationForMap {
     location: { lat, lng },
     availability: {
       totalPoints: doc.availability?.totalPoints ?? 0,
-      availableNowPoints: doc.availability?.availableNowPoints ?? 0
+      availableNowPoints: doc.availability?.availableNowPoints ?? 0,
+      operationalPoints: doc.availability?.operationalPoints ?? 0
     },
     priceCentsPerKwh,
     hasFastCharging,
@@ -77,7 +78,7 @@ export type StationClusterForMap = {
 };
 
 export type MapItemResult =
-  | { __typename: "ChargingStation"; id: string; name: string; stationCode: string; location: { lat: number; lng: number }; availability: { totalPoints: number; availableNowPoints: number }; priceCentsPerKwh: number; hasFastCharging: boolean; connectorTypes: string[]; maxPowerKw: number }
+  | { __typename: "ChargingStation"; id: string; name: string; stationCode: string; location: { lat: number; lng: number }; availability: { totalPoints: number; availableNowPoints: number; operationalPoints: number }; priceCentsPerKwh: number; hasFastCharging: boolean; connectorTypes: string[]; maxPowerKw: number }
   | { __typename: "StationCluster"; id: string; location: { lat: number; lng: number }; count: number };
 
 export async function getChargingStationFacets(db: Db) {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer } from "react-leaflet";
+import { useEffect, useState, useRef, useMemo } from "react";
+import { MapContainer, TileLayer, useMapEvents } from "react-leaflet";
 import { useMap } from "react-leaflet";
 import { useMapBounds } from "../_hooks/useMapBounds";
 import { useChargingStationsQuery } from "../_hooks/useChargingStationsQuery";
@@ -19,6 +19,8 @@ const MAP_MAX_ZOOM = 19;
 interface StationsLayerProps {
   filters: ChargingStationFiltersInput | undefined;
   locationPin: { lat: number; lng: number } | null;
+  expandedStationId: string | null;
+  onStationClick: (stationId: string) => void;
 }
 
 interface FocusControllerProps {
@@ -39,7 +41,16 @@ function MapFocusController({ focusLocation, focusRequestId }: FocusControllerPr
   return null;
 }
 
-function StationsLayer({ filters, locationPin }: StationsLayerProps) {
+function MapClickHandler({ onMapClick }: { onMapClick: () => void }) {
+  useMapEvents({
+    click: onMapClick,
+    dragstart: onMapClick,
+  });
+  return null;
+}
+
+function StationsLayer({ filters, locationPin, expandedStationId, onStationClick }: StationsLayerProps) {
+  const map = useMap();
   const { bounds, zoom } = useMapBounds();
   const {
     stations,
@@ -51,6 +62,32 @@ function StationsLayer({ filters, locationPin }: StationsLayerProps) {
     bounds ? [bounds.minLng, bounds.minLat, bounds.maxLng, bounds.maxLat] : undefined,
     zoom
   );
+
+  const lastPannedId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!expandedStationId) {
+      lastPannedId.current = null;
+      return;
+    }
+
+    // Prevent re-panning if we already handled this station expansion
+    if (expandedStationId === lastPannedId.current) return;
+
+    const station = stations.find((s) => s.id === expandedStationId);
+    if (!station) return;
+
+    const point = map.latLngToContainerPoint([station.lat, station.lng]);
+    const bubbleTop = point.y - 120; // Expanded bubble height (~110px) + buffer
+    const topMargin = 80; // Navbar height + safe area (reduced from 150)
+
+    if (bubbleTop < topMargin) {
+      const offset = bubbleTop - topMargin;
+      map.panBy([0, offset], { animate: true });
+    }
+
+    lastPannedId.current = expandedStationId;
+  }, [expandedStationId, map, stations]);
 
   return (
     <>
@@ -85,7 +122,14 @@ function StationsLayer({ filters, locationPin }: StationsLayerProps) {
             }
 
             const station = props as MapStation;
-            return <StationPin key={station.id} station={station} />;
+            return (
+              <StationPin
+                key={station.id}
+                station={station}
+                isExpanded={expandedStationId === station.id}
+                onClick={() => onStationClick(station.id)}
+              />
+            );
           })}
     </>
   );
@@ -100,10 +144,19 @@ interface StationMapProps {
 export function StationMap({ filters, locationPin, focusRequestId }: StationMapProps) {
   const [mounted, setMounted] = useState(false);
   const [mapReady, setMapReady] = useState(false);
+  const [expandedStationId, setExpandedStationId] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleStationClick = (stationId: string) => {
+    setExpandedStationId((prev) => (prev === stationId ? null : stationId));
+  };
+
+  const handleMapClick = () => {
+    setExpandedStationId(null);
+  };
 
   if (!mounted || typeof window === "undefined") {
     return (
@@ -134,7 +187,13 @@ export function StationMap({ filters, locationPin, focusRequestId }: StationMapP
               focusLocation={locationPin}
               focusRequestId={focusRequestId}
             />
-            <StationsLayer filters={filters} locationPin={locationPin} />
+            <MapClickHandler onMapClick={handleMapClick} />
+            <StationsLayer
+              filters={filters}
+              locationPin={locationPin}
+              expandedStationId={expandedStationId}
+              onStationClick={handleStationClick}
+            />
           </>
         )}
       </MapContainer>

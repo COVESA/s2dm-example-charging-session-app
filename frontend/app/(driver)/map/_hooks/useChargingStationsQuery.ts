@@ -12,6 +12,7 @@ export type MapStation = {
   name: string;
   availableNowPoints: number;
   totalPoints: number;
+  operationalPoints: number;
   hasFastCharging: boolean;
   connectorTypes: string[];
   maxPowerKw: number;
@@ -54,7 +55,7 @@ function apiStationToMapStation(
     id: string;
     location: { lat: number; lng: number };
     name: string;
-    availability: { totalPoints: number; availableNowPoints: number };
+    availability: { totalPoints: number; availableNowPoints: number; operationalPoints: number };
     hasFastCharging: boolean;
     connectorTypes: string[];
     maxPowerKw: number;
@@ -68,6 +69,7 @@ function apiStationToMapStation(
     name: s.name,
     availableNowPoints: s.availability.availableNowPoints,
     totalPoints: s.availability.totalPoints,
+    operationalPoints: s.availability.operationalPoints,
     hasFastCharging: s.hasFastCharging,
     connectorTypes: s.connectorTypes,
     maxPowerKw: s.maxPowerKw,
