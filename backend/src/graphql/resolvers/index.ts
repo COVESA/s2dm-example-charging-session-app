@@ -32,6 +32,7 @@ export const resolvers = {
           minPriceCentsPerKwh?: number;
           maxPriceCentsPerKwh?: number;
           availableNow?: boolean;
+          fastCharging?: boolean;
         };
       },
       context: GraphQLContext

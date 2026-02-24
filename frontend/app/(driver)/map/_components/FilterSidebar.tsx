@@ -11,6 +11,7 @@ export interface FilterState {
   minPriceCentsPerKwh: number | null;
   maxPriceCentsPerKwh: number | null;
   availableNow: boolean;
+  fastCharging: boolean;
 }
 
 const POWER_FALLBACK = { min: 0, max: 350 };
@@ -86,6 +87,10 @@ export function FilterSidebar({
 
   const setAvailableNow = (availableNow: boolean) => {
     onFiltersChange({ ...filters, availableNow });
+  };
+
+  const setFastCharging = (fastCharging: boolean) => {
+    onFiltersChange({ ...filters, fastCharging });
   };
 
   const clearPowerFilter = () => {
@@ -198,7 +203,7 @@ export function FilterSidebar({
 
       <div className="px-2">
         <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-slate-500">
-          Price: {priceValue[0]} – {priceValue[1]} ct/kWh
+          Price: {(priceValue[0] / 100).toFixed(2)} – {(priceValue[1] / 100).toFixed(2)} €/kWh
         </h3>
         <Slider.Root
           className="relative flex w-full touch-none select-none items-center"
@@ -238,6 +243,19 @@ export function FilterSidebar({
           </Switch.Root>
         </div>
       </div>
+
+      <div className="px-2">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm text-slate-700">Fast charging</span>
+          <Switch.Root
+            checked={filters.fastCharging}
+            onCheckedChange={setFastCharging}
+            className="inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-slate-200 bg-slate-200 p-0.5 outline-none transition-colors data-[state=checked]:border-green-600 data-[state=checked]:bg-green-600 focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+          >
+            <Switch.Thumb className="block h-4 w-4 rounded-full bg-white shadow transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0" />
+          </Switch.Root>
+        </div>
+      </div>
     </aside>
   );
 }
@@ -249,4 +267,5 @@ export const DEFAULT_FILTERS: FilterState = {
   minPriceCentsPerKwh: null,
   maxPriceCentsPerKwh: null,
   availableNow: false,
+  fastCharging: false,
 };

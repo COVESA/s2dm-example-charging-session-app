@@ -12,6 +12,7 @@
       "postalCode": "8001"
     },
     "timezone": "Europe/Zurich",
+    "hasFastCharging": false,
     "characteristics": {
       "parkingType": "PUBLIC",
       "amenities": ["MALL", "TOILET", "CAFE"],
@@ -74,6 +75,7 @@
       "postalCode": "8400"
     },
     "timezone": "Europe/Zurich",
+    "hasFastCharging": true,
     "characteristics": {
       "parkingType": "PUBLIC",
       "amenities": ["RESTROOM", "FOOD", "SHOP"],

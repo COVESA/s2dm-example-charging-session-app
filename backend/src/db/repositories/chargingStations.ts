@@ -15,6 +15,7 @@ export type ChargingStationFilters = {
   minPriceCentsPerKwh?: number;
   maxPriceCentsPerKwh?: number;
   availableNow?: boolean;
+  fastCharging?: boolean;
 };
 
 export type ChargingStationFacetsResult = {
@@ -201,20 +202,37 @@ function buildMatchStage(bounds: Bounds, filters: ChargingStationFilters): Recor
 
   const hasMinPower = filters.minPowerKw != null && filters.minPowerKw > 0;
   const hasMaxPower = filters.maxPowerKw != null;
-  if (hasMinPower && hasMaxPower) {
+  const fastChargingMin = filters.fastCharging === true ? 50 : 0;
+  const effectiveMinPower =
+    hasMinPower || fastChargingMin > 0
+      ? Math.max(filters.minPowerKw ?? 0, fastChargingMin)
+      : null;
+  const effectiveMaxPower = hasMaxPower ? filters.maxPowerKw! : null;
+
+  if (effectiveMinPower != null && effectiveMaxPower != null) {
     match["chargingPoints"] = {
       $elemMatch: {
         connectors: {
           $elemMatch: {
-            power: { $gte: filters.minPowerKw!, $lte: filters.maxPowerKw! }
+            power: { $gte: effectiveMinPower, $lte: effectiveMaxPower }
           }
         }
       }
     };
-  } else if (hasMinPower) {
-    match["chargingPoints.connectors.power"] = { $gte: filters.minPowerKw };
-  } else if (hasMaxPower) {
-    match["chargingPoints.connectors.power"] = { $lte: filters.maxPowerKw };
+  } else if (effectiveMinPower != null && effectiveMinPower > 0) {
+    match["chargingPoints.connectors.power"] = { $gte: effectiveMinPower };
+  } else if (effectiveMaxPower != null) {
+    match["chargingPoints.connectors.power"] = { $lte: effectiveMaxPower };
+  } else if (filters.fastCharging === true) {
+    match["chargingPoints"] = {
+      $elemMatch: {
+        connectors: {
+          $elemMatch: {
+            power: { $gte: 50 }
+          }
+        }
+      }
+    };
   }
 
   const hasMinPrice = filters.minPriceCentsPerKwh != null;

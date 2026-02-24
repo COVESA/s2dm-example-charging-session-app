@@ -117,6 +117,7 @@ def transform_row_to_station(
         "location": {"type": "Point", "coordinates": list(coords)},
         "address": _build_address(row),
         "timezone": "Europe/Berlin",
+        "hasFastCharging": is_fast,
         "characteristics": characteristics,
         "pricing": pricing,
         "chargingPoints": embedded_points,

@@ -47,6 +47,9 @@
     "timezone": {
       "bsonType": "string"
     },
+    "hasFastCharging": {
+      "bsonType": "bool"
+    },
     "characteristics": {
       "bsonType": "object",
       "additionalProperties": false,

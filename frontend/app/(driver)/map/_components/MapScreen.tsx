@@ -30,6 +30,7 @@ function filtersToApiInput(filters: FilterState): ChargingStationFiltersInput {
     minPriceCentsPerKwh: filters.minPriceCentsPerKwh ?? undefined,
     maxPriceCentsPerKwh: filters.maxPriceCentsPerKwh ?? undefined,
     availableNow: filters.availableNow || undefined,
+    fastCharging: filters.fastCharging || undefined,
   };
 }
 

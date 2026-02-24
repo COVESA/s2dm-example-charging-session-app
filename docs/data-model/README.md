@@ -176,6 +176,7 @@ Station documents are optimized for **map/search/listing** reads:
     postalCode: "8001"
   },
   timezone: "Europe/Zurich",
+  hasFastCharging: true,
 
   characteristics: {
     parkingType: "PUBLIC", // PUBLIC | PRIVATE | CUSTOMER_ONLY

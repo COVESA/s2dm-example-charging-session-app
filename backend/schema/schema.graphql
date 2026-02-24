@@ -60,6 +60,7 @@ input ChargingStationFiltersInput {
   minPriceCentsPerKwh: Int
   maxPriceCentsPerKwh: Int
   availableNow: Boolean
+  fastCharging: Boolean
 }
 
 # Bounds: [minLng, minLat, maxLng, maxLat]
