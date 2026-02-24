@@ -108,6 +108,8 @@
 .station-pin-box-expanded {
   /* Animate width and height for a "grow" effect */
   animation: expandBubble 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 100;
+  padding-top: 8px;
 }
 
 @keyframes expandBubble {
@@ -116,15 +118,85 @@
     height: 36px;
   }
   100% {
-    width: 200px;
-    height: 110px;
+    width: 320px;
+    height: 220px;
   }
+}
+/* ... existing styles ... */
+.station-pin-expanded {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgb(226 232 240);
+  /* Fade in the content to prevent it from showing before the bubble expands */
+  opacity: 0;
+  animation: contentFadeIn 0.2s ease-out 0.1s forwards;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
 }
 
 .station-pin-content {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.station-pin-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgb(15 23 42);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.station-pin-address {
+  font-size: 13px;
+  color: rgb(100 116 139);
+  white-space: normal;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.station-pin-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: rgb(248 250 252);
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.station-pin-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.station-pin-detail-label {
+  color: rgb(100 116 139);
+  font-weight: 500;
+}
+
+.station-pin-detail-value {
+  color: rgb(15 23 42);
+  font-weight: 600;
+}
+
+.station-pin-meta {
+  font-size: 12px;
+  color: rgb(22 163 74);
+  font-weight: 600;
+  margin-top: auto;
+  padding-top: 4px;
+  border-top: 1px dashed rgb(226 232 240);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .station-pin-icon {
@@ -175,12 +247,16 @@
 }
 
 .station-pin-expanded {
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid rgb(203 213 225);
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgb(226 232 240);
   /* Fade in the content to prevent it from showing before the bubble expands */
   opacity: 0;
   animation: contentFadeIn 0.2s ease-out 0.1s forwards;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
 }
 
 @keyframes contentFadeIn {
@@ -193,18 +269,60 @@
 }
 
 .station-pin-name {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: rgb(15 23 42);
   margin-bottom: 2px;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
+  max-width: 100%;
+}
+
+.station-pin-address {
+  font-size: 13px;
+  color: rgb(100 116 139);
+  white-space: normal;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.station-pin-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: rgb(248 250 252);
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.station-pin-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.station-pin-detail-label {
+  color: rgb(100 116 139);
+  font-weight: 500;
+}
+
+.station-pin-detail-value {
+  color: rgb(15 23 42);
+  font-weight: 600;
 }
 
 .station-pin-meta {
-  font-size: 11px;
-  color: rgb(100 116 139);
+  font-size: 12px;
+  color: rgb(22 163 74);
+  font-weight: 600;
+  margin-top: auto;
+  padding-top: 4px;
+  border-top: 1px dashed rgb(226 232 240);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .station-pin-fast {

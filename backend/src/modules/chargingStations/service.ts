@@ -14,8 +14,15 @@ const CLUSTER_ZOOM_THRESHOLD = 14;
 export type ChargingStationForMap = {
   id: string;
   name: string;
+  operator: string;
   stationCode: string;
   location: { lat: number; lng: number };
+  address?: {
+    street: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
   availability: { totalPoints: number; availableNowPoints: number; operationalPoints: number };
   priceCentsPerKwh: number;
   hasFastCharging: boolean;
@@ -48,8 +55,15 @@ function mapDocToGraphQL(doc: ChargingStationDoc): ChargingStationForMap {
   return {
     id: String(doc._id),
     name: doc.name,
+    operator: doc.operator ?? doc.name,
     stationCode: doc.stationCode,
     location: { lat, lng },
+    address: doc.address ? {
+      street: doc.address.street,
+      city: doc.address.city,
+      postalCode: doc.address.postalCode,
+      country: doc.address.country
+    } : undefined,
     availability: {
       totalPoints: doc.availability?.totalPoints ?? 0,
       availableNowPoints: doc.availability?.availableNowPoints ?? 0,
@@ -78,7 +92,7 @@ export type StationClusterForMap = {
 };
 
 export type MapItemResult =
-  | { __typename: "ChargingStation"; id: string; name: string; stationCode: string; location: { lat: number; lng: number }; availability: { totalPoints: number; availableNowPoints: number; operationalPoints: number }; priceCentsPerKwh: number; hasFastCharging: boolean; connectorTypes: string[]; maxPowerKw: number }
+  | { __typename: "ChargingStation"; id: string; name: string; operator: string; stationCode: string; location: { lat: number; lng: number }; address?: { street: string; city: string; postalCode: string; country: string }; availability: { totalPoints: number; availableNowPoints: number; operationalPoints: number }; priceCentsPerKwh: number; hasFastCharging: boolean; connectorTypes: string[]; maxPowerKw: number }
   | { __typename: "StationCluster"; id: string; location: { lat: number; lng: number }; count: number };
 
 export async function getChargingStationFacets(db: Db) {

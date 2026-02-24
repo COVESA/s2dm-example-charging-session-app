@@ -17,11 +17,20 @@ type GeoPoint {
 }
 
 # Map-optimized station (matches data model availability + pricing)
+type Address {
+  street: String
+  city: String
+  postalCode: String
+  country: String
+}
+
 type ChargingStation {
   id: ID!
   name: String!
+  operator: String!
   stationCode: String!
   location: GeoPoint!
+  address: Address
   availability: StationAvailability!
   priceCentsPerKwh: Int!
   hasFastCharging: Boolean!

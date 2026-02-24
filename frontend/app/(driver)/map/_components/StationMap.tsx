@@ -41,10 +41,11 @@ function MapFocusController({ focusLocation, focusRequestId }: FocusControllerPr
   return null;
 }
 
-function MapClickHandler({ onMapClick }: { onMapClick: () => void }) {
+function MapInteractionHandler({ onCollapse }: { onCollapse: () => void }) {
   useMapEvents({
-    click: onMapClick,
-    dragstart: onMapClick,
+    click: onCollapse,
+    dragstart: onCollapse,
+    zoomstart: onCollapse,
   });
   return null;
 }
@@ -78,7 +79,7 @@ function StationsLayer({ filters, locationPin, expandedStationId, onStationClick
     if (!station) return;
 
     const point = map.latLngToContainerPoint([station.lat, station.lng]);
-    const bubbleTop = point.y - 120; // Expanded bubble height (~110px) + buffer
+    const bubbleTop = point.y - 230; // Expanded bubble height (~220px) + buffer
     const topMargin = 80; // Navbar height + safe area (reduced from 150)
 
     if (bubbleTop < topMargin) {
@@ -187,7 +188,7 @@ export function StationMap({ filters, locationPin, focusRequestId }: StationMapP
               focusLocation={locationPin}
               focusRequestId={focusRequestId}
             />
-            <MapClickHandler onMapClick={handleMapClick} />
+            <MapInteractionHandler onCollapse={handleMapClick} />
             <StationsLayer
               filters={filters}
               locationPin={locationPin}

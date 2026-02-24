@@ -8,10 +8,17 @@ query ChargingStationsInBounds(
       __typename
       id
       name
+      operator
       stationCode
       location {
         lat
         lng
+      }
+      address {
+        street
+        city
+        postalCode
+        country
       }
       availability {
         totalPoints

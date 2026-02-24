@@ -10,6 +10,13 @@ export type MapStation = {
   lat: number;
   lng: number;
   name: string;
+  operator: string;
+  address?: {
+    street?: string | null;
+    city?: string | null;
+    postalCode?: string | null;
+    country?: string | null;
+  };
   availableNowPoints: number;
   totalPoints: number;
   operationalPoints: number;
@@ -55,6 +62,8 @@ function apiStationToMapStation(
     id: string;
     location: { lat: number; lng: number };
     name: string;
+    operator: string;
+    address?: { street?: string | null; city?: string | null; postalCode?: string | null; country?: string | null } | null;
     availability: { totalPoints: number; availableNowPoints: number; operationalPoints: number };
     hasFastCharging: boolean;
     connectorTypes: string[];
@@ -67,6 +76,8 @@ function apiStationToMapStation(
     lat: s.location.lat,
     lng: s.location.lng,
     name: s.name,
+    operator: s.operator,
+    address: s.address ?? undefined,
     availableNowPoints: s.availability.availableNowPoints,
     totalPoints: s.availability.totalPoints,
     operationalPoints: s.availability.operationalPoints,

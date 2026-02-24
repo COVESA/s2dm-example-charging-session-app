@@ -39,11 +39,31 @@ function createStationIcon(station: MapStation, isExpanded: boolean) {
   const expandedContent = isExpanded
     ? `
     <div class="station-pin-expanded">
-      <div class="station-pin-name">${escapeHtml(station.name)}</div>
-      <div class="station-pin-meta">
-        ${station.availableNowPoints}/${station.totalPoints} available
-        ${station.hasFastCharging ? '<span class="station-pin-fast">Fast charging</span>' : ""}
+      <div class="station-pin-name">${escapeHtml(station.operator ?? station.name)}</div>
+      ${
+        station.address
+          ? `<div class="station-pin-address">${escapeHtml(station.address.street || "")}${
+              station.address.city ? `, ${escapeHtml(station.address.city)}` : ""
+            }</div>`
+          : ""
+      }
+      <div class="station-pin-details">
+         <div class="station-pin-detail-row">
+            <span class="station-pin-detail-label">Price</span>
+            <span class="station-pin-detail-value">${(station.priceCentsPerKwh / 100).toFixed(2)} €/kWh</span>
+         </div>
+         <div class="station-pin-detail-row">
+            <span class="station-pin-detail-label">Power</span>
+            <span class="station-pin-detail-value">${Math.round(station.maxPowerKw)} kW${
+              station.hasFastCharging ? " ⚡" : ""
+            }</span>
+         </div>
+         <div class="station-pin-detail-row">
+            <span class="station-pin-detail-label">Connectors</span>
+            <span class="station-pin-detail-value">${station.connectorTypes.join(", ")}</span>
+         </div>
       </div>
+      ${station.hasFastCharging ? '<div class="station-pin-meta"><span class="station-pin-fast">Fast Charging</span></div>' : ""}
     </div>
   `
     : "";
@@ -69,9 +89,9 @@ function createStationIcon(station: MapStation, isExpanded: boolean) {
   `;
 
   const collapsedHeight = 36;
-  const expandedHeight = 110;
+  const expandedHeight = 220;
   const height = isExpanded ? expandedHeight : collapsedHeight;
-  const width = isExpanded ? 200 : 80;
+  const width = isExpanded ? 320 : 80;
 
   return divIcon({
     html,
@@ -100,10 +120,15 @@ export function StationPin({ station, isExpanded, onClick }: StationPinProps) {
     () => createStationIcon(station, isExpanded),
     [
       station.name,
+      station.operator,
       station.availableNowPoints,
       station.totalPoints,
       station.operationalPoints,
       station.hasFastCharging,
+      station.address,
+      station.priceCentsPerKwh,
+      station.maxPowerKw,
+      station.connectorTypes,
       isExpanded,
     ]
   );

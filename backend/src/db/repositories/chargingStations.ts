@@ -52,14 +52,23 @@ type PricingDoc = {
   };
 };
 
+type AddressDoc = {
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+};
+
 export type ChargingStationDoc = {
   _id: ObjectId;
   stationCode: string;
   name: string;
+  operator?: string;
   location: {
     type: "Point";
     coordinates: [number, number];
   };
+  address?: AddressDoc;
   chargingPoints: ChargingPointDoc[];
   availability: AvailabilityDoc;
   pricing: PricingDoc;
