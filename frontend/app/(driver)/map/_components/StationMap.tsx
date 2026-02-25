@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { MapContainer, TileLayer, useMapEvents } from "react-leaflet";
 import { useMap } from "react-leaflet";
 import { useMapBounds } from "../_hooks/useMapBounds";
@@ -151,13 +151,13 @@ export function StationMap({ filters, locationPin, focusRequestId }: StationMapP
     setMounted(true);
   }, []);
 
-  const handleStationClick = (stationId: string) => {
-    setExpandedStationId((prev) => (prev === stationId ? null : stationId));
-  };
+  const handleStationClick = useCallback((stationId: string) => {
+    setExpandedStationId(stationId);
+  }, []);
 
-  const handleMapClick = () => {
+  const handleMapClick = useCallback(() => {
     setExpandedStationId(null);
-  };
+  }, []);
 
   if (!mounted || typeof window === "undefined") {
     return (
