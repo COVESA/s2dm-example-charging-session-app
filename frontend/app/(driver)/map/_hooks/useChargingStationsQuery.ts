@@ -24,6 +24,16 @@ export type MapStation = {
   connectorTypes: string[];
   maxPowerKw: number;
   priceCentsPerKwh: number;
+  chargingPoints: {
+    id: string;
+    availableNow: boolean;
+    outOfService: boolean;
+    connectors: {
+      type: string;
+      powerKw: number;
+      tethered?: boolean | null;
+    }[];
+  }[];
 };
 
 export type MapCluster = {
@@ -69,6 +79,16 @@ function apiStationToMapStation(
     connectorTypes: string[];
     maxPowerKw: number;
     priceCentsPerKwh: number;
+    chargingPoints?: {
+      id: string;
+      availableNow: boolean;
+      outOfService: boolean;
+      connectors: {
+        type: string;
+        powerKw: number;
+        tethered?: boolean | null;
+      }[];
+    }[];
   }
 ): MapStation {
   return {
@@ -85,6 +105,7 @@ function apiStationToMapStation(
     connectorTypes: s.connectorTypes,
     maxPowerKw: s.maxPowerKw,
     priceCentsPerKwh: s.priceCentsPerKwh,
+    chargingPoints: s.chargingPoints ?? [],
   };
 }
 

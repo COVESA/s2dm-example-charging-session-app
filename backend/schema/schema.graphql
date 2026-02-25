@@ -36,12 +36,26 @@ type ChargingStation {
   hasFastCharging: Boolean!
   connectorTypes: [String!]!
   maxPowerKw: Float!
+  chargingPoints: [ChargingPointInfo!]!
 }
 
 type StationAvailability {
   totalPoints: Int!
   availableNowPoints: Int!
   operationalPoints: Int!
+}
+
+type ConnectorInfo {
+  type: String!
+  powerKw: Float!
+  tethered: Boolean
+}
+
+type ChargingPointInfo {
+  id: ID!
+  availableNow: Boolean!
+  outOfService: Boolean!
+  connectors: [ConnectorInfo!]!
 }
 
 # Facet types for filter options (from MongoDB aggregation)

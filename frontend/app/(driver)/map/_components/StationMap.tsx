@@ -7,7 +7,7 @@ import { useMapBounds } from "../_hooks/useMapBounds";
 import { useChargingStationsQuery } from "../_hooks/useChargingStationsQuery";
 import { useStationClusters } from "../_hooks/useStationClusters";
 import type { MapStation } from "../_hooks/useChargingStationsQuery";
-import { StationPin } from "./StationPin";
+import { StationPin, estimateExpandedPinHeight } from "./StationPin";
 import { ClusterMarker } from "./ClusterMarker";
 import { LocationPin } from "./LocationPin";
 import type { ChargingStationFiltersInput } from "@/graphql/generated/graphql";
@@ -66,6 +66,16 @@ function StationsLayer({ filters, locationPin, expandedStationId, onStationClick
 
   const lastPannedId = useRef<string | null>(null);
 
+  const getRenderedExpandedPinHeight = useCallback((stationId: string) => {
+    const markers = document.querySelectorAll<HTMLElement>(".station-pin[data-expanded='true']");
+    for (const marker of markers) {
+      if (marker.dataset.stationId === stationId) {
+        return marker.offsetHeight;
+      }
+    }
+    return null;
+  }, []);
+
   useEffect(() => {
     if (!expandedStationId) {
       lastPannedId.current = null;
@@ -78,17 +88,26 @@ function StationsLayer({ filters, locationPin, expandedStationId, onStationClick
     const station = stations.find((s) => s.id === expandedStationId);
     if (!station) return;
 
-    const point = map.latLngToContainerPoint([station.lat, station.lng]);
-    const bubbleTop = point.y - 230; // Expanded bubble height (~220px) + buffer
-    const topMargin = 80; // Navbar height + safe area (reduced from 150)
+    let frameId = 0;
+    frameId = window.requestAnimationFrame(() => {
+      const renderedHeight = getRenderedExpandedPinHeight(expandedStationId);
+      const expandedPinHeight = renderedHeight ?? estimateExpandedPinHeight(station);
+      const point = map.latLngToContainerPoint([station.lat, station.lng]);
+      const bubbleTop = point.y - expandedPinHeight;
+      const topMargin = 80; // Navbar height + safe area.
 
-    if (bubbleTop < topMargin) {
-      const offset = bubbleTop - topMargin;
-      map.panBy([0, offset], { animate: true });
-    }
+      if (bubbleTop < topMargin) {
+        const offset = bubbleTop - topMargin;
+        map.panBy([0, offset], { animate: true });
+      }
 
-    lastPannedId.current = expandedStationId;
-  }, [expandedStationId, map, stations]);
+      lastPannedId.current = expandedStationId;
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [expandedStationId, getRenderedExpandedPinHeight, map, stations]);
 
   return (
     <>

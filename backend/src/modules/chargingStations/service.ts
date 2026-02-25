@@ -28,6 +28,16 @@ export type ChargingStationForMap = {
   hasFastCharging: boolean;
   connectorTypes: string[];
   maxPowerKw: number;
+  chargingPoints: {
+    id: string;
+    availableNow: boolean;
+    outOfService: boolean;
+    connectors: {
+      type: string;
+      powerKw: number;
+      tethered?: boolean;
+    }[];
+  }[];
 };
 
 function mapDocToGraphQL(doc: ChargingStationDoc): ChargingStationForMap {
@@ -52,6 +62,17 @@ function mapDocToGraphQL(doc: ChargingStationDoc): ChargingStationForMap {
   const priceCentsPerKwh =
     doc.pricing?.defaultTariff?.priceCentsPerKwh ?? 0;
 
+  const chargingPoints = (doc.chargingPoints ?? []).map((cp) => ({
+    id: String(cp.chargingPointId),
+    availableNow: cp.availableNow ?? false,
+    outOfService: cp.outOfService ?? false,
+    connectors: (cp.connectors ?? []).map((connector) => ({
+      type: connector.type,
+      powerKw: connector.power,
+      tethered: connector.tethered
+    }))
+  }));
+
   return {
     id: String(doc._id),
     name: doc.name,
@@ -72,7 +93,8 @@ function mapDocToGraphQL(doc: ChargingStationDoc): ChargingStationForMap {
     priceCentsPerKwh,
     hasFastCharging,
     connectorTypes: Array.from(connectorTypesSet),
-    maxPowerKw
+    maxPowerKw,
+    chargingPoints
   };
 }
 
@@ -92,7 +114,7 @@ export type StationClusterForMap = {
 };
 
 export type MapItemResult =
-  | { __typename: "ChargingStation"; id: string; name: string; operator: string; stationCode: string; location: { lat: number; lng: number }; address?: { street: string; city: string; postalCode: string; country: string }; availability: { totalPoints: number; availableNowPoints: number; operationalPoints: number }; priceCentsPerKwh: number; hasFastCharging: boolean; connectorTypes: string[]; maxPowerKw: number }
+  | { __typename: "ChargingStation"; id: string; name: string; operator: string; stationCode: string; location: { lat: number; lng: number }; address?: { street: string; city: string; postalCode: string; country: string }; availability: { totalPoints: number; availableNowPoints: number; operationalPoints: number }; priceCentsPerKwh: number; hasFastCharging: boolean; connectorTypes: string[]; maxPowerKw: number; chargingPoints: { id: string; availableNow: boolean; outOfService: boolean; connectors: { type: string; powerKw: number; tethered?: boolean }[] }[] }
   | { __typename: "StationCluster"; id: string; location: { lat: number; lng: number }; count: number };
 
 export async function getChargingStationFacets(db: Db) {

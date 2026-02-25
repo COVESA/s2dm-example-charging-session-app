@@ -29,6 +29,16 @@ query ChargingStationsInBounds(
       hasFastCharging
       connectorTypes
       maxPowerKw
+      chargingPoints {
+        id
+        availableNow
+        outOfService
+        connectors {
+          type
+          powerKw
+          tethered
+        }
+      }
     }
     ... on StationCluster {
       __typename

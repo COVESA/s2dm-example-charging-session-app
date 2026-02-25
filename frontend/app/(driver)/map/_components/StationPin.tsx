@@ -7,6 +7,24 @@ import type { MapStation } from "../_hooks/useChargingStationsQuery";
 
 type PinStatus = "all-available" | "some-booked" | "all-booked" | "maintenance";
 
+const COLLAPSED_PIN_HEIGHT = 36;
+const COLLAPSED_PIN_WIDTH = 80;
+const EXPANDED_PIN_WIDTH = 320;
+
+export function estimateExpandedPinHeight(station: MapStation): number {
+  const baseHeight = 162;
+  const pointRowHeight = 56;
+  const connectorWrapExtraHeight = 18;
+  const connectorsPerLine = 2;
+
+  const wrappedConnectorRows = station.chargingPoints.reduce((sum, point) => {
+    const rows = Math.ceil(point.connectors.length / connectorsPerLine);
+    return sum + Math.max(0, rows - 1);
+  }, 0);
+
+  return baseHeight + station.chargingPoints.length * pointRowHeight + wrappedConnectorRows * connectorWrapExtraHeight;
+}
+
 function getPinStatus(station: MapStation): PinStatus {
   const { availableNowPoints, totalPoints, operationalPoints } = station;
   if (totalPoints === 0) return "all-available";
@@ -30,28 +48,21 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
-const LIGHTNING_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11 21h-1l1-7H7.5c-.58 0-.57-.32-.38-.66.19-.34.05-.08.07-.12C8.48 10.94 10.42 7.54 13 3h1l-1 7h3.5c.49 0 .56.33.47.51l-.07.15C12.96 17.55 11 21 11 21z"/></svg>';
-
+const CHARGER_ICON = '<span class="material-symbols-outlined">charger</span>';
 const WRENCH_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>';
-
-const PLUG_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2h2v6h2V2h2v6h1a3 3 0 0 1 3 3v1a5 5 0 0 1-5 5v5h-2v-5a5 5 0 0 1-5-5v-1a3 3 0 0 1 3-3h1V2z"/></svg>';
 
 function createStationIcon(station: MapStation, isExpanded: boolean) {
   const status = getPinStatus(station);
   const isMaintenance = status === "maintenance";
 
+  const isGrayStatus = status === "all-booked" || status === "maintenance";
   const iconClass =
-    status === "all-available"
-      ? "station-pin-icon-green"
-      : status === "some-booked"
-        ? "station-pin-icon-light-green"
-        : "station-pin-icon-gray";
+    isGrayStatus ? "station-pin-icon-gray" : "station-pin-icon-green";
 
-  const iconHtml = isMaintenance ? WRENCH_SVG : LIGHTNING_SVG;
-  const countClass = isMaintenance ? "station-pin-maintenance" : "";
+  const iconHtml = isMaintenance ? WRENCH_SVG : CHARGER_ICON;
+  const countClass = isGrayStatus ? "station-pin-availability-gray" : "";
+  const countLabelClass = isGrayStatus ? "station-pin-availability-gray" : "";
   const priceFormatted = `${(station.priceCentsPerKwh / 100).toFixed(2)} €`;
 
   const chargingPointsMarkup = station.chargingPoints
@@ -66,11 +77,8 @@ function createStationIcon(station: MapStation, isExpanded: boolean) {
               <span class="station-pin-connector-type">${escapeHtml(connector.type)}</span>
               <span class="station-pin-connector-sep">•</span>
               <span class="station-pin-connector-power">${Math.round(connector.powerKw)} kW</span>
-              ${
-                connector.tethered
-                  ? `<span class="station-pin-connector-tethered-icon station-pin-tooltip-trigger" data-tooltip="Tethered connector">${PLUG_SVG}</span>`
-                  : ""
-              }
+              <span class="station-pin-connector-sep">•</span>
+              <span class="station-pin-connector-cable-icon station-pin-tooltip-trigger" data-tooltip="${connector.tethered ? "Tethered connector" : "Untethered connector"}">${connector.tethered ? '<span class="material-symbols-outlined">power</span>' : '<span class="material-symbols-outlined">power_off</span>'}</span>
             </span>
           `
         )
@@ -101,13 +109,14 @@ function createStationIcon(station: MapStation, isExpanded: boolean) {
           }
         </div>
       </div>
+      <div class="station-pin-section-title">Charging Points</div>
       <div class="station-pin-points-list" onwheel="event.stopPropagation()">${chargingPointsMarkup}</div>
     </div>
   `
     : "";
 
   const html = `
-    <div class="station-pin">
+    <div class="station-pin${isGrayStatus ? " station-pin-gray" : ""}" data-station-id="${escapeHtml(station.id)}" data-expanded="${isExpanded ? "true" : "false"}">
       <div class="station-pin-box ${isExpanded ? "station-pin-box-expanded" : ""}">
         <div class="station-pin-clipper">
           <div class="station-pin-content">
@@ -118,7 +127,7 @@ function createStationIcon(station: MapStation, isExpanded: boolean) {
               <span class="station-pin-sep">/</span>
               <span class="station-pin-total">${station.totalPoints}</span>
             </span>
-            ${isExpanded ? '<span class="station-pin-count-label">available</span>' : ""}
+            ${isExpanded ? `<span class="station-pin-count-label ${countLabelClass}">available</span>` : ""}
             ${
               isExpanded
                 ? `<span class="station-pin-price-badge station-pin-price-badge-inline">${priceFormatted}</span>`
@@ -132,13 +141,8 @@ function createStationIcon(station: MapStation, isExpanded: boolean) {
     </div>
   `;
 
-  const collapsedHeight = 36;
-  const expandedHeight = Math.min(
-    420,
-    Math.max(240, 186 + station.chargingPoints.length * 66)
-  );
-  const height = isExpanded ? expandedHeight : collapsedHeight;
-  const width = isExpanded ? 340 : 80;
+  const height = isExpanded ? estimateExpandedPinHeight(station) : COLLAPSED_PIN_HEIGHT;
+  const width = isExpanded ? EXPANDED_PIN_WIDTH : COLLAPSED_PIN_WIDTH;
 
   return divIcon({
     html,
