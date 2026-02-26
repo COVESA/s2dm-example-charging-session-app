@@ -11,7 +11,7 @@ export interface GeocodeResult {
   displayName: string;
 }
 
-export function useGeocode() {
+export function useGeocode(centerBias?: { lat: number; lng: number } | null) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,9 +26,17 @@ export function useGeocode() {
         q: query,
         limit: String(limit),
         lang: "en",
-        lat: String(GERMANY_CENTER.lat),
-        lon: String(GERMANY_CENTER.lng),
       });
+
+      if (centerBias) {
+        // Big bias: use the provided center (current map view)
+        params.set("lat", String(centerBias.lat));
+        params.set("lon", String(centerBias.lng));
+      } else {
+        // Low bias: use Germany center as a fallback
+        params.set("lat", String(GERMANY_CENTER.lat));
+        params.set("lon", String(GERMANY_CENTER.lng));
+      }
 
       const res = await fetch(`${PHOTON_URL}?${params}`);
 
@@ -49,6 +57,9 @@ export function useGeocode() {
             geometry?: { coordinates?: [number, number] };
             properties?: {
               name?: string;
+              street?: string;
+              housenumber?: string;
+              postcode?: string;
               city?: string;
               state?: string;
               country?: string;
@@ -66,9 +77,19 @@ export function useGeocode() {
           }
 
           const properties = item.properties ?? {};
+          
+          const streetPart = [properties.street, properties.housenumber]
+            .filter(Boolean)
+            .join(" ");
+
+          const cityPart = [properties.postcode, properties.city]
+            .filter(Boolean)
+            .join(" ");
+
           const displayName = [
             properties.name,
-            properties.city,
+            streetPart,
+            cityPart,
             properties.state,
             properties.country
           ]
@@ -91,7 +112,7 @@ export function useGeocode() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [centerBias]);
 
   const geocodeFirst = useCallback(
     async (query: string): Promise<GeocodeResult | null> => {
