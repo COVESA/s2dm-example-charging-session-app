@@ -41,11 +41,16 @@ function MapFocusController({ focusLocation, focusRequestId }: FocusControllerPr
   return null;
 }
 
-function MapInteractionHandler({ onCollapse }: { onCollapse: () => void }) {
+function MapInteractionHandler({ onCollapse, onMapMove }: { onCollapse: () => void; onMapMove?: (center: { lat: number; lng: number }) => void }) {
+  const map = useMap();
   useMapEvents({
     click: onCollapse,
     dragstart: onCollapse,
     zoomstart: onCollapse,
+    moveend: () => {
+      const center = map.getCenter();
+      onMapMove?.({ lat: center.lat, lng: center.lng });
+    },
   });
   return null;
 }
@@ -159,9 +164,10 @@ interface StationMapProps {
   filters: ChargingStationFiltersInput | undefined;
   locationPin: { lat: number; lng: number } | null;
   focusRequestId: number;
+  onMapMove?: (center: { lat: number; lng: number }) => void;
 }
 
-export function StationMap({ filters, locationPin, focusRequestId }: StationMapProps) {
+export function StationMap({ filters, locationPin, focusRequestId, onMapMove }: StationMapProps) {
   const [mounted, setMounted] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [expandedStationId, setExpandedStationId] = useState<string | null>(null);
@@ -207,7 +213,7 @@ export function StationMap({ filters, locationPin, focusRequestId }: StationMapP
               focusLocation={locationPin}
               focusRequestId={focusRequestId}
             />
-            <MapInteractionHandler onCollapse={handleMapClick} />
+            <MapInteractionHandler onCollapse={handleMapClick} onMapMove={onMapMove} />
             <StationsLayer
               filters={filters}
               locationPin={locationPin}

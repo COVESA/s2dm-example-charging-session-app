@@ -31,6 +31,7 @@ function filtersToApiInput(filters: FilterState): ChargingStationFiltersInput {
     maxPriceCentsPerKwh: filters.maxPriceCentsPerKwh ?? undefined,
     availableNow: filters.availableNow || undefined,
     fastCharging: filters.fastCharging || undefined,
+    tethered: filters.tethered || undefined,
   };
 }
 
@@ -39,6 +40,9 @@ export function MapScreen() {
     lat: number;
     lng: number;
   } | null>(null);
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(
+    { lat: 48.1374, lng: 11.5755 } // Start with Munich bias
+  );
   const [focusRequestId, setFocusRequestId] = useState(0);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,7 +53,7 @@ export function MapScreen() {
   const [filterOpen, setFilterOpen] = useState(true);
   const [hoverExpanded, setHoverExpanded] = useState(false);
 
-  const { search, geocodeFirst, loading, error } = useGeocode();
+  const { search, geocodeFirst, loading, error } = useGeocode(mapCenter);
 
   const isExpanded = filterOpen || hoverExpanded;
 
@@ -116,6 +120,7 @@ export function MapScreen() {
           filters={apiFilters}
           locationPin={locationPin}
           focusRequestId={focusRequestId}
+          onMapMove={setMapCenter}
         />
       </div>
 

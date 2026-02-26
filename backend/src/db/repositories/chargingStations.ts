@@ -16,6 +16,7 @@ export type ChargingStationFilters = {
   maxPriceCentsPerKwh?: number;
   availableNow?: boolean;
   fastCharging?: boolean;
+  tethered?: boolean;
 };
 
 export type ChargingStationFacetsResult = {
@@ -263,6 +264,10 @@ function buildMatchStage(bounds: Bounds, filters: ChargingStationFilters): Recor
 
   if (filters.availableNow === true) {
     match["availability.availableNowPoints"] = { $gt: 0 };
+  }
+
+  if (filters.tethered === true) {
+    match["chargingPoints.connectors.tethered"] = true;
   }
 
   return match;

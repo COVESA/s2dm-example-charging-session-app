@@ -85,6 +85,7 @@ input ChargingStationFiltersInput {
   maxPriceCentsPerKwh: Int
   availableNow: Boolean
   fastCharging: Boolean
+  tethered: Boolean
 }
 
 # Bounds: [minLng, minLat, maxLng, maxLat]

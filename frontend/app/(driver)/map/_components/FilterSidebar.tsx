@@ -12,6 +12,7 @@ export interface FilterState {
   maxPriceCentsPerKwh: number | null;
   availableNow: boolean;
   fastCharging: boolean;
+  tethered: boolean;
 }
 
 const POWER_FALLBACK = { min: 0, max: 350 };
@@ -93,20 +94,8 @@ export function FilterSidebar({
     onFiltersChange({ ...filters, fastCharging });
   };
 
-  const clearPowerFilter = () => {
-    onFiltersChange({
-      ...filters,
-      minPowerKw: null,
-      maxPowerKw: null,
-    });
-  };
-
-  const clearPriceFilter = () => {
-    onFiltersChange({
-      ...filters,
-      minPriceCentsPerKwh: null,
-      maxPriceCentsPerKwh: null,
-    });
+  const setTethered = (tethered: boolean) => {
+    onFiltersChange({ ...filters, tethered });
   };
 
   const powerValue: [number, number] = [
@@ -117,10 +106,6 @@ export function FilterSidebar({
     filters.minPriceCentsPerKwh ?? priceRange.min,
     filters.maxPriceCentsPerKwh ?? priceRange.max,
   ];
-  const hasPowerFilter = filters.minPowerKw != null || filters.maxPowerKw != null;
-  const hasPriceFilter =
-    filters.minPriceCentsPerKwh != null || filters.maxPriceCentsPerKwh != null;
-
   const powerStep = powerRange.max - powerRange.min <= 50 ? 1 : 10;
   const priceStep = priceRange.max - priceRange.min <= 50 ? 1 : 5;
 
@@ -190,15 +175,6 @@ export function FilterSidebar({
           <Slider.Thumb className="block h-4 w-4 rounded-full border-2 border-green-600 bg-white shadow focus:outline-none focus:ring-2 focus:ring-green-500" />
           <Slider.Thumb className="block h-4 w-4 rounded-full border-2 border-green-600 bg-white shadow focus:outline-none focus:ring-2 focus:ring-green-500" />
         </Slider.Root>
-        {hasPowerFilter && (
-          <button
-            type="button"
-            onClick={clearPowerFilter}
-            className="mt-1 text-xs text-slate-500 hover:text-slate-700"
-          >
-            Clear power filter
-          </button>
-        )}
       </div>
 
       <div className="px-2">
@@ -220,15 +196,6 @@ export function FilterSidebar({
           <Slider.Thumb className="block h-4 w-4 rounded-full border-2 border-green-600 bg-white shadow focus:outline-none focus:ring-2 focus:ring-green-500" />
           <Slider.Thumb className="block h-4 w-4 rounded-full border-2 border-green-600 bg-white shadow focus:outline-none focus:ring-2 focus:ring-green-500" />
         </Slider.Root>
-        {hasPriceFilter && (
-          <button
-            type="button"
-            onClick={clearPriceFilter}
-            className="mt-1 text-xs text-slate-500 hover:text-slate-700"
-          >
-            Clear price filter
-          </button>
-        )}
       </div>
 
       <div className="px-2">
@@ -256,6 +223,19 @@ export function FilterSidebar({
           </Switch.Root>
         </div>
       </div>
+
+      <div className="px-2">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm text-slate-700">Cable included</span>
+          <Switch.Root
+            checked={filters.tethered}
+            onCheckedChange={setTethered}
+            className="inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-slate-200 bg-slate-200 p-0.5 outline-none transition-colors data-[state=checked]:border-green-600 data-[state=checked]:bg-green-600 focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+          >
+            <Switch.Thumb className="block h-4 w-4 rounded-full bg-white shadow transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0" />
+          </Switch.Root>
+        </div>
+      </div>
     </aside>
   );
 }
@@ -268,4 +248,5 @@ export const DEFAULT_FILTERS: FilterState = {
   maxPriceCentsPerKwh: null,
   availableNow: false,
   fastCharging: false,
+  tethered: false,
 };

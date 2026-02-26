@@ -33,6 +33,7 @@ export const resolvers = {
           maxPriceCentsPerKwh?: number;
           availableNow?: boolean;
           fastCharging?: boolean;
+          tethered?: boolean;
         };
       },
       context: GraphQLContext
