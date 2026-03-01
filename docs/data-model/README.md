@@ -14,9 +14,10 @@ This document proposes a MongoDB document schema for an EV Charging Stations dem
   - During an active charging session, telemetry is higher-frequency and includes diagnostics.
   - If a point has **no heartbeat** for a threshold (e.g., 2–5 minutes), it transitions to **BROKEN/OFFLINE**.
 - **Booking**:
-  - A user can book a charging point “now” or for a future time window.
-  - A charging point cannot be double-booked for overlapping time windows.
-  - A booking is represented as a session in status `BOOKED` (future) and becomes `ACTIVE` when started.
+  - Most sessions start without any booking.
+  - If a user “books”, it is a **short hold (≤ 30 minutes)** represented as a session with `status: "BOOKED"`.
+  - A hold automatically expires at `booking.expiresAt` if charging hasn’t started.
+  - A charging point cannot be held/used by multiple sessions at the same time (conflict check against `ACTIVE` sessions and unexpired `BOOKED` holds).
 - **Money**: store currency as ISO 4217 string (e.g., `"EUR"`), store monetary values as **integer minor units** (e.g., cents) to avoid float rounding.
 - **IDs**:
   - Use **MongoDB `ObjectId`** for `_id` by default (realistic best practice and efficient).
@@ -35,7 +36,7 @@ This document proposes a MongoDB document schema for an EV Charging Stations dem
 - Vehicle
 - ChargingStation (parent of ChargingPoint)
 - ChargingPoint (EVSE)
-- ChargingSession (bookings + active + completed)
+- ChargingSession (holds + active + completed)
 - Incident
 - Telemetry (needed for monitoring and “broken if no heartbeat”)
 
@@ -56,10 +57,10 @@ This document proposes a MongoDB document schema for an EV Charging Stations dem
 | Map “stations near me”    | ChargingStation                    | Find nearby stations + show available point count                              | Read  | Must be fast; geospatial query               |
 | Station detail side panel | Station + Points                   | Load station details + list charging points (status, power, connectors, price) | Read  | Typically 1 station at a time                |
 | Search stations           | Station (+ computed availability)  | Free-text + filters (connector type, AC/DC, availability, price)               | Read  | Text search; may accept slightly slower      |
-| Book a point              | Session (+ Point computed fields)  | Create booking; prevent overlap                                                | Write | Needs conflict check                         |
-| Sessions list             | Session                            | List user’s sessions (past, active, future bookings)                           | Read  | Sort by time; paginate                       |
+| Book a point              | Session (+ Point computed fields)  | Create short hold (≤ 30 min); prevent conflicts                                | Write | Needs conflict check                         |
+| Sessions list             | Session                            | List user’s sessions (past, active, holds)                                     | Read  | Sort by time; paginate                       |
 | Session detail            | Session (+ station/point snapshot) | Show details without join                                                      | Read  | Prefer 1 read                                |
-| Cancel booking            | Session                            | Set status to `CANCELED`                                                       | Write | Update computed “next reservation” fields    |
+| Cancel booking            | Session                            | Cancel hold (`BOOKED` → `CANCELED`)                                            | Write | Update computed “next reservation” fields    |
 | Start charging            | Session + Point                    | Transition `BOOKED` → `ACTIVE`; attach telemetry context                       | Write |                                              |
 | Admin dashboard           | Session + Incident (+ rollups)     | Latest sessions/incidents + cost stats                                         | Read  | Can use rollups                              |
 | Telemetry ingest          | Telemetry + Point                  | Insert telemetry; update “last heartbeat”, point status                        | Write | High rate; use time-series + computed latest |
@@ -262,15 +263,18 @@ Charging points are optimized for the **station detail panel** and operational m
 
 ### 4.5 `chargingSessions`
 
-Sessions represent **bookings + active + completed** charging activity. They include **extended references** (snapshots) so session lists/details can be served without `$lookup`.
+Sessions represent **booking holds + active + completed** charging activity.
+
+They include small **extended references** (snapshots) so session list/detail screens can be served without `$lookup`:
+
+- `stationSnapshot`: stable station info for history/receipts (includes `chargingPointLabel`)
+- `vehicleSnapshot`: minimal vehicle identifier shown to the user
 
 ```js
 {
   _id: ObjectId("65c8f2e2d2f4c3a9b3b9d001"),
-
   userId: ObjectId("65c8f2e2d2f4c3a9b3b9a111"),
   vehicleId: ObjectId("65c8f2e2d2f4c3a9b3b9a222"),
-
   stationId: ObjectId("65c8f2e2d2f4c3a9b3b9b001"),
   chargingPointId: ObjectId("65c8f2e2d2f4c3a9b3b9b101"),
 
@@ -278,38 +282,33 @@ Sessions represent **bookings + active + completed** charging activity. They inc
   stationSnapshot: {
     name: "Downtown Mall Charging",
     location: { type: "Point", coordinates: [8.5417, 47.3769] },
-    addressShort: "Main St 10, Zurich"
-  },
-  chargingPointSnapshot: {
-    label: "Bay 1",
-    connectors: [
-      { type: "CCS", power: 150, tethered: true },
-      { type: "TYPE2", power: 22, tethered: false }
-    ]
+    addressShort: "Main St 10, Zurich",
+    chargingPointLabel: "Bay 1"
   },
   vehicleSnapshot: {
     vinLast6: "000001",
-    make: "Volkswagen",
-    model: "ID.4",
-    connectorTypes: ["CCS", "TYPE2"]
+    make: "BMW"
+    model: "i3"
   },
 
-  status: "BOOKED", // BOOKED | ACTIVE | COMPLETED | CANCELED | NO_SHOW | FAILED
+  status: "COMPLETED", // BOOKED | ACTIVE | COMPLETED | CANCELED | NO_SHOW | FAILED
 
   booking: {
     bookedAt: ISODate("2026-02-12T08:20:00Z"),
-    scheduledStartAt: ISODate("2026-02-12T09:00:00Z"),
-    scheduledEndAt: ISODate("2026-02-12T10:00:00Z"),
+    expiresAt: ISODate("2026-02-12T08:50:00Z"), // auto-cancel if not started
     canceledAt: null,
     cancelReason: null
   },
 
-  charging: {
+  charging: { // set when charging starts
     startedAt: null,
     endedAt: null,
-    meterStartKwh: null,
-    meterStopKwh: null,
-    energyDeliveredKwh: null
+    connectorUsed: { type: null , power: null, tethered: null },
+    meterStartKwh: null, // optional EVSE meter readings (kWh) captured at session start
+    meterStopKwh: null, // optional EVSE meter readings (kWh) captured at session end (at session end meterStopKwh = meterStartKwh + energyDeliveredKwh)
+    energyDeliveredKwh: null,
+    socStartPercent: null,
+    socStopPercent: null
   },
 
   pricingSnapshot: {
@@ -323,6 +322,13 @@ Sessions represent **bookings + active + completed** charging activity. They inc
     energyCents: null,
     idleCents: null
   },
+
+  // Optional post-session feedback (bounded, shown in session details)
+  feedback: {
+    rating: 5,
+    comment: null,
+    createdAt: ISODate("2026-02-12T08:20:00Z")
+  }
 
   createdAt: ISODate("2026-02-12T08:20:00Z"),
   updatedAt: ISODate("2026-02-12T08:20:00Z")
@@ -433,29 +439,27 @@ db.chargingPoints.createIndex({ stationId: 1, "connectors.power": -1 });
 
 ### 5.3 `chargingSessions`
 
-- Sessions list for user (history, bookings, active)
-- Conflict checks for booking overlaps on a point
+- Sessions list for user (history, holds, active)
+- Conflict checks for active session / unexpired holds on a point
 
 ```js
-db.chargingSessions.createIndex({ userId: 1, "booking.scheduledStartAt": -1 });
+db.chargingSessions.createIndex({ userId: 1, createdAt: -1 });
 db.chargingSessions.createIndex({
   userId: 1,
   status: 1,
-  "booking.scheduledStartAt": 1,
+  createdAt: -1,
 });
 db.chargingSessions.createIndex({
   chargingPointId: 1,
   status: 1,
-  "booking.scheduledStartAt": 1,
-  "booking.scheduledEndAt": 1,
+  "booking.expiresAt": 1,
 });
-db.chargingSessions.createIndex({ createdAt: -1 });
 ```
 
-**Overlap check** (conceptual): for a requested window \([start, end)\), search for sessions on the same point where:
+**Hold conflict check** (conceptual): when creating a hold for a point, search for sessions on the same point where:
 
-- `status` in `["BOOKED","ACTIVE"]`
-- `scheduledStartAt < requestedEnd` AND `scheduledEndAt > requestedStart`
+- `status == "ACTIVE"`, OR
+- `status == "BOOKED"` AND `booking.expiresAt > now` AND `booking.canceledAt == null`
 
 ### 5.4 `vehicles`
 
@@ -496,7 +500,7 @@ db.telemetry.createIndex(
 - **Computed Pattern**:
   - `chargingStations.availability.*` for map bubble counts
 - **Extended Reference Pattern**:
-  - `chargingSessions.stationSnapshot`, `chargingPointSnapshot`, `vehicleSnapshot` so session list/detail doesn’t need `$lookup`
+  - `chargingSessions.stationSnapshot` and `vehicleSnapshot` so session list/detail doesn’t need `$lookup`
 - **Extended Reference Pattern (search projection)**:
   - `chargingStations.chargingPoints[]` to support station search filters that depend on charging point capabilities
 - **Avoid unbounded arrays**:
@@ -563,10 +567,6 @@ Exclude fields that change often:
   - load live point state from `chargingPoints.find({ stationId })`
   - sort by `label` / `connectors.power`
 
-- **Availability by date/time**:
-  - use station search to narrow candidates
-  - then validate time-window availability precisely via `chargingSessions` overlap checks for points in those candidate stations
-
 ### 6.1.4 Keeping `chargingPoints[]` in sync
 
 Because `chargingPoints[]` contains stable capability data, you can keep it correct with low operational burden:
@@ -588,8 +588,8 @@ Because `chargingPoints[]` contains stable capability data, you can keep it corr
 - **Station detail**:
   - `chargingStations.findOne({_id})` + `chargingPoints.find({stationId})` sorted by `label` / `connectors.power`.
 - **Booking a point**:
-  - perform overlap check in `chargingSessions` using the point/time window
-  - insert a session with `status: "BOOKED"`
+  - perform a conflict check in `chargingSessions` against `ACTIVE` sessions and unexpired `BOOKED` holds for the chosen charging point
+  - insert a session with `status: "BOOKED"` and `booking.expiresAt = booking.bookedAt + 30 minutes`
   - optionally update station computed availability
 
 ### 7.2 View 2 — Sessions (history, booked, active) + details
@@ -643,19 +643,20 @@ Even in a flexible database like MongoDB, "schema-on-write" is critical for app 
 
 For this demo, we apply validation levels based on the collection's role:
 
-| Collection | Strictness | Validation Action | Rationale |
-| :--- | :--- | :--- | :--- |
-| `users`, `vehicles` | **High** | `error` | Low-volume, structured data. App logic depends heavily on fields like `role` or `connectorTypes`. |
-| `chargingStations`, `chargingPoints` | **High** | `error` | Core inventory. Incorrect coordinates or status enums would break the map/booking UI. |
-| `chargingSessions` | **High** | `error` | Financial/Booking records. Must be strictly validated to prevent billing errors or double bookings. |
-| `incidents` | **Medium** | `error` | structured core (type/status) + flexible `description`. |
-| `telemetry` | **Core Strict** + **Flexible Payload** | `error` on core fields | **Real IoT Strategy**: Enforce core fields (`timestamp`, `stationId`, `messageType`) to ensure routing/indexing works, but allow `additionalProperties: true` for the measurement payload (`powerKw`, `voltageV`) so new sensors or firmware versions can send extra data without breaking ingestion. |
+| Collection                           | Strictness                             | Validation Action      | Rationale                                                                                                                                                                                                                                                                                             |
+| :----------------------------------- | :------------------------------------- | :--------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`, `vehicles`                  | **High**                               | `error`                | Low-volume, structured data. App logic depends heavily on fields like `role` or `connectorTypes`.                                                                                                                                                                                                     |
+| `chargingStations`, `chargingPoints` | **High**                               | `error`                | Core inventory. Incorrect coordinates or status enums would break the map/booking UI.                                                                                                                                                                                                                 |
+| `chargingSessions`                   | **High**                               | `error`                | Financial/Booking records. Must be strictly validated to prevent billing errors or double bookings.                                                                                                                                                                                                   |
+| `incidents`                          | **Medium**                             | `error`                | structured core (type/status) + flexible `description`.                                                                                                                                                                                                                                               |
+| `telemetry`                          | **Core Strict** + **Flexible Payload** | `error` on core fields | **Real IoT Strategy**: Enforce core fields (`timestamp`, `stationId`, `messageType`) to ensure routing/indexing works, but allow `additionalProperties: true` for the measurement payload (`powerKw`, `voltageV`) so new sensors or firmware versions can send extra data without breaking ingestion. |
 
 ### 9.3 Implementation
 
 We use MongoDB's native JSON Schema validation. The schema definitions are located in `docs/data-model/schemas/*.json` and use BSON types (`int`, `double`, `objectId`, `date`) instead of standard JSON types to match the storage engine.
 
 Example `chargingPoints` validation rule:
+
 ```javascript
 {
   $jsonSchema: {

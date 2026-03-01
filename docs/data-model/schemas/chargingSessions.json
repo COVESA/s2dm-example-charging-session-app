@@ -1,6 +1,20 @@
 {
   "bsonType": "object",
-  "required": ["userId", "vehicleId", "stationId", "chargingPointId", "status", "booking", "createdAt"],
+  "required": [
+    "userId",
+    "vehicleId",
+    "stationId",
+    "chargingPointId",
+    "stationSnapshot",
+    "vehicleSnapshot",
+    "status",
+    "booking",
+    "charging",
+    "pricingSnapshot",
+    "cost",
+    "createdAt",
+    "updatedAt"
+  ],
   "additionalProperties": false,
   "properties": {
     "_id": {
@@ -20,6 +34,7 @@
     },
     "stationSnapshot": {
       "bsonType": "object",
+      "required": ["name", "location", "addressShort", "chargingPointLabel"],
       "additionalProperties": false,
       "properties": {
         "name": { "bsonType": "string" },
@@ -28,39 +43,26 @@
           "additionalProperties": false,
           "properties": {
             "type": { "bsonType": "string", "enum": ["Point"] },
-            "coordinates": { "bsonType": "array", "items": { "bsonType": "double" }, "minItems": 2, "maxItems": 2 }
-          }
-        },
-        "addressShort": { "bsonType": "string" }
-      }
-    },
-    "chargingPointSnapshot": {
-      "bsonType": "object",
-      "additionalProperties": false,
-      "properties": {
-        "label": { "bsonType": "string" },
-        "connectors": {
-          "bsonType": "array",
-          "items": {
-            "bsonType": "object",
-            "additionalProperties": false,
-            "properties": {
-              "type": { "bsonType": "string" },
-              "power": { "bsonType": "double" },
-              "tethered": { "bsonType": "bool" }
+            "coordinates": {
+              "bsonType": "array",
+              "items": { "bsonType": "double" },
+              "minItems": 2,
+              "maxItems": 2
             }
           }
-        }
+        },
+        "addressShort": { "bsonType": "string" },
+        "chargingPointLabel": { "bsonType": "string" }
       }
     },
     "vehicleSnapshot": {
       "bsonType": "object",
+      "required": ["vinLast6", "make", "model"],
       "additionalProperties": false,
       "properties": {
         "vinLast6": { "bsonType": "string" },
         "make": { "bsonType": "string" },
-        "model": { "bsonType": "string" },
-        "connectorTypes": { "bsonType": "array", "items": { "bsonType": "string" } }
+        "model": { "bsonType": "string" }
       }
     },
     "status": {
@@ -69,11 +71,11 @@
     },
     "booking": {
       "bsonType": "object",
+      "required": ["bookedAt", "expiresAt", "canceledAt", "cancelReason"],
       "additionalProperties": false,
       "properties": {
         "bookedAt": { "bsonType": "date" },
-        "scheduledStartAt": { "bsonType": "date" },
-        "scheduledEndAt": { "bsonType": "date" },
+        "expiresAt": { "bsonType": "date" },
         "canceledAt": { "bsonType": ["date", "null"] },
         "cancelReason": { "bsonType": ["string", "null"] }
       }
@@ -84,9 +86,30 @@
       "properties": {
         "startedAt": { "bsonType": ["date", "null"] },
         "endedAt": { "bsonType": ["date", "null"] },
+        "connectorUsed": {
+          "bsonType": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "bsonType": ["string", "null"] },
+            "power": { "bsonType": ["double", "null"] },
+            "tethered": { "bsonType": ["bool", "null"] }
+          }
+        },
         "meterStartKwh": { "bsonType": ["double", "null"] },
         "meterStopKwh": { "bsonType": ["double", "null"] },
-        "energyDeliveredKwh": { "bsonType": ["double", "null"] }
+        "energyDeliveredKwh": { "bsonType": ["double", "null"] },
+        "socStartPercent": { "bsonType": ["double", "null"] },
+        "socStopPercent": { "bsonType": ["double", "null"] }
+      }
+    },
+    "feedback": {
+      "bsonType": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["rating", "createdAt"],
+      "properties": {
+        "rating": { "bsonType": "int", "minimum": 1, "maximum": 5 },
+        "comment": { "bsonType": ["string", "null"] },
+        "createdAt": { "bsonType": "date" }
       }
     },
     "pricingSnapshot": {
