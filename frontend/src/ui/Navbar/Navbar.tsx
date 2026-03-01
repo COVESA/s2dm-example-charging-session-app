@@ -7,38 +7,31 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useUserContext } from "@/contexts/UserContext";
-import { useSimulatorControls } from "@/hooks/useSimulatorControls";
 import {
   UsersDocument,
   UserRole,
   type User
 } from "@/graphql/generated/graphql";
 
-import { SimulatorControl } from "./SimulatorControl";
-
 const NAV_LINKS = [
   { href: "/map", label: "Station Finder" },
   { href: "/sessions", label: "Session Activity" }
 ] as const;
 
-function getInitials(displayName: string): string {
-  return displayName
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+function getAvatarBubbleClass(roles: UserRole[] | undefined): string {
+  if (!roles?.length) return "bg-slate-300";
+  return roles.includes(UserRole.Admin) ? "bg-amber-400" : "bg-slate-300";
 }
 
-function getPrimaryRole(roles: UserRole[]): string {
-  return roles.includes(UserRole.Admin) ? "ADMIN" : "USER";
+function getPrimaryRole(roles: UserRole[] | undefined): string {
+  if (!roles?.length) return "—";
+  return roles.includes(UserRole.Admin) ? "Admin" : "Driver";
 }
 
 export function Navbar() {
   const pathname = usePathname();
   const { data, loading } = useQuery(UsersDocument);
   const { selectedUser, setSelectedUser } = useUserContext();
-  const { status, pending, error, toggle } = useSimulatorControls();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -73,7 +66,7 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
+    <header className="sticky top-0 z-[1100] flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
       <div className="flex-shrink-0">
         <Link
           href="/"
@@ -109,83 +102,74 @@ export function Navbar() {
       </nav>
 
       <div className="flex flex-shrink-0 items-center gap-6">
-        <SimulatorControl
-          status={status}
-          pending={pending}
-          error={error}
-          onToggle={toggle}
-        />
         <div ref={dropdownRef}>
           <div className="relative">
-          <button
-            type="button"
-            onClick={() => setIsOpen((prev) => !prev)}
-            className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-100"
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => users.length > 0 && setIsOpen((prev) => !prev)}
+            onKeyDown={(e) => {
+              if (users.length === 0) return;
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setIsOpen((prev) => !prev);
+              }
+            }}
+            className={
+              users.length > 0
+                ? "cursor-pointer"
+                : "cursor-default"
+            }
             aria-expanded={isOpen}
             aria-haspopup="listbox"
             aria-label="Select user"
           >
             <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-800 to-green-500 text-sm font-semibold text-white"
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white ${getAvatarBubbleClass(currentUser?.roles)}`}
               aria-hidden
             >
-              {loading
-                ? "…"
-                : currentUser
-                  ? getInitials(currentUser.displayName)
-                  : "—"}
-            </div>
-            <div className="flex flex-col items-end gap-0.5">
-              <span className="text-sm font-medium text-slate-900">
-                {loading ? "Loading…" : currentUser?.displayName ?? "No user"}
-              </span>
-              <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">
-                {currentUser ? getPrimaryRole(currentUser.roles) : "—"}
+              <span
+                className={`material-symbols-outlined ${loading ? "opacity-50" : ""}`}
+                style={{ fontSize: 24 }}
+              >
+                person
               </span>
             </div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className={`h-5 w-5 text-slate-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
-            >
-              <path
-                fillRule="evenodd"
-                d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
+          </div>
 
           {isOpen && users.length > 0 && (
             <ul
               role="listbox"
-              className="absolute right-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+              className="absolute right-0 top-full z-[1100] mt-1 min-w-[200px] divide-y divide-slate-100 rounded-lg bg-white py-1 shadow-lg"
             >
               {users.map((user) => (
-                <li key={user.id} role="option">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectUser(user)}
-                    className={`flex w-full items-center gap-3 px-4 py-2 text-left text-sm transition-colors hover:bg-slate-50 ${
-                      currentUser?.id === user.id
-                        ? "bg-green-50 text-green-900"
-                        : "text-slate-700"
-                    }`}
+                <li
+                  key={user.id}
+                  role="option"
+                  onClick={() => handleSelectUser(user)}
+                  className={`flex cursor-pointer items-center gap-3 px-4 py-2 text-sm transition-colors first:pt-2 ${
+                    currentUser?.id === user.id
+                      ? "bg-green-50/80 text-green-900"
+                      : "text-slate-700 hover:bg-slate-50/80"
+                  }`}
+                >
+                  <div
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white ${getAvatarBubbleClass(user.roles)}`}
+                    aria-hidden
                   >
-                    <div
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-700 to-green-500 text-xs font-semibold text-white"
-                      aria-hidden
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: 20 }}
                     >
-                      {getInitials(user.displayName)}
-                    </div>
-                    <div className="flex flex-col gap-0">
-                      <span className="font-medium">{user.displayName}</span>
-                      <span className="text-xs text-slate-500">
-                        {getPrimaryRole(user.roles)}
-                      </span>
-                    </div>
-                  </button>
+                      person
+                    </span>
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="font-medium">{user.displayName}</span>
+                    <span className="text-xs text-slate-500">
+                      {getPrimaryRole(user.roles)}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>

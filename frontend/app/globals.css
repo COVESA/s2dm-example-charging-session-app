@@ -116,7 +116,13 @@
 }
 
 .station-pin-box-expanded .station-pin-clipper {
-  overflow: visible;
+  /* Delay overflow visible to avoid content spilling during expansion */
+  animation: setOverflowVisible 0.3s step-end forwards;
+}
+
+@keyframes setOverflowVisible {
+  from { overflow: hidden; }
+  to { overflow: visible; }
 }
 
 @keyframes expandBubble {
@@ -142,6 +148,7 @@
   text-align: left;
   user-select: text;
   cursor: default;
+  min-width: 344px;
 }
 
 .station-pin-content {
