@@ -10,6 +10,7 @@ import type { MapStation } from "../_hooks/useChargingStationsQuery";
 import { StationPin, estimateExpandedPinHeight } from "./StationPin";
 import { ClusterMarker } from "./ClusterMarker";
 import { LocationPin } from "./LocationPin";
+import { ReserveModal } from "./ReserveModal";
 import type { ChargingStationFiltersInput } from "@/graphql/generated/graphql";
 
 const MARIENPLATZ: [number, number] = [48.1374, 11.5755];
@@ -21,6 +22,8 @@ interface StationsLayerProps {
   locationPin: { lat: number; lng: number } | null;
   expandedStationId: string | null;
   onStationClick: (stationId: string) => void;
+  hasActiveOrBookedSession?: boolean;
+  onSessionChanged?: () => Promise<unknown> | unknown;
 }
 
 interface FocusControllerProps {
@@ -55,13 +58,23 @@ function MapInteractionHandler({ onCollapse, onMapMove }: { onCollapse: () => vo
   return null;
 }
 
-function StationsLayer({ filters, locationPin, expandedStationId, onStationClick }: StationsLayerProps) {
+function StationsLayer({
+  filters,
+  locationPin,
+  expandedStationId,
+  onStationClick,
+  hasActiveOrBookedSession = false,
+  onSessionChanged
+}: StationsLayerProps) {
   const map = useMap();
+  const [reserveStationId, setReserveStationId] = useState<string | null>(null);
+  const [selectedChargingPointId, setSelectedChargingPointId] = useState<string | null>(null);
   const { bounds, zoom } = useMapBounds();
   const {
     stations,
     serverClusters,
     isServerClustered,
+    refetch: refetchStations,
   } = useChargingStationsQuery(bounds, zoom, filters);
   const clientClusters = useStationClusters(
     stations,
@@ -70,6 +83,47 @@ function StationsLayer({ filters, locationPin, expandedStationId, onStationClick
   );
 
   const lastPannedId = useRef<string | null>(null);
+
+  useEffect(() => {
+    setSelectedChargingPointId(null);
+  }, [expandedStationId]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent<{ stationId: string }>;
+      setReserveStationId(customEvent.detail?.stationId ?? null);
+    };
+    window.addEventListener("reserve-station", handler);
+    return () => window.removeEventListener("reserve-station", handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent<{ stationId: string; chargingPointId: string }>;
+      if (customEvent.detail?.stationId === expandedStationId) {
+        setSelectedChargingPointId(prevId => 
+          prevId === customEvent.detail.chargingPointId ? null : customEvent.detail.chargingPointId
+        );
+      }
+    };
+    window.addEventListener("select-charging-point", handler);
+    return () => window.removeEventListener("select-charging-point", handler);
+  }, [expandedStationId]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent<{ stationId: string }>;
+      if (customEvent.detail?.stationId === expandedStationId) {
+        setSelectedChargingPointId(null);
+      }
+    };
+    window.addEventListener("deselect-charging-point", handler);
+    return () => window.removeEventListener("deselect-charging-point", handler);
+  }, [expandedStationId]);
+
+  const reserveStation = reserveStationId
+    ? stations.find((s) => s.id === reserveStationId)
+    : null;
 
   const getRenderedExpandedPinHeight = useCallback((stationId: string) => {
     const markers = document.querySelectorAll<HTMLElement>(".station-pin[data-expanded='true']");
@@ -116,6 +170,15 @@ function StationsLayer({ filters, locationPin, expandedStationId, onStationClick
 
   return (
     <>
+      {reserveStation && (
+        <ReserveModal
+          station={reserveStation}
+          initialChargingPointId={selectedChargingPointId}
+          onClose={() => setReserveStationId(null)}
+          onReservationSuccess={refetchStations}
+          onSessionChanged={onSessionChanged}
+        />
+      )}
       {locationPin && (
         <LocationPin lat={locationPin.lat} lng={locationPin.lng} />
       )}
@@ -153,6 +216,8 @@ function StationsLayer({ filters, locationPin, expandedStationId, onStationClick
                 station={station}
                 isExpanded={expandedStationId === station.id}
                 onClick={() => onStationClick(station.id)}
+                hasActiveOrBookedSession={hasActiveOrBookedSession}
+                selectedChargingPointId={expandedStationId === station.id ? selectedChargingPointId : null}
               />
             );
           })}
@@ -165,9 +230,18 @@ interface StationMapProps {
   locationPin: { lat: number; lng: number } | null;
   focusRequestId: number;
   onMapMove?: (center: { lat: number; lng: number }) => void;
+  hasActiveOrBookedSession?: boolean;
+  onSessionChanged?: () => Promise<unknown> | unknown;
 }
 
-export function StationMap({ filters, locationPin, focusRequestId, onMapMove }: StationMapProps) {
+export function StationMap({
+  filters,
+  locationPin,
+  focusRequestId,
+  onMapMove,
+  hasActiveOrBookedSession = false,
+  onSessionChanged
+}: StationMapProps) {
   const [mounted, setMounted] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [expandedStationId, setExpandedStationId] = useState<string | null>(null);
@@ -219,6 +293,8 @@ export function StationMap({ filters, locationPin, focusRequestId, onMapMove }: 
               locationPin={locationPin}
               expandedStationId={expandedStationId}
               onStationClick={handleStationClick}
+              hasActiveOrBookedSession={hasActiveOrBookedSession}
+              onSessionChanged={onSessionChanged}
             />
           </>
         )}

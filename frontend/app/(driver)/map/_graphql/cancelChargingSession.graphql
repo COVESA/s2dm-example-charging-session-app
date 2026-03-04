@@ -1,0 +1,29 @@
+mutation CancelChargingSession($input: CancelChargingSessionInput!) {
+  cancelChargingSession(input: $input) {
+    session {
+      id
+      status
+      booking {
+        bookedAt
+        expiresAt
+        canceledAt
+        cancelReason
+      }
+      charging {
+        startedAt
+        endedAt
+        connectorUsed {
+          type
+          power
+          tethered
+        }
+        meterStartKwh
+        meterStopKwh
+        energyDeliveredKwh
+        socStartPercent
+        socStopPercent
+      }
+      updatedAt
+    }
+  }
+}

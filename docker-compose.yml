@@ -2,12 +2,18 @@ services:
   mongodb:
     image: mongo:8
     container_name: ev-demo-mongodb
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
     env_file:
       - .env
     ports:
       - "27017:27017"
     volumes:
       - mongodb-data:/data/db
+    healthcheck:
+      test: |
+        test $$(mongosh --quiet --eval "try { rs.initiate({_id:'rs0', members:[{_id:0, host:'mongodb:27017'}]}).ok } catch(e) { rs.status().ok }") -eq 1
+      interval: 10s
+      start_period: 5s
 
   simulator:
     build:
@@ -17,14 +23,16 @@ services:
     env_file:
       - .env
     environment:
-      MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/charging_demo}
+      MONGODB_URI: ${MONGODB_URI_DOCKER:-mongodb://mongodb:27017/charging_demo?replicaSet=rs0&directConnection=true}
       MONGODB_DATABASE: charging_demo
-      SIMULATION_INTERVAL_SECONDS: ${SIMULATION_INTERVAL_SECONDS:-2}
+      SESSION_TELEMETRY_INTERVAL_SECONDS: ${SESSION_TELEMETRY_INTERVAL_SECONDS:-2}
+      CHANGE_STREAM_RETRY_SECONDS: ${CHANGE_STREAM_RETRY_SECONDS:-2}
       SIMULATOR_URL: ${SIMULATOR_URL:-http://localhost:8000}
     ports:
       - "8000:8000"
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
 
   backend:
     build:
@@ -36,13 +44,12 @@ services:
     environment:
       BACKEND_URL: ${BACKEND_URL:-http://localhost:4000}
       BACKEND_CORS_ORIGIN: ${BACKEND_CORS_ORIGIN:-http://localhost:3000}
-      SIMULATOR_URL: http://simulator:8000
-      MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/charging_demo}
+      MONGODB_URI: ${MONGODB_URI_DOCKER:-mongodb://mongodb:27017/charging_demo?replicaSet=rs0&directConnection=true}
     ports:
       - "4000:4000"
     depends_on:
-      - mongodb
-      - simulator
+      mongodb:
+        condition: service_healthy
 
   frontend:
     build:
@@ -53,7 +60,6 @@ services:
       - .env
     environment:
       NEXT_PUBLIC_GRAPHQL_URL: ${NEXT_PUBLIC_GRAPHQL_URL:-http://localhost:4000/graphql}
-      NEXT_PUBLIC_SIMULATOR_URL: ${NEXT_PUBLIC_SIMULATOR_URL:-http://localhost:8000}
     ports:
       - "3000:3000"
     depends_on:

@@ -58,6 +58,99 @@ type ChargingPointInfo {
   connectors: [ConnectorInfo!]!
 }
 
+enum SessionStatus {
+  BOOKED
+  ACTIVE
+  COMPLETED
+  CANCELED
+  NO_SHOW
+  FAILED
+}
+
+type StationSnapshot {
+  name: String!
+  location: GeoPoint!
+  addressShort: String!
+  chargingPointLabel: String!
+}
+
+type VehicleSnapshot {
+  vinLast6: String!
+  make: String!
+  model: String!
+}
+
+type SessionBooking {
+  bookedAt: String!
+  expiresAt: String!
+  canceledAt: String
+  cancelReason: String
+}
+
+type SessionConnectorUsed {
+  type: String
+  power: Float
+  tethered: Boolean
+}
+
+type SessionCharging {
+  startedAt: String
+  endedAt: String
+  connectorUsed: SessionConnectorUsed
+  meterStartKwh: Float
+  meterStopKwh: Float
+  energyDeliveredKwh: Float
+  socStartPercent: Float
+  socStopPercent: Float
+}
+
+type SessionFeedback {
+  rating: Int!
+  comment: String
+  createdAt: String!
+}
+
+type IdleFee {
+  priceCentsPerMinute: Int!
+  afterMinutes: Int!
+}
+
+type PricingSnapshot {
+  currency: String!
+  priceCentsPerKwh: Int!
+  idleFee: IdleFee
+}
+
+type SessionCost {
+  totalCents: Int
+  energyCents: Int
+  idleCents: Int
+}
+
+type ChargingSession {
+  id: ID!
+  userId: ID!
+  vehicleId: ID!
+  stationId: ID!
+  chargingPointId: ID!
+  stationSnapshot: StationSnapshot!
+  vehicleSnapshot: VehicleSnapshot!
+  status: SessionStatus!
+  booking: SessionBooking!
+  charging: SessionCharging!
+  feedback: SessionFeedback
+  pricingSnapshot: PricingSnapshot!
+  cost: SessionCost!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type SessionConnection {
+  edges: [ChargingSession!]!
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
 # Facet types for filter options (from MongoDB aggregation)
 type ConnectorFacet {
   type: String!
@@ -106,12 +199,76 @@ type StationCluster {
 # Union: either individual stations or pre-aggregated clusters
 union MapItem = ChargingStation | StationCluster
 
+input ReserveChargingPointInput {
+  userId: ID!
+  vehicleId: ID!
+  stationId: ID!
+  chargingPointId: ID!
+}
+
+type ReserveChargingPointPayload {
+  session: ChargingSession!
+}
+
+input StartChargingSessionInput {
+  sessionId: ID!
+}
+
+type StartChargingSessionPayload {
+  session: ChargingSession!
+}
+
+input CancelChargingSessionInput {
+  sessionId: ID!
+  reason: String
+}
+
+type CancelChargingSessionPayload {
+  session: ChargingSession!
+}
+
+input CompleteChargingSessionInput {
+  sessionId: ID!
+}
+
+type CompleteChargingSessionPayload {
+  session: ChargingSession!
+}
+
+type Vehicle {
+  id: ID!
+  make: String!
+  model: String!
+}
+
 type Query {
   users: [User!]!
+  vehicles(userId: ID!): [Vehicle!]!
   chargingStationsInBounds(
     bounds: BoundsInput!
     zoom: Int!
     filters: ChargingStationFiltersInput
   ): [MapItem!]!
   chargingStationFacets: ChargingStationFacets!
+  chargingSessions(
+    userId: ID!
+    limit: Int
+    cursor: String
+    fromDate: String
+  ): SessionConnection!
+}
+
+type Mutation {
+  reserveChargingPoint(
+    input: ReserveChargingPointInput!
+  ): ReserveChargingPointPayload!
+  startChargingSession(
+    input: StartChargingSessionInput!
+  ): StartChargingSessionPayload!
+  cancelChargingSession(
+    input: CancelChargingSessionInput!
+  ): CancelChargingSessionPayload!
+  completeChargingSession(
+    input: CompleteChargingSessionInput!
+  ): CompleteChargingSessionPayload!
 }

@@ -116,13 +116,13 @@ export function useChargingStationsQuery(
 ) {
   const snappedBounds = getSnappedBounds(bounds, zoom);
 
-  const { data, previousData, loading, error } = useQuery(ChargingStationsInBoundsDocument, {
+  const { data, previousData, loading, error, refetch } = useQuery(ChargingStationsInBoundsDocument, {
     variables: {
       bounds: snappedBounds!,
       zoom,
       filters: filters ?? undefined,
     },
-    skip: !snappedBounds,
+    skip: !snappedBounds
   });
 
   const mapItems =
@@ -162,5 +162,6 @@ export function useChargingStationsQuery(
     isServerClustered,
     loading,
     error,
+    refetch,
   };
 }

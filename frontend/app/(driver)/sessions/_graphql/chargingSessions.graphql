@@ -1,0 +1,68 @@
+query ChargingSessions($userId: ID!, $limit: Int, $cursor: String, $fromDate: String) {
+  chargingSessions(userId: $userId, limit: $limit, cursor: $cursor, fromDate: $fromDate) {
+    edges {
+      id
+      userId
+      vehicleId
+      stationId
+      chargingPointId
+      stationSnapshot {
+        name
+        location {
+          lat
+          lng
+        }
+        addressShort
+        chargingPointLabel
+      }
+      vehicleSnapshot {
+        vinLast6
+        make
+        model
+      }
+      status
+      booking {
+        bookedAt
+        expiresAt
+        canceledAt
+        cancelReason
+      }
+      charging {
+        startedAt
+        endedAt
+        connectorUsed {
+          type
+          power
+          tethered
+        }
+        meterStartKwh
+        meterStopKwh
+        energyDeliveredKwh
+        socStartPercent
+        socStopPercent
+      }
+      pricingSnapshot {
+        currency
+        priceCentsPerKwh
+        idleFee {
+          priceCentsPerMinute
+          afterMinutes
+        }
+      }
+      cost {
+        totalCents
+        energyCents
+        idleCents
+      }
+      feedback {
+        rating
+        comment
+        createdAt
+      }
+      createdAt
+      updatedAt
+    }
+    hasNextPage
+    endCursor
+  }
+}

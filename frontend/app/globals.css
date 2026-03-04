@@ -27,6 +27,12 @@
     height: 100%;
   }
 
+  [data-route="sessions"] main {
+    max-width: none;
+    margin: 0;
+    height: 100%;
+  }
+
   button {
     margin-right: 0.5rem;
     padding: 0.5rem 0.75rem;
@@ -72,14 +78,10 @@
   position: relative;
   background: white;
   border: none;
-  border-radius: 8px;
-  /* Remove padding here, move to clipper/content to avoid animation jumps if needed, 
-     but keeping it here is fine if we animate dimensions including padding. */
+  border-radius: 10px;
   padding: 4px 8px; 
   white-space: nowrap;
-  /* Subtle shadow to compensate for lack of border and lift off map */
-  box-shadow: 0 2px 8px -1px rgb(0 0 0 / 0.15), 0 0 1px rgb(0 0 0 / 0.1);
-  /* Ensure centering logic works with width animation */
+  box-shadow: 0 2px 10px -2px rgb(0 0 0 / 0.12), 0 0 1px rgb(0 0 0 / 0.08);
   margin: 0 auto; 
 }
 
@@ -108,11 +110,26 @@
 }
 
 .station-pin-box-expanded {
-  /* Keep growth animation smooth without forcing a fixed final height */
   animation: expandBubble 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   z-index: 100;
-  padding: 8px;
+  padding: 10px 12px 12px;
   transform-origin: bottom center;
+  box-shadow: 0 4px 20px -3px rgb(0 0 0 / 0.12), 0 0 1px rgb(0 0 0 / 0.08);
+}
+
+.station-pin-box-expanded-static {
+  width: 360px;
+  transform: scaleY(1);
+  z-index: 100;
+  padding: 10px 12px 12px;
+  transform-origin: bottom center;
+  box-shadow: 0 4px 20px -3px rgb(0 0 0 / 0.12), 0 0 1px rgb(0 0 0 / 0.08);
+}
+
+.station-pin-box-expanded .station-pin-clipper,
+.station-pin-box-expanded-static .station-pin-clipper {
+  /* Ensure overflow is visible for static or after animation */
+  overflow: visible;
 }
 
 .station-pin-box-expanded .station-pin-clipper {
@@ -137,24 +154,32 @@
 }
 
 .station-pin-expanded {
-  margin-top: 6px;
-  padding-top: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 1px solid rgb(226 232 240);
-  opacity: 0;
-  animation: contentFadeIn 0.2s ease-out 0.1s forwards;
+  opacity: 1; /* Default to visible */
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   text-align: left;
   user-select: text;
   cursor: default;
-  min-width: 344px;
+  min-width: 330px;
+}
+
+.station-pin-expanded.animate {
+  opacity: 0;
+  animation: contentFadeIn 0.2s ease-out 0.1s forwards;
+}
+
+.station-pin-expanded.static {
+  opacity: 1;
 }
 
 .station-pin-content {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .station-pin-header {
@@ -191,18 +216,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 18px;
-  padding-left: 6px;
-  padding-right: 6px;
+  height: 22px;
+  padding-left: 8px;
+  padding-right: 8px;
   background: #fef7db;
   color: #944f01;
   border: 1px solid #ffec9e;
   border-radius: 24px;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 20px;
   font-weight: 600;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
+  letter-spacing: 0.3px;
   white-space: nowrap;
 }
 
@@ -215,189 +239,211 @@
   font-weight: 700;
   color: rgb(100 116 139);
   margin-top: 4px;
-  margin-bottom: 0;
+  margin-bottom: 1px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .station-pin-count-label {
-  font-size: 12px;
-  color: rgb(34 197 94);
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgb(16 185 129);
   margin-left: 2px;
 }
 
 .station-pin-points-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 0;
-  border-radius: 8px;
-  margin-bottom: 0;
-  max-height: none;
-  overflow: visible;
+  gap: 4px;
+  padding: 4px 6px; /* Increased horizontal padding to prevent shadow clipping */
+  max-height: 150px; /* Reduced from 234px to show approx 3.5 items */
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+
+.station-pin-points-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.station-pin-points-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.station-pin-points-list::-webkit-scrollbar-thumb {
+  background: rgb(203 213 225);
+  border-radius: 4px;
 }
 
 .station-pin-point-row {
-  position: relative;
-  z-index: 0;
   border: 1px solid rgb(226 232 240);
-  border-radius: 7px;
-  padding: 6px 7px;
+  border-radius: 10px;
+  padding: 7px 10px;
   background: white;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 5px;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  cursor: default;
 }
 
-.station-pin-point-row:hover {
-  z-index: 10;
+.station-pin-point-row.clickable {
+  cursor: pointer;
+}
+
+.station-pin-point-row.clickable:hover {
+  border-color: rgb(203 213 225);
+  background: rgb(248 250 252);
+}
+
+.station-pin-point-row.selected {
+  border-color: rgb(16 185 129);
+  background: rgb(236 253 245);
+  box-shadow: 0 0 0 1px rgb(16 185 129);
 }
 
 .station-pin-point-row-out {
   background: rgb(248 250 252);
+  pointer-events: none;
+}
+
+.station-pin-point-row-out > * {
+  opacity: 0.6;
+}
+
+.station-pin-point-row-out .station-pin-tooltip-trigger[data-tooltip]:hover::after,
+.station-pin-point-row-out .station-pin-tooltip-trigger[data-tooltip]:hover::before {
+  opacity: 1;
+}
+
+.station-pin-point-row-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+}
+
+.station-pin-point-row-inline .station-pin-connectors {
+  margin-left: auto;
+  padding-left: 8px;
+}
+
+.station-pin-point-identity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .station-pin-point-name {
-  color: rgb(51 65 85);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  min-width: 30px;
+  color: rgb(15 23 42);
+}
+
+.station-pin-point-status-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.station-pin-status-available-text {
+  color: rgb(5 150 105);
+}
+
+.station-pin-status-in-use-text {
+  color: rgb(217 119 6);
+}
+
+.station-pin-status-out-text {
+  color: rgb(100 116 139);
 }
 
 .station-pin-point-status-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 9999px;
   flex: 0 0 auto;
 }
 
-.station-pin-status-dot-trigger,
-.station-pin-tooltip-trigger {
-  cursor: pointer;
-}
-
 .station-pin-status-available {
-  background: radial-gradient(
-    circle at 30% 30%,
-    rgb(134 239 172),
-    rgb(34 197 94) 50%,
-    rgb(22 163 74)
-  );
-  box-shadow:
-    inset 0 1px 2px rgb(255 255 255 / 0.5),
-    0 0 6px rgb(34 197 94 / 0.5);
+  background: rgb(16 185 129);
 }
 
 .station-pin-status-in-use {
-  background: radial-gradient(
-    circle at 30% 30%,
-    rgb(253 186 116),
-    rgb(251 146 60) 50%,
-    rgb(234 88 12)
-  );
-  box-shadow:
-    inset 0 1px 2px rgb(255 255 255 / 0.5),
-    0 0 6px rgb(251 146 60 / 0.4);
+  background: rgb(245 158 11);
 }
 
 .station-pin-status-out {
-  background: radial-gradient(
-    circle at 30% 30%,
-    rgb(203 213 225),
-    rgb(148 163 184) 50%,
-    rgb(100 116 139)
-  );
-  box-shadow:
-    inset 0 1px 2px rgb(255 255 255 / 0.3),
-    0 0 4px rgb(148 163 184 / 0.3);
+  background: rgb(148 163 184);
 }
 
 .station-pin-connectors {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  flex: 1;
+  gap: 4px;
+  padding-left: 14px;
 }
 
 .station-pin-connector-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   border-radius: 9999px;
   border: 1px solid rgb(226 232 240);
-  background: rgb(248 250 252);
+  background: rgb(241 245 249);
   padding: 2px 8px;
   font-size: 11px;
-  color: rgb(51 65 85);
+  font-weight: 500;
+  color: rgb(71 85 105);
+  white-space: nowrap;
 }
 
-.station-pin-connector-type,
-.station-pin-connector-power {
-  font-weight: 600;
-}
-
-.station-pin-connector-sep {
-  color: rgb(148 163 184);
-}
-
-.station-pin-connector-tethered-icon,
-.station-pin-connector-cable-icon {
+.station-pin-chip-cable {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  color: rgb(71 85 105);
-  margin-left: 2px;
 }
 
-.station-pin-connector-tethered-icon .material-symbols-outlined,
-.station-pin-connector-cable-icon .material-symbols-outlined {
+.station-pin-chip-cable .material-symbols-outlined {
   font-size: 14px;
-}
-
-.station-pin-connector-tethered-icon.station-pin-tooltip-trigger,
-.station-pin-connector-cable-icon.station-pin-tooltip-trigger {
-  cursor: pointer;
+  color: rgb(71 85 105);
 }
 
 .station-pin-connector-empty {
   font-size: 11px;
   color: rgb(100 116 139);
+  padding-left: 14px;
 }
 
-/* Custom tooltips for status dots and tethered icon */
-.station-pin-status-dot-trigger[data-tooltip],
+/* Tooltips for cable icon */
 .station-pin-tooltip-trigger[data-tooltip] {
   position: relative;
+  cursor: pointer;
 }
 
-.station-pin-status-dot-trigger[data-tooltip]:hover::after,
 .station-pin-tooltip-trigger[data-tooltip]:hover::after {
   content: attr(data-tooltip);
   position: absolute;
-  left: 0;
-  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(100% + 6px);
   background: rgb(51 65 85);
   color: rgb(248 250 252);
   border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 12px;
+  padding: 3px 8px;
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
   z-index: 9999;
-  opacity: 1;
   pointer-events: none;
 }
 
-.station-pin-status-dot-trigger[data-tooltip]:hover::before,
 .station-pin-tooltip-trigger[data-tooltip]:hover::before {
   content: "";
   position: absolute;
-  left: 2px;
-  top: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(100% + 2px);
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
-  border-top: 5px solid rgb(51 65 85);
+  border-top: 4px solid rgb(51 65 85);
   z-index: 9999;
   pointer-events: none;
 }
@@ -407,8 +453,7 @@
 }
 
 .station-pin-expanded .station-pin-point-status-dot,
-.station-pin-expanded .station-pin-connector-tethered-icon,
-.station-pin-expanded .station-pin-connector-cable-icon {
+.station-pin-expanded .station-pin-chip-cable {
   user-select: none;
 }
 
@@ -423,11 +468,11 @@
 }
 
 .station-pin-icon-green {
-  color: rgb(34 197 94);
+  color: rgb(16 185 129);
 }
 
 .station-pin-icon-orange {
-  color: rgb(251 146 60);
+  color: rgb(245 158 11);
 }
 
 .station-pin-icon-gray {
@@ -435,24 +480,24 @@
 }
 
 .station-pin-count {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .station-pin-available,
 .station-pin-sep,
 .station-pin-total {
-  color: rgb(34 197 94);
+  color: rgb(16 185 129);
 }
 
 .station-pin-availability-orange .station-pin-available,
 .station-pin-availability-orange .station-pin-sep,
 .station-pin-availability-orange .station-pin-total {
-  color: rgb(251 146 60);
+  color: rgb(245 158 11);
 }
 
 .station-pin-count-label.station-pin-availability-orange {
-  color: rgb(251 146 60);
+  color: rgb(245 158 11);
 }
 
 .station-pin-availability-gray .station-pin-available,
@@ -473,11 +518,11 @@
 }
 
 .station-pin-dot-green {
-  background: rgb(34 197 94);
+  background: rgb(16 185 129);
 }
 
 .station-pin-dot-orange {
-  background: rgb(251 146 60);
+  background: rgb(245 158 11);
 }
 
 .station-pin-dot-gray {
@@ -491,6 +536,65 @@
   to {
     opacity: 1;
   }
+}
+
+/* Reserve button in expanded station pin */
+.station-pin-reserve-btn {
+  margin-top: 10px;
+  width: 100%;
+  height: 38px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  background: rgb(16 185 129);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 3px rgb(16 185 129 / 0.3);
+}
+
+.station-pin-reserve-btn:hover {
+  background: rgb(5 150 105);
+  box-shadow: 0 2px 6px rgb(16 185 129 / 0.35);
+}
+
+.station-pin-reserve-btn:active {
+  background: rgb(4 120 87);
+}
+
+.station-pin-reserve-btn:disabled {
+  background: rgb(16 185 129);
+  color: white;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+
+.station-pin-reserve-hint {
+  margin-top: 10px;
+  width: 100%;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(100 116 139);
+  background: rgb(248 250 252);
+  border: 1px dashed rgb(203 213 225);
+  border-radius: 8px;
+}
+
+.station-pin-reserve-hint .material-symbols-outlined {
+  font-size: 16px;
 }
 
 /* Cluster markers */

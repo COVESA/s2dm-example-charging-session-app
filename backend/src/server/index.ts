@@ -57,4 +57,5 @@ const startServer = async (): Promise<void> => {
   });
 };
 
+// Force restart on schema change
 void startServer();

@@ -1,0 +1,23 @@
+mutation CompleteChargingSession($input: CompleteChargingSessionInput!) {
+  completeChargingSession(input: $input) {
+    session {
+      id
+      status
+      charging {
+        startedAt
+        endedAt
+        connectorUsed {
+          type
+          power
+          tethered
+        }
+        meterStartKwh
+        meterStopKwh
+        energyDeliveredKwh
+        socStartPercent
+        socStopPercent
+      }
+      updatedAt
+    }
+  }
+}

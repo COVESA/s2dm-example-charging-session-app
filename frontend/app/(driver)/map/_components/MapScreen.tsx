@@ -3,13 +3,17 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
+import { useUserContext } from "@/contexts/UserContext";
 import { useGeocode } from "../_hooks/useGeocode";
+import { useActiveOrBookedSession } from "../_hooks/useActiveOrBookedSession";
 import {
   FilterSidebar,
   DEFAULT_FILTERS,
   type FilterState,
 } from "./FilterSidebar";
 import { SearchBar } from "./SearchBar";
+import { ActiveSessionBubble } from "./ActiveSessionBubble";
+import { SessionSummaryModal } from "./SessionSummaryModal";
 import type { ChargingStationFiltersInput } from "@/graphql/generated/graphql";
 
 const StationMap = dynamic(
@@ -36,6 +40,12 @@ function filtersToApiInput(filters: FilterState): ChargingStationFiltersInput {
 }
 
 export function MapScreen() {
+  const { selectedUser } = useUserContext();
+  const { session, hasActiveOrBookedSession, refetch } = useActiveOrBookedSession(
+    selectedUser?.id ?? null
+  );
+  const [sessionModalOpen, setSessionModalOpen] = useState(false);
+
   const [locationPin, setLocationPin] = useState<{
     lat: number;
     lng: number;
@@ -121,8 +131,25 @@ export function MapScreen() {
           locationPin={locationPin}
           focusRequestId={focusRequestId}
           onMapMove={setMapCenter}
+          hasActiveOrBookedSession={hasActiveOrBookedSession}
+          onSessionChanged={refetch}
         />
       </div>
+
+      {session && (
+        <ActiveSessionBubble
+          session={session}
+          onClick={() => setSessionModalOpen(true)}
+        />
+      )}
+
+      {sessionModalOpen && session && (
+        <SessionSummaryModal
+          session={session}
+          onSessionChanged={refetch}
+          onClose={() => setSessionModalOpen(false)}
+        />
+      )}
 
       <div
         className="absolute left-0 top-0 bottom-0 z-[1000] flex flex-col items-center border-r border-white/55 bg-white/30 shadow-lg backdrop-blur-xl transition-[width] duration-200 ease-out"

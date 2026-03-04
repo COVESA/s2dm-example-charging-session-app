@@ -75,6 +75,16 @@ export type ChargingStationDoc = {
   pricing: PricingDoc;
 };
 
+export async function findChargingStationById(
+  database: Db,
+  stationId: ObjectId
+): Promise<ChargingStationDoc | null> {
+  const doc = await database
+    .collection<ChargingStationDoc>("chargingStations")
+    .findOne({ _id: stationId });
+  return doc;
+}
+
 export async function findChargingStationsInBounds(
   database: Db,
   bounds: Bounds,
@@ -337,4 +347,60 @@ export async function findStationClustersInBounds(
     ]);
 
   return cursor.toArray();
+}
+
+export async function markChargingPointReserved(
+  database: Db,
+  stationId: ObjectId,
+  chargingPointId: ObjectId
+): Promise<boolean> {
+  const collection = database.collection<ChargingStationDoc>("chargingStations");
+  const result = await collection.updateOne(
+    {
+      _id: stationId,
+      "chargingPoints.chargingPointId": chargingPointId,
+      "chargingPoints.availableNow": true
+    },
+    {
+      $set: { "chargingPoints.$[elem].availableNow": false },
+      $inc: { "availability.availableNowPoints": -1 }
+    },
+    {
+      arrayFilters: [
+        {
+          "elem.chargingPointId": chargingPointId,
+          "elem.availableNow": true
+        }
+      ]
+    }
+  );
+  return result.modifiedCount === 1;
+}
+
+export async function markChargingPointAvailable(
+  database: Db,
+  stationId: ObjectId,
+  chargingPointId: ObjectId
+): Promise<boolean> {
+  const collection = database.collection<ChargingStationDoc>("chargingStations");
+  const result = await collection.updateOne(
+    {
+      _id: stationId,
+      "chargingPoints.chargingPointId": chargingPointId,
+      "chargingPoints.availableNow": false
+    },
+    {
+      $set: { "chargingPoints.$[elem].availableNow": true },
+      $inc: { "availability.availableNowPoints": 1 }
+    },
+    {
+      arrayFilters: [
+        {
+          "elem.chargingPointId": chargingPointId,
+          "elem.availableNow": false
+        }
+      ]
+    }
+  );
+  return result.modifiedCount === 1;
 }

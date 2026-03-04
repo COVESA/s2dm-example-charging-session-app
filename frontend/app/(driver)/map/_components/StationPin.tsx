@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, memo } from "react";
+import { useMemo, memo, useRef, useEffect } from "react";
 import { Marker } from "react-leaflet";
 import { divIcon, type LeafletMouseEvent } from "leaflet";
 import type { MapStation } from "../_hooks/useChargingStationsQuery";
@@ -11,18 +11,22 @@ const COLLAPSED_PIN_HEIGHT = 36;
 const COLLAPSED_PIN_WIDTH = 80;
 const EXPANDED_PIN_WIDTH = 360;
 
+const RESERVE_BUTTON_HEIGHT = 38;
+
 export function estimateExpandedPinHeight(station: MapStation): number {
-  const baseHeight = 162;
-  const pointRowHeight = 56;
-  const connectorWrapExtraHeight = 18;
-  const connectorsPerLine = 2;
+  const baseHeight = 160;
+  const inlineRowHeight = 32;
+  const stackedRowHeight = 54;
+  const listGap = 4;
+  const maxListHeight = 150; // Reduced from 234 to show approx 3.5 items
 
-  const wrappedConnectorRows = station.chargingPoints.reduce((sum, point) => {
-    const rows = Math.ceil(point.connectors.length / connectorsPerLine);
-    return sum + Math.max(0, rows - 1);
+  const fullListHeight = station.chargingPoints.reduce((sum, point, i) => {
+    const rowH = point.connectors.length === 1 ? inlineRowHeight : stackedRowHeight;
+    return sum + rowH + (i > 0 ? listGap : 0);
   }, 0);
+  const listHeight = Math.min(fullListHeight, maxListHeight);
 
-  return baseHeight + station.chargingPoints.length * pointRowHeight + wrappedConnectorRows * connectorWrapExtraHeight;
+  return baseHeight + listHeight + RESERVE_BUTTON_HEIGHT;
 }
 
 function getPinStatus(station: MapStation): PinStatus {
@@ -65,7 +69,14 @@ function escapeHtml(text: string): string {
 const CHARGER_ICON = '<span class="material-symbols-outlined">charger</span>';
 const BUILD_CIRCLE_ICON = '<span class="material-symbols-outlined">build_circle</span>';
 
-function createStationIcon(station: MapStation, isExpanded: boolean) {
+
+function createStationIcon(
+  station: MapStation,
+  isExpanded: boolean,
+  hasActiveOrBookedSession = false,
+  selectedChargingPointId: string | null = null,
+  shouldAnimate = true
+) {
   const status = getPinStatus(station);
   const isMaintenance = status === "maintenance";
   const isAllBooked = status === "all-booked";
@@ -90,26 +101,34 @@ function createStationIcon(station: MapStation, isExpanded: boolean) {
   const chargingPointsMarkup = station.chargingPoints
     .map((chargingPoint, index) => {
       const cpStatus = getChargingPointStatus(chargingPoint);
-      const isOutOfService = chargingPoint.outOfService;
-      const rowOutClass = isOutOfService ? " station-pin-point-row-out" : "";
+      const isInline = chargingPoint.connectors.length === 1;
+      const isSelectable = chargingPoint.availableNow && !chargingPoint.outOfService;
+      const isSelected = selectedChargingPointId === chargingPoint.id;
+      
+      const rowExtraClass =
+        (chargingPoint.outOfService ? " station-pin-point-row-out" : "") +
+        (isInline ? " station-pin-point-row-inline" : "") +
+        (isSelectable ? " clickable" : "") +
+        (isSelected ? " selected" : "");
+
       const connectorsMarkup = chargingPoint.connectors
         .map(
-          (connector) => `
-            <span class="station-pin-connector-chip">
-              <span class="station-pin-connector-type">${escapeHtml(connector.type)}</span>
-              <span class="station-pin-connector-sep">•</span>
-              <span class="station-pin-connector-power">${Math.round(connector.powerKw)} kW</span>
-              <span class="station-pin-connector-sep">•</span>
-              <span class="station-pin-connector-cable-icon station-pin-tooltip-trigger" data-tooltip="${connector.tethered ? "Tethered connector" : "Untethered connector"}">${connector.tethered ? '<span class="material-symbols-outlined">power</span>' : '<span class="material-symbols-outlined">power_off</span>'}</span>
-            </span>
-          `
+          (connector) =>
+            `<span class="station-pin-connector-chip">${escapeHtml(connector.type)} · ${Math.round(connector.powerKw)} kW · <span class="station-pin-chip-cable station-pin-tooltip-trigger" data-tooltip="${connector.tethered ? "Cable included" : "Bring your cable"}"><span class="material-symbols-outlined">${connector.tethered ? "power" : "power_off"}</span></span></span>`
         )
         .join("");
 
+      const onClickHandler = isSelectable 
+        ? `onclick="event.stopPropagation(); window.dispatchEvent(new CustomEvent('select-charging-point', { detail: { stationId: '${escapeHtml(station.id)}', chargingPointId: '${escapeHtml(chargingPoint.id)}' } }));"`
+        : "";
+
       return `
-        <div class="station-pin-point-row${rowOutClass}">
-          <span class="station-pin-point-status-dot station-pin-status-dot-trigger ${cpStatus.className}" data-tooltip="${escapeHtml(cpStatus.label)}" aria-label="${escapeHtml(cpStatus.label)}"></span>
-          <span class="station-pin-point-name">CP ${index + 1}</span>
+        <div class="station-pin-point-row${rowExtraClass}" ${onClickHandler}>
+          <div class="station-pin-point-identity">
+            <span class="station-pin-point-status-dot ${cpStatus.className}"></span>
+            <span class="station-pin-point-name">CP ${index + 1}</span>
+            <span class="station-pin-point-status-label ${cpStatus.className}-text">${escapeHtml(cpStatus.label)}</span>
+          </div>
           <div class="station-pin-connectors">${connectorsMarkup || '<span class="station-pin-connector-empty">No connectors</span>'}</div>
         </div>
       `;
@@ -118,7 +137,7 @@ function createStationIcon(station: MapStation, isExpanded: boolean) {
 
   const expandedContent = isExpanded
     ? `
-    <div class="station-pin-expanded" onmousedown="event.stopPropagation()" onclick="event.stopPropagation()">
+    <div class="station-pin-expanded ${shouldAnimate ? "animate" : "static"}" onmousedown="event.stopPropagation()" ondblclick="event.stopPropagation()" onclick="event.stopPropagation(); window.dispatchEvent(new CustomEvent('deselect-charging-point', { detail: { stationId: '${escapeHtml(station.id)}' } }));">
       <div class="station-pin-header">
         <div class="station-pin-header-main">
           <div class="station-pin-name">${escapeHtml(station.operator ?? station.name)}</div>
@@ -133,9 +152,24 @@ function createStationIcon(station: MapStation, isExpanded: boolean) {
       </div>
       <div class="station-pin-section-title">Charging Points</div>
       <div class="station-pin-points-list" onwheel="event.stopPropagation()">${chargingPointsMarkup}</div>
+      ${(() => {
+        const canReserve = !hasActiveOrBookedSession && station.availableNowPoints > 0;
+        if (canReserve) {
+          const isDisabled = !selectedChargingPointId;
+          const btnText = "Reserve";
+          const btnClass = isDisabled ? "station-pin-reserve-btn disabled" : "station-pin-reserve-btn";
+          const disabledAttr = isDisabled ? "disabled" : "";
+          
+          return `<button type="button" class="${btnClass}" ${disabledAttr} data-reserve-station-id="${escapeHtml(station.id)}" onclick="event.stopPropagation(); window.dispatchEvent(new CustomEvent('reserve-station', { detail: { stationId: this.getAttribute('data-reserve-station-id') } }));"><span class="material-symbols-outlined" style="font-size:18px">bolt</span> ${btnText}</button>`;
+        }
+        const icon = hasActiveOrBookedSession ? "event_busy" : "block";
+        const label = hasActiveOrBookedSession ? "Session in progress" : "All points in use";
+        return `<div class="station-pin-reserve-hint"><span class="material-symbols-outlined">${icon}</span>${escapeHtml(label)}</div>`;
+      })()}
     </div>
   `
     : "";
+
 
   const pinColorClass = isGrayStatus
     ? " station-pin-gray"
@@ -149,7 +183,7 @@ function createStationIcon(station: MapStation, isExpanded: boolean) {
       : " station-pin-dot-green";
   const html = `
     <div class="station-pin${pinColorClass}" data-station-id="${escapeHtml(station.id)}" data-expanded="${isExpanded ? "true" : "false"}">
-      <div class="station-pin-box ${isExpanded ? "station-pin-box-expanded" : ""}">
+      <div class="station-pin-box ${isExpanded ? (shouldAnimate ? "station-pin-box-expanded" : "station-pin-box-expanded-static") : ""}">
         <div class="station-pin-clipper">
           <div class="station-pin-content">
             <span class="station-pin-icon ${iconClass}">${iconHtml}</span>
@@ -187,16 +221,30 @@ interface StationPinProps {
   station: MapStation;
   isExpanded: boolean;
   onClick: () => void;
+  hasActiveOrBookedSession?: boolean;
+  selectedChargingPointId?: string | null;
 }
 
 export const StationPin = memo(function StationPin({
   station,
   isExpanded,
   onClick,
+  hasActiveOrBookedSession = false,
+  selectedChargingPointId = null,
 }: StationPinProps) {
+  const wasExpandedRef = useRef(isExpanded);
+  
+  // We only animate if we are expanding from a collapsed state.
+  // If we were already expanded, we switch to static mode to avoid re-running CSS animations on update.
+  const shouldAnimate = isExpanded && !wasExpandedRef.current;
+
+  useEffect(() => {
+    wasExpandedRef.current = isExpanded;
+  }, [isExpanded]);
+
   const icon = useMemo(
-    () => createStationIcon(station, isExpanded),
-    [station, isExpanded]
+    () => createStationIcon(station, isExpanded, hasActiveOrBookedSession, selectedChargingPointId, shouldAnimate),
+    [station, isExpanded, hasActiveOrBookedSession, selectedChargingPointId, shouldAnimate]
   );
 
   const handleClick = (e: LeafletMouseEvent) => {
@@ -216,6 +264,8 @@ export const StationPin = memo(function StationPin({
   return (
     prevProps.isExpanded === nextProps.isExpanded &&
     prevProps.station.id === nextProps.station.id &&
+    prevProps.hasActiveOrBookedSession === nextProps.hasActiveOrBookedSession &&
+    prevProps.selectedChargingPointId === nextProps.selectedChargingPointId &&
     JSON.stringify(prevProps.station) === JSON.stringify(nextProps.station)
   );
 });

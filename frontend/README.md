@@ -1,6 +1,6 @@
 # Frontend (Next.js)
 
-Next.js (App Router) client that calls the backend GraphQL API and provides basic simulator controls.
+Next.js (App Router) client that calls the backend GraphQL API.
 
 ## Prerequisites
 
@@ -22,7 +22,6 @@ cp .env frontend/.env
 Key vars used by the frontend (URLs include the port when needed):
 
 - `NEXT_PUBLIC_GRAPHQL_URL` (default `http://localhost:4000/graphql`)
-- `NEXT_PUBLIC_SIMULATOR_URL` (default `http://localhost:8000`)
 
 ## Install
 

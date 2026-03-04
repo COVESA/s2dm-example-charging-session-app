@@ -14,7 +14,8 @@ class Settings:
     mongodb_database: str
     simulator_url: str
     bind_port: int
-    simulation_interval_seconds: float
+    session_telemetry_interval_seconds: float
+    change_stream_retry_seconds: float
 
 
 def _port_from_url(url: str, default: int = 8000) -> int:
@@ -32,5 +33,11 @@ def get_settings() -> Settings:
         mongodb_database=os.getenv("MONGODB_DATABASE", "charging_demo"),
         simulator_url=simulator_url,
         bind_port=_port_from_url(simulator_url),
-        simulation_interval_seconds=float(os.getenv("SIMULATION_INTERVAL_SECONDS", "2")),
+        session_telemetry_interval_seconds=float(
+            os.getenv(
+                "SESSION_TELEMETRY_INTERVAL_SECONDS",
+                os.getenv("SIMULATION_INTERVAL_SECONDS", "2"),
+            )
+        ),
+        change_stream_retry_seconds=float(os.getenv("CHANGE_STREAM_RETRY_SECONDS", "2")),
     )

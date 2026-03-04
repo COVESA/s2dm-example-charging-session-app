@@ -30,3 +30,7 @@ def get_charging_points_collection() -> Collection:
 
 def get_charging_stations_collection() -> Collection:
     return get_database()["chargingStations"]
+
+
+def get_charging_sessions_collection() -> Collection:
+    return get_database()["chargingSessions"]

@@ -1,9 +1,17 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.simulation import router as simulation_router
+from app.services.simulation_service import SimulationService
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s - %(message)s",
+)
 
 app = FastAPI(title="EV Charging Simulator")
+service = SimulationService()
 
 app.add_middleware(
     CORSMiddleware,
@@ -13,7 +21,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(simulation_router)
+
+@app.on_event("startup")
+async def start_simulation_service() -> None:
+    await service.start()
+
+
+@app.on_event("shutdown")
+async def stop_simulation_service() -> None:
+    await service.stop()
 
 
 @app.get("/health")

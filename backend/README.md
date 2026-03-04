@@ -23,7 +23,6 @@ Key vars used by the backend:
 
 - `BACKEND_URL` (default `http://localhost:4000`) – backend derives its bind port from this
 - `BACKEND_CORS_ORIGIN` (default `http://localhost:3000`)
-- `SIMULATOR_URL` (default `http://localhost:8000`) – backend calls the simulator at this URL
 
 ## Install
 

@@ -15,7 +15,7 @@ export function HomeScreen() {
               alt="LeafyCharge"
               width={48}
               height={48}
-              className="shrink-0 rounded-full"
+              className="h-12 w-12 shrink-0 rounded-full"
             />
             <h1 className="text-2xl md:text-3xl font-bold text-green-900">
               EV Charging Station Demo

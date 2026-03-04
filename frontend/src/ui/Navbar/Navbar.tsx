@@ -77,7 +77,7 @@ export function Navbar() {
             alt="LeafyCharge"
             width={36}
             height={36}
-            className="shrink-0"
+            className="h-9 w-9 shrink-0"
           />
           <span className="text-xl font-semibold text-slate-900">
             LeafyCharge
