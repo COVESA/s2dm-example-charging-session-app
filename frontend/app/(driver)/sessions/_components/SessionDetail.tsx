@@ -3,6 +3,11 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import type { ChargingSessionsQuery } from "@/graphql/generated/graphql";
+import { useSessionFeedback } from "@/hooks/useSessionFeedback";
+import {
+  RatingStars,
+  SessionFeedbackDialog
+} from "@/ui/session-feedback";
 import { SessionStatusBadge } from "./SessionStatusBadge";
 import { useSessionActions } from "../_hooks/useSessionActions";
 import {
@@ -130,49 +135,31 @@ function BatteryBar({ startPercent, stopPercent }: { startPercent: number | null
         </div>
       </div>
       <div className="relative ml-auto mt-0.5 flex h-3 w-[55%]">
-        <span
-          className="absolute text-[10px] font-medium text-slate-400"
-          style={{ left: `${start}%`, transform: "translateX(-50%)" }}
-        >
-          {Math.round(start)}%
-        </span>
-        <span
-          className="absolute text-[10px] font-semibold text-emerald-600"
-          style={{ left: `${stop}%`, transform: "translateX(-50%)" }}
-        >
-          {Math.round(stop)}%
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function RatingStars({ rating }: { rating?: number | null }) {
-  const [hovered, setHovered] = useState<number>(0);
-  const active = hovered || rating || 0;
-
-  return (
-    <div className="flex items-center gap-3" onMouseLeave={() => setHovered(0)}>
-      {[1, 2, 3, 4, 5].map((i) => {
-        const filled = i <= active;
-        return (
+        {Math.abs(stop - start) < 12 ? (
           <span
-            key={i}
-            onMouseEnter={() => setHovered(i)}
-            className={`material-symbols-outlined cursor-pointer transition-all ${
-              filled
-                ? hovered ? "scale-110 text-amber-300" : "text-amber-400"
-                : "text-slate-300"
-            }`}
-            style={{
-              fontSize: 36,
-              fontVariationSettings: filled ? "'FILL' 1" : "'FILL' 0",
-            }}
+            className="absolute flex gap-1 text-[10px]"
+            style={{ left: `${(start + stop) / 2}%`, transform: "translateX(-50%)" }}
           >
-            star
+            <span className="font-medium text-slate-400">{Math.round(start)}%</span>
+            <span className="font-semibold text-emerald-600">{Math.round(stop)}%</span>
           </span>
-        );
-      })}
+        ) : (
+          <>
+            <span
+              className="absolute text-[10px] font-medium text-slate-400"
+              style={{ left: `${start}%`, transform: "translateX(-50%)" }}
+            >
+              {Math.round(start)}%
+            </span>
+            <span
+              className="absolute text-[10px] font-semibold text-emerald-600"
+              style={{ left: `${stop}%`, transform: "translateX(-50%)" }}
+            >
+              {Math.round(stop)}%
+            </span>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -205,7 +192,7 @@ function HeroMetric({
 
 function MetricGrid({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid h-full w-full grid-cols-2 grid-rows-2 gap-3">
+    <div className="grid grid-cols-2 grid-rows-2 gap-8">
       {children}
     </div>
   );
@@ -351,24 +338,99 @@ function TerminalHeroMetrics({ session }: { session: SessionItem }) {
   );
 }
 
-function SessionFooter({ session }: { session: SessionItem }) {
+function SessionFooter({
+  session,
+  onSessionChanged
+}: {
+  session: SessionItem;
+  onSessionChanged?: () => Promise<unknown> | unknown;
+}) {
   const isBooked = session.status === "BOOKED";
   const isActive = session.status === "ACTIVE";
   const isCompleted = session.status === "COMPLETED";
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+  const [draftRating, setDraftRating] = useState(0);
 
   const { startCharging, cancelReservation, stopCharging, isUpdating, error } =
     useSessionActions({ sessionId: session.id, isBooked });
+  const {
+    submitFeedback,
+    isSubmitting: isSubmittingFeedback,
+    error: feedbackError,
+    clearError: clearFeedbackError
+  } = useSessionFeedback({ sessionId: session.id });
+
+  const openFeedbackDialog = (rating = 0) => {
+    setDraftRating(rating);
+    clearFeedbackError();
+    setFeedbackDialogOpen(true);
+  };
+
+  const closeFeedbackDialog = () => {
+    clearFeedbackError();
+    setFeedbackDialogOpen(false);
+  };
+
+  const handleStartCharging = async () => {
+    const updatedSession = await startCharging();
+    if (updatedSession) {
+      await onSessionChanged?.();
+    }
+  };
+
+  const handleCancelReservation = async () => {
+    const updatedSession = await cancelReservation();
+    if (updatedSession) {
+      await onSessionChanged?.();
+    }
+  };
+
+  const handleStopCharging = async () => {
+    const updatedSession = await stopCharging();
+    if (!updatedSession) {
+      return;
+    }
+
+    await onSessionChanged?.();
+    openFeedbackDialog();
+  };
+
+  const handleSubmitFeedback = async ({
+    rating,
+    comment
+  }: {
+    rating: number;
+    comment: string | null;
+  }) => {
+    const updatedSession = await submitFeedback({ rating, comment });
+    if (!updatedSession) {
+      return;
+    }
+
+    await onSessionChanged?.();
+    closeFeedbackDialog();
+  };
 
   return (
     <div className="mt-auto flex flex-col items-center gap-1 pt-5">
-      <div className="flex h-[52px] items-center justify-center">
+      <div className="flex min-h-[52px] items-center justify-center">
         {isCompleted && (
-          <RatingStars rating={session.feedback?.rating} />
+          <div className="flex flex-col items-center gap-2">
+            <RatingStars
+              value={session.feedback?.rating}
+              onChange={session.feedback ? undefined : (rating) => openFeedbackDialog(rating)}
+            />
+            {!session.feedback && (
+              <p className="text-xs font-medium text-slate-400">
+                Tap a star to rate this session
+              </p>
+            )}
+          </div>
         )}
         {isBooked && (
           <button
             type="button"
-            onClick={startCharging}
+            onClick={() => void handleStartCharging()}
             disabled={isUpdating}
             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-8 py-3.5 font-semibold text-white shadow-sm transition-colors hover:bg-emerald-600"
             style={{ margin: 0 }}
@@ -380,7 +442,7 @@ function SessionFooter({ session }: { session: SessionItem }) {
         {isActive && (
           <button
             type="button"
-            onClick={stopCharging}
+            onClick={() => void handleStopCharging()}
             disabled={isUpdating}
             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-800 px-8 py-3.5 font-semibold text-white shadow-sm transition-colors hover:bg-slate-700"
             style={{ margin: 0 }}
@@ -411,7 +473,7 @@ function SessionFooter({ session }: { session: SessionItem }) {
         {isBooked && (
           <button
             type="button"
-            onClick={cancelReservation}
+            onClick={() => void handleCancelReservation()}
             disabled={isUpdating}
             className="inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-[14px] font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
             style={{ margin: 0, border: "none", background: "transparent" }}
@@ -420,11 +482,28 @@ function SessionFooter({ session }: { session: SessionItem }) {
           </button>
         )}
       </div>
+
+      {feedbackDialogOpen && (
+        <SessionFeedbackDialog
+          title="Rate This Charge"
+          initialRating={draftRating}
+          onDismiss={closeFeedbackDialog}
+          onSubmit={handleSubmitFeedback}
+          isSubmitting={isSubmittingFeedback}
+          error={feedbackError}
+        />
+      )}
     </div>
   );
 }
 
-export function SessionDetail({ session }: { session: SessionItem }) {
+export function SessionDetail({
+  session,
+  onSessionChanged
+}: {
+  session: SessionItem;
+  onSessionChanged?: () => Promise<unknown> | unknown;
+}) {
   const isBooked = session.status === "BOOKED";
   const isActive = session.status === "ACTIVE";
   const isCompleted = session.status === "COMPLETED";
@@ -462,7 +541,7 @@ export function SessionDetail({ session }: { session: SessionItem }) {
             sessionId={session.id}
           />
         </div>
-        <div className="flex h-[230px] w-1/2">
+        <div className="flex h-[230px] w-1/2 items-center justify-center">
           {isBooked && <BookedHeroMetrics session={session} countdown={countdown} />}
           {isActive && <ActiveHeroMetrics session={session} liveDuration={liveDuration} />}
           {isCompleted && <CompletedHeroMetrics session={session} />}
@@ -524,7 +603,7 @@ export function SessionDetail({ session }: { session: SessionItem }) {
       </div>
 
       {/* Footer */}
-      <SessionFooter session={session} />
+      <SessionFooter session={session} onSessionChanged={onSessionChanged} />
     </section>
   );
 }

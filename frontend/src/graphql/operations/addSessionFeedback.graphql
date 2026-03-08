@@ -1,0 +1,14 @@
+mutation AddSessionFeedback($input: AddSessionFeedbackInput!) {
+  addSessionFeedback(input: $input) {
+    session {
+      id
+      status
+      feedback {
+        rating
+        comment
+        createdAt
+      }
+      updatedAt
+    }
+  }
+}

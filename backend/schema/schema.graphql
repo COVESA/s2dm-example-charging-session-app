@@ -235,6 +235,16 @@ type CompleteChargingSessionPayload {
   session: ChargingSession!
 }
 
+input AddSessionFeedbackInput {
+  sessionId: ID!
+  rating: Int!
+  comment: String
+}
+
+type AddSessionFeedbackPayload {
+  session: ChargingSession!
+}
+
 type Vehicle {
   id: ID!
   make: String!
@@ -271,4 +281,7 @@ type Mutation {
   completeChargingSession(
     input: CompleteChargingSessionInput!
   ): CompleteChargingSessionPayload!
+  addSessionFeedback(
+    input: AddSessionFeedbackInput!
+  ): AddSessionFeedbackPayload!
 }

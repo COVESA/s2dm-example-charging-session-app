@@ -45,6 +45,7 @@ export function MapScreen() {
     selectedUser?.id ?? null
   );
   const [sessionModalOpen, setSessionModalOpen] = useState(false);
+  const [modalSession, setModalSession] = useState<typeof session>(null);
 
   const [locationPin, setLocationPin] = useState<{
     lat: number;
@@ -69,14 +70,14 @@ export function MapScreen() {
 
   useEffect(() => {
     if (suppressSuggestions) {
-      setSearchResults([]);
-      return;
+      const timeoutId = setTimeout(() => setSearchResults([]), 0);
+      return () => clearTimeout(timeoutId);
     }
 
     const query = searchQuery.trim();
     if (!query) {
-      setSearchResults([]);
-      return;
+      const timeoutId = setTimeout(() => setSearchResults([]), 0);
+      return () => clearTimeout(timeoutId);
     }
 
     const timeoutId = setTimeout(async () => {
@@ -117,6 +118,7 @@ export function MapScreen() {
 
   const apiFilters = filtersToApiInput(filters);
   const filterWidth = isExpanded ? FILTER_WIDTH_EXPANDED : FILTER_WIDTH_COLLAPSED;
+  const displayedModalSession = sessionModalOpen ? session ?? modalSession : null;
 
   const handleToggle = () => {
     setFilterOpen((o) => !o);
@@ -139,15 +141,21 @@ export function MapScreen() {
       {session && (
         <ActiveSessionBubble
           session={session}
-          onClick={() => setSessionModalOpen(true)}
+          onClick={() => {
+            setModalSession(session);
+            setSessionModalOpen(true);
+          }}
         />
       )}
 
-      {sessionModalOpen && session && (
+      {displayedModalSession && (
         <SessionSummaryModal
-          session={session}
+          session={displayedModalSession}
           onSessionChanged={refetch}
-          onClose={() => setSessionModalOpen(false)}
+          onClose={() => {
+            setSessionModalOpen(false);
+            setModalSession(null);
+          }}
         />
       )}
 

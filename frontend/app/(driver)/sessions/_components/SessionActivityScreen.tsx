@@ -14,7 +14,7 @@ export function SessionActivityScreen() {
   const sessionIdFromUrl = searchParams.get("sessionId");
   const [explicitSelectedSessionId, setExplicitSelectedSessionId] = useState<string | null>(sessionIdFromUrl);
 
-  const { sessions, loading, loadingMore, error, hasNextPage, loadMore } =
+  const { sessions, loading, loadingMore, error, hasNextPage, loadMore, refetch } =
     useChargingSessionsQuery(selectedUser?.id ?? null);
 
   const selectedSessionId = useMemo(() => {
@@ -83,7 +83,7 @@ export function SessionActivityScreen() {
   return (
     <main className="h-full w-full bg-slate-50 p-4">
       <div className="mx-auto flex h-full min-h-0 max-w-[1440px] gap-4">
-        <SessionDetail session={selectedSession} />
+        <SessionDetail session={selectedSession} onSessionChanged={refetch} />
         <SessionList
           sessions={sessions}
           selectedSessionId={selectedSession.id}

@@ -31,6 +31,11 @@ type FeedbackDoc = {
   createdAt: Date;
 };
 
+export type SessionFeedbackInputDoc = {
+  rating: number;
+  comment?: string | null;
+};
+
 type PricingDoc = {
   currency: string;
   priceCentsPerKwh: number;
@@ -349,6 +354,37 @@ export async function markSessionCompleted(
       },
       { returnDocument: "after" }
     );
+  return result;
+}
+
+export async function addSessionFeedback(
+  database: Db,
+  sessionId: string,
+  feedback: SessionFeedbackInputDoc
+): Promise<ChargingSessionDoc | null> {
+  const nowDate = now();
+
+  const result = await database
+    .collection<ChargingSessionDoc>("chargingSessions")
+    .findOneAndUpdate(
+      {
+        _id: new ObjectId(sessionId),
+        status: "COMPLETED",
+        feedback: null
+      },
+      {
+        $set: {
+          feedback: {
+            rating: feedback.rating,
+            comment: feedback.comment ?? null,
+            createdAt: nowDate
+          },
+          updatedAt: nowDate
+        }
+      },
+      { returnDocument: "after" }
+    );
+
   return result;
 }
 

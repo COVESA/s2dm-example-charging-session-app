@@ -15,12 +15,16 @@ import {
   createCancelChargingSessionResponse,
   completeChargingSession,
   createCompleteChargingSessionResponse,
+  addSessionFeedback,
+  createAddSessionFeedbackResponse,
   UserAlreadyHasActiveBookingError,
   ChargingPointUnavailableError,
   StationOrPointNotFoundError,
   ChargingSessionNotFoundError,
   InvalidSessionTransitionError,
-  BookingExpiredError
+  BookingExpiredError,
+  InvalidSessionFeedbackError,
+  SessionFeedbackAlreadyExistsError
 } from "../../modules/chargingSessions/service";
 
 
@@ -167,6 +171,38 @@ export const resolvers = {
         }
         if (err instanceof InvalidSessionTransitionError) {
           throw new GraphQLError("Session cannot be completed from current status", {
+            extensions: { code: "INVALID_SESSION_STATE" }
+          });
+        }
+        throw err;
+      }
+    },
+    addSessionFeedback: async (
+      _parent: unknown,
+      args: { input: { sessionId: string; rating: number; comment?: string | null } },
+      context: GraphQLContext
+    ) => {
+      try {
+        const doc = await addSessionFeedback(context.db, args.input);
+        return createAddSessionFeedbackResponse(doc);
+      } catch (err) {
+        if (err instanceof ChargingSessionNotFoundError) {
+          throw new GraphQLError("Charging session not found", {
+            extensions: { code: "NOT_FOUND" }
+          });
+        }
+        if (err instanceof InvalidSessionFeedbackError) {
+          throw new GraphQLError("Rating must be between 1 and 5", {
+            extensions: { code: "INVALID_INPUT" }
+          });
+        }
+        if (err instanceof SessionFeedbackAlreadyExistsError) {
+          throw new GraphQLError("Session feedback has already been submitted", {
+            extensions: { code: "FEEDBACK_ALREADY_EXISTS" }
+          });
+        }
+        if (err instanceof InvalidSessionTransitionError) {
+          throw new GraphQLError("Session feedback can only be added to completed sessions", {
             extensions: { code: "INVALID_SESSION_STATE" }
           });
         }

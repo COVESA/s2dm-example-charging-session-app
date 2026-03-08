@@ -11,6 +11,7 @@ import {
   markSessionActive,
   markSessionCanceled,
   markSessionCompleted,
+  addSessionFeedback as addSessionFeedbackToSession,
   type ChargingSessionDoc
 } from "../../db/repositories/chargingSessions";
 import {
@@ -58,6 +59,20 @@ export class BookingExpiredError extends Error {
   constructor() {
     super("Booked session has expired");
     this.name = "BookingExpired";
+  }
+}
+
+export class InvalidSessionFeedbackError extends Error {
+  constructor() {
+    super("Session feedback rating must be between 1 and 5");
+    this.name = "InvalidSessionFeedback";
+  }
+}
+
+export class SessionFeedbackAlreadyExistsError extends Error {
+  constructor() {
+    super("Session feedback already exists");
+    this.name = "SessionFeedbackAlreadyExists";
   }
 }
 
@@ -114,13 +129,7 @@ export async function getChargingSessionsByUser(db: Db, input: GetChargingSessio
           socStartPercent: doc.charging.socStartPercent ?? null,
           socStopPercent: doc.charging.socStopPercent ?? null
         },
-        feedback: doc.feedback
-          ? {
-              rating: doc.feedback.rating,
-              comment: doc.feedback.comment ?? null,
-              createdAt: doc.feedback.createdAt.toISOString()
-            }
-          : null,
+        feedback: mapSessionFeedback(doc),
         pricingSnapshot: {
           currency: doc.pricingSnapshot.currency,
           priceCentsPerKwh: doc.pricingSnapshot.priceCentsPerKwh,
@@ -297,7 +306,7 @@ function mapSessionDocToGraphQL(doc: ChargingSessionDoc) {
       socStartPercent: doc.charging.socStartPercent ?? null,
       socStopPercent: doc.charging.socStopPercent ?? null
     },
-    feedback: null,
+    feedback: mapSessionFeedback(doc),
     pricingSnapshot: doc.pricingSnapshot,
     cost: doc.cost,
     createdAt: doc.createdAt.toISOString(),
@@ -408,6 +417,58 @@ export async function completeChargingSession(db: Db, input: CompleteChargingSes
   return updated;
 }
 
+type AddSessionFeedbackInput = {
+  sessionId: string;
+  rating: number;
+  comment?: string | null;
+};
+
+function mapSessionFeedback(doc: ChargingSessionDoc) {
+  return doc.feedback
+    ? {
+        rating: doc.feedback.rating,
+        comment: doc.feedback.comment ?? null,
+        createdAt: doc.feedback.createdAt.toISOString()
+      }
+    : null;
+}
+
+function normalizeFeedbackComment(comment?: string | null): string | null {
+  const trimmed = comment?.trim();
+  return trimmed ? trimmed : null;
+}
+
+export async function addSessionFeedback(db: Db, input: AddSessionFeedbackInput) {
+  if (!isValidObjectId(input.sessionId)) {
+    throw new ChargingSessionNotFoundError();
+  }
+
+  if (!Number.isInteger(input.rating) || input.rating < 1 || input.rating > 5) {
+    throw new InvalidSessionFeedbackError();
+  }
+
+  const session = await findChargingSessionById(db, input.sessionId);
+  if (!session) {
+    throw new ChargingSessionNotFoundError();
+  }
+  if (session.status !== "COMPLETED") {
+    throw new InvalidSessionTransitionError();
+  }
+  if (session.feedback) {
+    throw new SessionFeedbackAlreadyExistsError();
+  }
+
+  const updated = await addSessionFeedbackToSession(db, input.sessionId, {
+    rating: input.rating,
+    comment: normalizeFeedbackComment(input.comment)
+  });
+  if (!updated) {
+    throw new InvalidSessionTransitionError();
+  }
+
+  return updated;
+}
+
 export function createStartChargingSessionResponse(
   doc: Awaited<ReturnType<typeof startChargingSession>>
 ) {
@@ -426,6 +487,14 @@ export function createCancelChargingSessionResponse(
 
 export function createCompleteChargingSessionResponse(
   doc: Awaited<ReturnType<typeof completeChargingSession>>
+) {
+  return {
+    session: mapSessionDocToGraphQL(doc)
+  };
+}
+
+export function createAddSessionFeedbackResponse(
+  doc: Awaited<ReturnType<typeof addSessionFeedback>>
 ) {
   return {
     session: mapSessionDocToGraphQL(doc)

@@ -11,10 +11,9 @@ import {
 interface UseSessionActionsOptions {
   sessionId: string;
   isBooked: boolean;
-  onSuccess?: () => Promise<unknown> | unknown;
 }
 
-export function useSessionActions({ sessionId, isBooked, onSuccess }: UseSessionActionsOptions) {
+export function useSessionActions({ sessionId, isBooked }: UseSessionActionsOptions) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,42 +32,45 @@ export function useSessionActions({ sessionId, isBooked, onSuccess }: UseSession
     setError(null);
     setIsUpdating(true);
     try {
-      await startChargingMutation({ variables: { input: { sessionId } } });
-      await onSuccess?.();
+      const result = await startChargingMutation({ variables: { input: { sessionId } } });
+      return result.data?.startChargingSession.session ?? null;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to start charging");
+      return null;
     } finally {
       setIsUpdating(false);
     }
-  }, [isBooked, isUpdating, sessionId, startChargingMutation, onSuccess]);
+  }, [isBooked, isUpdating, sessionId, startChargingMutation]);
 
   const cancelReservation = useCallback(async () => {
     if (!isBooked || isUpdating) return;
     setError(null);
     setIsUpdating(true);
     try {
-      await cancelChargingMutation({ variables: { input: { sessionId } } });
-      await onSuccess?.();
+      const result = await cancelChargingMutation({ variables: { input: { sessionId } } });
+      return result.data?.cancelChargingSession.session ?? null;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to cancel reservation");
+      return null;
     } finally {
       setIsUpdating(false);
     }
-  }, [isBooked, isUpdating, sessionId, cancelChargingMutation, onSuccess]);
+  }, [isBooked, isUpdating, sessionId, cancelChargingMutation]);
 
   const stopCharging = useCallback(async () => {
     if (isBooked || isUpdating) return;
     setError(null);
     setIsUpdating(true);
     try {
-      await completeChargingMutation({ variables: { input: { sessionId } } });
-      await onSuccess?.();
+      const result = await completeChargingMutation({ variables: { input: { sessionId } } });
+      return result.data?.completeChargingSession.session ?? null;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to stop charging");
+      return null;
     } finally {
       setIsUpdating(false);
     }
-  }, [isBooked, isUpdating, sessionId, completeChargingMutation, onSuccess]);
+  }, [isBooked, isUpdating, sessionId, completeChargingMutation]);
 
   return { startCharging, cancelReservation, stopCharging, isUpdating, error };
 }
