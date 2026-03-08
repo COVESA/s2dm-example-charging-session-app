@@ -15,6 +15,7 @@ class Settings:
     simulator_url: str
     bind_port: int
     session_telemetry_interval_seconds: float
+    session_reconciliation_interval_seconds: float
     change_stream_retry_seconds: float
 
 
@@ -38,6 +39,9 @@ def get_settings() -> Settings:
                 "SESSION_TELEMETRY_INTERVAL_SECONDS",
                 os.getenv("SIMULATION_INTERVAL_SECONDS", "2"),
             )
+        ),
+        session_reconciliation_interval_seconds=float(
+            os.getenv("SESSION_RECONCILIATION_INTERVAL_SECONDS", "10")
         ),
         change_stream_retry_seconds=float(os.getenv("CHANGE_STREAM_RETRY_SECONDS", "2")),
     )
