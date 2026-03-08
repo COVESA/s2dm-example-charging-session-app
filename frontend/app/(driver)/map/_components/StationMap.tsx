@@ -24,6 +24,7 @@ interface StationsLayerProps {
   onStationClick: (stationId: string) => void;
   hasActiveOrBookedSession?: boolean;
   onSessionChanged?: () => Promise<unknown> | unknown;
+  onReservationComplete?: () => void;
 }
 
 interface FocusControllerProps {
@@ -64,7 +65,8 @@ function StationsLayer({
   expandedStationId,
   onStationClick,
   hasActiveOrBookedSession = false,
-  onSessionChanged
+  onSessionChanged,
+  onReservationComplete
 }: StationsLayerProps) {
   const map = useMap();
   const [reserveStationId, setReserveStationId] = useState<string | null>(null);
@@ -175,7 +177,7 @@ function StationsLayer({
           station={reserveStation}
           initialChargingPointId={selectedChargingPointId}
           onClose={() => setReserveStationId(null)}
-          onReservationSuccess={refetchStations}
+          onReservationSuccess={() => { refetchStations(); onReservationComplete?.(); }}
           onSessionChanged={onSessionChanged}
         />
       )}
@@ -232,6 +234,7 @@ interface StationMapProps {
   onMapMove?: (center: { lat: number; lng: number }) => void;
   hasActiveOrBookedSession?: boolean;
   onSessionChanged?: () => Promise<unknown> | unknown;
+  onReservationComplete?: () => void;
 }
 
 export function StationMap({
@@ -240,7 +243,8 @@ export function StationMap({
   focusRequestId,
   onMapMove,
   hasActiveOrBookedSession = false,
-  onSessionChanged
+  onSessionChanged,
+  onReservationComplete
 }: StationMapProps) {
   const [mounted, setMounted] = useState(false);
   const [mapReady, setMapReady] = useState(false);
@@ -295,6 +299,7 @@ export function StationMap({
               onStationClick={handleStationClick}
               hasActiveOrBookedSession={hasActiveOrBookedSession}
               onSessionChanged={onSessionChanged}
+              onReservationComplete={onReservationComplete}
             />
           </>
         )}

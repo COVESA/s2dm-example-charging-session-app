@@ -1,0 +1,5 @@
+mutation ReportSessionIncident($input: ReportSessionIncidentInput!) {
+  reportSessionIncident(input: $input) {
+    incidentId
+  }
+}

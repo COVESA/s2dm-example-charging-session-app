@@ -245,6 +245,23 @@ type AddSessionFeedbackPayload {
   session: ChargingSession!
 }
 
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+input ReportSessionIncidentInput {
+  sessionId: ID!
+  severity: IncidentSeverity!
+  description: String!
+}
+
+type ReportSessionIncidentPayload {
+  incidentId: ID!
+}
+
 type Vehicle {
   id: ID!
   make: String!
@@ -284,4 +301,7 @@ type Mutation {
   addSessionFeedback(
     input: AddSessionFeedbackInput!
   ): AddSessionFeedbackPayload!
+  reportSessionIncident(
+    input: ReportSessionIncidentInput!
+  ): ReportSessionIncidentPayload!
 }

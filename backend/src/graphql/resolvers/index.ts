@@ -26,6 +26,12 @@ import {
   InvalidSessionFeedbackError,
   SessionFeedbackAlreadyExistsError
 } from "../../modules/chargingSessions/service";
+import {
+  reportSessionIncident,
+  createReportSessionIncidentResponse,
+  IncidentSessionNotFoundError,
+  InvalidIncidentDescriptionError
+} from "../../modules/incidents/service";
 
 
 export const resolvers = {
@@ -204,6 +210,34 @@ export const resolvers = {
         if (err instanceof InvalidSessionTransitionError) {
           throw new GraphQLError("Session feedback can only be added to completed sessions", {
             extensions: { code: "INVALID_SESSION_STATE" }
+          });
+        }
+        throw err;
+      }
+    },
+    reportSessionIncident: async (
+      _parent: unknown,
+      args: {
+        input: {
+          sessionId: string;
+          severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+          description: string;
+        };
+      },
+      context: GraphQLContext
+    ) => {
+      try {
+        const doc = await reportSessionIncident(context.db, args.input);
+        return createReportSessionIncidentResponse(doc);
+      } catch (err) {
+        if (err instanceof IncidentSessionNotFoundError) {
+          throw new GraphQLError("Charging session not found", {
+            extensions: { code: "NOT_FOUND" }
+          });
+        }
+        if (err instanceof InvalidIncidentDescriptionError) {
+          throw new GraphQLError("Incident description is required", {
+            extensions: { code: "INVALID_INPUT" }
           });
         }
         throw err;

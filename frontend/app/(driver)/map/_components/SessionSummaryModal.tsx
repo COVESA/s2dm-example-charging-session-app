@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { createPortal } from "react-dom";
 import Link from "next/link";
+import { Modal } from "@/ui/Modal";
 import { useSessionFeedback } from "@/hooks/useSessionFeedback";
 import { formatCurrency } from "../../sessions/_components/formatters";
 import { useSessionActions } from "../../sessions/_hooks/useSessionActions";
 import type { ChargingSessionsQuery } from "@/graphql/generated/graphql";
-import { SessionFeedbackPrompt } from "@/ui/session-feedback";
+import { SessionFeedbackPrompt } from "@/ui/SessionFeedback";
 import { BatteryIcon, getSocTier, SOC_COLORS } from "./ActiveSessionBubble";
 
 type SessionItem = ChargingSessionsQuery["chargingSessions"]["edges"][number];
@@ -153,14 +153,6 @@ export function SessionSummaryModal({
     clearError: clearFeedbackError
   } = useSessionFeedback({ sessionId: currentSession.id });
 
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") handleClose();
-    };
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [handleClose]);
-
   const countdown = useCountdown(
     currentSession.booking.expiresAt,
     isBooked || isActive
@@ -253,162 +245,150 @@ export function SessionSummaryModal({
     handleClose();
   };
 
-  const modalContent = (
-    <div
-      className="fixed inset-0 z-[9999] flex items-end justify-center sm:items-center sm:p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={view === "feedback" ? "session-feedback-modal-title" : "session-summary-modal-title"}
+  return (
+    <Modal
+      isOpen={true}
+      onClose={handleClose}
+      titleId={view === "feedback" ? "session-feedback-modal-title" : "session-summary-modal-title"}
+      maxWidth="md"
     >
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={handleClose}
-        aria-hidden="true"
-      />
-      <div
-        className="relative z-10 flex w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {view === "feedback" ? (
-          <SessionFeedbackPrompt
-            title="Rate This Charge"
-            titleId="session-feedback-modal-title"
-            onDismiss={handleClose}
-            onSubmit={handleSubmitFeedback}
-            isSubmitting={isSubmittingFeedback}
-            error={feedbackError}
-          />
-        ) : (
-          <>
-            <div className="flex items-center justify-between px-6 pt-6 pb-0">
-              <h2
-                id="session-summary-modal-title"
-                className="text-[17px] font-bold text-slate-900"
-              >
-                {isBooked ? "Reservation" : "Charging Session"}
-              </h2>
-              <button
-                type="button"
-                onClick={handleClose}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
-                aria-label="Close"
-                style={{ margin: 0, padding: 0, border: "none" }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
-              </button>
-            </div>
+      {view === "feedback" ? (
+        <SessionFeedbackPrompt
+          title="Rate This Charge"
+          titleId="session-feedback-modal-title"
+          onDismiss={handleClose}
+          onSubmit={handleSubmitFeedback}
+          isSubmitting={isSubmittingFeedback}
+          error={feedbackError}
+        />
+      ) : (
+        <>
+          <div className="flex items-center justify-between px-6 pt-6 pb-0">
+            <h2
+              id="session-summary-modal-title"
+              className="text-[17px] font-bold text-slate-900"
+            >
+              {isBooked ? "Reservation" : "Charging Session"}
+            </h2>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
+              aria-label="Close"
+              style={{ margin: 0, padding: 0, border: "none" }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
+            </button>
+          </div>
 
-            <div className="flex flex-col items-center px-6 pt-5 pb-4">
-              <div
-                className={`flex h-14 w-14 items-center justify-center rounded-full ${
-                  isBooked ? "bg-emerald-50" : "bg-amber-50"
+          <div className="flex flex-col items-center px-6 pt-5 pb-4">
+            <div
+              className={`flex h-14 w-14 items-center justify-center rounded-full ${
+                isBooked ? "bg-emerald-50" : "bg-amber-50"
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-3xl ${
+                  isBooked ? "text-emerald-500" : "text-amber-500"
                 }`}
               >
-                <span
-                  className={`material-symbols-outlined text-3xl ${
-                    isBooked ? "text-emerald-500" : "text-amber-500"
-                  }`}
-                >
-                  {isBooked ? "event_available" : "bolt"}
-                </span>
+                {isBooked ? "event_available" : "bolt"}
+              </span>
+            </div>
+            <p className="mt-3 text-center text-[15px] font-semibold text-slate-800">
+              {isBooked
+                ? "Your charging point is reserved"
+                : "Your session is active"}
+            </p>
+            {vehicleLabel && (
+              <div className="mt-1.5 flex items-center gap-1.5 text-[13px] text-slate-400">
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>directions_car</span>
+                {vehicleLabel}
               </div>
-              <p className="mt-3 text-center text-[15px] font-semibold text-slate-800">
-                {isBooked
-                  ? "Your charging point is reserved"
-                  : "Your session is active"}
-              </p>
-              {vehicleLabel && (
-                <div className="mt-1.5 flex items-center gap-1.5 text-[13px] text-slate-400">
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>directions_car</span>
-                  {vehicleLabel}
+            )}
+          </div>
+
+          <div className="mx-6 mb-4 divide-y divide-slate-100 rounded-2xl bg-slate-50/80 px-4">
+            <InfoRow label="Station" value={currentSession.stationSnapshot.name} />
+            <InfoRow label="Charging Point" value={currentSession.stationSnapshot.chargingPointLabel} />
+            <InfoRow label="Rate" value={rateDisplay} />
+
+            {isBooked ? (
+              <InfoRow label="Time remaining" value={countdown} valueClassName="text-emerald-600" />
+            ) : (
+              <>
+                <InfoRow label="Duration" value={chargingTime} />
+                <InfoRow label="Energy consumed" value={energyDisplay} />
+                <InfoRow label="Cost so far" value={price} />
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-[13px] text-slate-500">Battery</span>
+                  <div className="flex items-center gap-2">
+                    {socPercent != null && <BatteryIcon percent={socPercent} tier={socTier} />}
+                    <span className={`text-[13px] font-semibold ${socPercent != null ? socColors.text : "text-slate-400"}`}>
+                      {socPercent != null ? `${socPercent}%` : "--"}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="px-6 pb-6 pt-1">
+            <div className="space-y-2.5">
+              {isBooked ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => void handleStartCharging()}
+                    disabled={isUpdatingSession}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3.5 font-semibold text-white shadow-sm transition-colors hover:bg-emerald-600"
+                    style={{ margin: 0 }}
+                  >
+                    <span className="material-symbols-outlined text-xl">bolt</span>
+                    {isUpdatingSession ? "Starting..." : "Start Charging"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleCancelReservation()}
+                    disabled={isUpdatingSession}
+                    className="w-full rounded-2xl py-3 text-[14px] font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
+                    style={{ margin: 0, border: "none", background: "transparent" }}
+                  >
+                    {isUpdatingSession ? "Updating..." : "Cancel Reservation"}
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => void handleStopCharging()}
+                  disabled={isUpdatingSession}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-800 py-3.5 font-semibold text-white shadow-sm transition-colors hover:bg-slate-700"
+                  style={{ margin: 0 }}
+                >
+                  <span className="material-symbols-outlined text-xl">stop_circle</span>
+                  {isUpdatingSession ? "Stopping..." : "Stop Charging"}
+                </button>
+              )}
+              {actionError && (
+                <div className="flex items-start gap-2 rounded-xl bg-rose-50 p-3 text-[13px] text-rose-600">
+                  <span className="material-symbols-outlined mt-0.5 shrink-0" style={{ fontSize: 16 }}>error</span>
+                  {actionError}
                 </div>
               )}
             </div>
-
-            <div className="mx-6 mb-4 divide-y divide-slate-100 rounded-2xl bg-slate-50/80 px-4">
-              <InfoRow label="Station" value={currentSession.stationSnapshot.name} />
-              <InfoRow label="Charging Point" value={currentSession.stationSnapshot.chargingPointLabel} />
-              <InfoRow label="Rate" value={rateDisplay} />
-
-              {isBooked ? (
-                <InfoRow label="Time remaining" value={countdown} valueClassName="text-emerald-600" />
-              ) : (
-                <>
-                  <InfoRow label="Duration" value={chargingTime} />
-                  <InfoRow label="Energy consumed" value={energyDisplay} />
-                  <InfoRow label="Cost so far" value={price} />
-                  <div className="flex items-center justify-between py-2.5">
-                    <span className="text-[13px] text-slate-500">Battery</span>
-                    <div className="flex items-center gap-2">
-                      {socPercent != null && <BatteryIcon percent={socPercent} tier={socTier} />}
-                      <span className={`text-[13px] font-semibold ${socPercent != null ? socColors.text : "text-slate-400"}`}>
-                        {socPercent != null ? `${socPercent}%` : "--"}
-                      </span>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="px-6 pb-6 pt-1">
-              <div className="space-y-2.5">
-                {isBooked ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => void handleStartCharging()}
-                      disabled={isUpdatingSession}
-                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3.5 font-semibold text-white shadow-sm transition-colors hover:bg-emerald-600"
-                      style={{ margin: 0 }}
-                    >
-                      <span className="material-symbols-outlined text-xl">bolt</span>
-                      {isUpdatingSession ? "Starting..." : "Start Charging"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleCancelReservation()}
-                      disabled={isUpdatingSession}
-                      className="w-full rounded-2xl py-3 text-[14px] font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
-                      style={{ margin: 0, border: "none", background: "transparent" }}
-                    >
-                      {isUpdatingSession ? "Updating..." : "Cancel Reservation"}
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => void handleStopCharging()}
-                    disabled={isUpdatingSession}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-800 py-3.5 font-semibold text-white shadow-sm transition-colors hover:bg-slate-700"
-                    style={{ margin: 0 }}
-                  >
-                    <span className="material-symbols-outlined text-xl">stop_circle</span>
-                    {isUpdatingSession ? "Stopping..." : "Stop Charging"}
-                  </button>
-                )}
-                {actionError && (
-                  <div className="flex items-start gap-2 rounded-xl bg-rose-50 p-3 text-[13px] text-rose-600">
-                    <span className="material-symbols-outlined mt-0.5 shrink-0" style={{ fontSize: 16 }}>error</span>
-                    {actionError}
-                  </div>
-                )}
-              </div>
-              {!isBooked && (
-                <Link
-                  href={`/sessions?sessionId=${currentSession.id}`}
-                  className="mt-3 flex w-full items-center justify-center gap-1.5 py-2 text-[13px] font-medium text-slate-400 no-underline transition-colors hover:text-slate-600"
-                  style={{ margin: 0, border: "none", background: "transparent" }}
-                >
-                  View more details
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_forward</span>
-                </Link>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+            {!isBooked && (
+              <Link
+                href={`/sessions?sessionId=${currentSession.id}`}
+                className="mt-3 flex w-full items-center justify-center gap-1.5 py-2 text-[13px] font-medium text-slate-400 no-underline transition-colors hover:text-slate-600"
+                style={{ margin: 0, border: "none", background: "transparent" }}
+              >
+                View more details
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_forward</span>
+              </Link>
+            )}
+          </div>
+        </>
+      )}
+    </Modal>
   );
-
-  return createPortal(modalContent, document.body);
 }

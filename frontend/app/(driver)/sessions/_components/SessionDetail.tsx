@@ -3,13 +3,16 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import type { ChargingSessionsQuery } from "@/graphql/generated/graphql";
+import { IncidentSeverity } from "@/graphql/generated/graphql";
 import { useSessionFeedback } from "@/hooks/useSessionFeedback";
 import {
   RatingStars,
-  SessionFeedbackDialog
-} from "@/ui/session-feedback";
+  SessionFeedbackModal
+} from "@/ui/SessionFeedback";
 import { SessionStatusBadge } from "./SessionStatusBadge";
 import { useSessionActions } from "../_hooks/useSessionActions";
+import { useReportSessionIncident } from "../_hooks/useReportSessionIncident";
+import { ReportIncidentModal } from "./ReportIncidentModal";
 import {
   formatCurrency,
   formatEnergy,
@@ -348,7 +351,9 @@ function SessionFooter({
   const isBooked = session.status === "BOOKED";
   const isActive = session.status === "ACTIVE";
   const isCompleted = session.status === "COMPLETED";
-  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [incidentModalOpen, setIncidentModalOpen] = useState(false);
+  const [incidentSuccessMessage, setIncidentSuccessMessage] = useState<string | null>(null);
   const [draftRating, setDraftRating] = useState(0);
 
   const { startCharging, cancelReservation, stopCharging, isUpdating, error } =
@@ -359,16 +364,45 @@ function SessionFooter({
     error: feedbackError,
     clearError: clearFeedbackError
   } = useSessionFeedback({ sessionId: session.id });
+  const {
+    submitIncident,
+    isSubmitting: isSubmittingIncident,
+    error: incidentError,
+    clearError: clearIncidentError
+  } = useReportSessionIncident({ sessionId: session.id });
 
-  const openFeedbackDialog = (rating = 0) => {
+  useEffect(() => {
+    if (!incidentSuccessMessage) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setIncidentSuccessMessage(null);
+    }, 10_000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [incidentSuccessMessage]);
+
+  const openFeedbackModal = (rating = 0) => {
     setDraftRating(rating);
     clearFeedbackError();
-    setFeedbackDialogOpen(true);
+    setFeedbackModalOpen(true);
   };
 
-  const closeFeedbackDialog = () => {
+  const closeFeedbackModal = () => {
     clearFeedbackError();
-    setFeedbackDialogOpen(false);
+    setFeedbackModalOpen(false);
+  };
+
+  const openIncidentModal = () => {
+    setIncidentSuccessMessage(null);
+    clearIncidentError();
+    setIncidentModalOpen(true);
+  };
+
+  const closeIncidentModal = () => {
+    clearIncidentError();
+    setIncidentModalOpen(false);
   };
 
   const handleStartCharging = async () => {
@@ -392,7 +426,7 @@ function SessionFooter({
     }
 
     await onSessionChanged?.();
-    openFeedbackDialog();
+    openFeedbackModal();
   };
 
   const handleSubmitFeedback = async ({
@@ -408,7 +442,23 @@ function SessionFooter({
     }
 
     await onSessionChanged?.();
-    closeFeedbackDialog();
+    closeFeedbackModal();
+  };
+
+  const handleSubmitIncident = async ({
+    severity,
+    description
+  }: {
+    severity: IncidentSeverity;
+    description: string;
+  }) => {
+    const incidentId = await submitIncident({ severity, description });
+    if (!incidentId) {
+      return;
+    }
+
+    closeIncidentModal();
+    setIncidentSuccessMessage("Issue reported. Our operations team will review it.");
   };
 
   return (
@@ -418,7 +468,7 @@ function SessionFooter({
           <div className="flex flex-col items-center gap-2">
             <RatingStars
               value={session.feedback?.rating}
-              onChange={session.feedback ? undefined : (rating) => openFeedbackDialog(rating)}
+              onChange={session.feedback ? undefined : (rating) => openFeedbackModal(rating)}
             />
             {!session.feedback && (
               <p className="text-xs font-medium text-slate-400">
@@ -460,16 +510,33 @@ function SessionFooter({
         </div>
       )}
 
-      <div className="flex w-full items-center justify-between">
-        <button
-          type="button"
-          onClick={() => {}}
-          className="inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-[14px] font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
-          style={{ margin: 0, border: "none", background: "transparent" }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>flag</span>
-          Report an Issue
-        </button>
+      <div className="flex w-full items-center justify-between gap-4">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <button
+            type="button"
+            onClick={openIncidentModal}
+            className="inline-flex shrink-0 items-center gap-2 rounded-2xl px-4 py-2.5 text-[14px] font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
+            style={{ margin: 0, border: "none", background: "transparent" }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>flag</span>
+            Report an Issue
+          </button>
+          <div className="min-w-0 flex-1">
+            {incidentSuccessMessage && (
+              <div className="flex items-start gap-2 text-[13px] text-emerald-700">
+                <span
+                  className="material-symbols-outlined mt-0.5 shrink-0"
+                  style={{ fontSize: 16 }}
+                >
+                  check_circle
+                </span>
+                <span className="min-w-0 break-words leading-snug">
+                  {incidentSuccessMessage}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
         {isBooked && (
           <button
             type="button"
@@ -483,14 +550,23 @@ function SessionFooter({
         )}
       </div>
 
-      {feedbackDialogOpen && (
-        <SessionFeedbackDialog
+      {feedbackModalOpen && (
+        <SessionFeedbackModal
           title="Rate This Charge"
           initialRating={draftRating}
-          onDismiss={closeFeedbackDialog}
+          onDismiss={closeFeedbackModal}
           onSubmit={handleSubmitFeedback}
           isSubmitting={isSubmittingFeedback}
           error={feedbackError}
+        />
+      )}
+
+      {incidentModalOpen && (
+        <ReportIncidentModal
+          onDismiss={closeIncidentModal}
+          onSubmit={handleSubmitIncident}
+          isSubmitting={isSubmittingIncident}
+          error={incidentError}
         />
       )}
     </div>

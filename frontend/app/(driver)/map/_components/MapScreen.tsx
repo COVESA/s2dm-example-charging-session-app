@@ -135,6 +135,7 @@ export function MapScreen() {
           onMapMove={setMapCenter}
           hasActiveOrBookedSession={hasActiveOrBookedSession}
           onSessionChanged={refetch}
+          onReservationComplete={() => setSessionModalOpen(true)}
         />
       </div>
 

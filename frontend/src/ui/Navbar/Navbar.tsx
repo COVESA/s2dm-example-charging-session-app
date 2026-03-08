@@ -110,39 +110,43 @@ export function Navbar() {
             </div>
 
             {isOpen && (
-              <div className="absolute right-0 top-full z-[1100] mt-2 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5">
+              <div className="absolute right-0 top-full z-[1100] mt-2 w-56 overflow-hidden rounded-2xl bg-white p-2 shadow-xl ring-1 ring-black/5">
                 <div
                   role="option"
                   aria-selected={!isAdmin}
                   onClick={() => { if (isAdmin) toggleRole(); setIsOpen(false); }}
-                  className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors ${
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3.5 transition-colors ${
                     !isAdmin
                       ? "bg-green-50 text-green-900"
                       : "text-slate-600 hover:bg-slate-50"
                   }`}
                 >
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-full text-white ${!isAdmin ? "bg-slate-500" : "bg-slate-300"}`}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>directions_car</span>
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-full text-white ${!isAdmin ? "bg-slate-500" : "bg-slate-300"}`}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 22 }}>directions_car</span>
                   </div>
-                  <span className="text-sm font-medium">Driver</span>
+                  <div>
+                    <span className="text-[15px] font-semibold">Driver</span>
+                    {!isAdmin && <p className="text-[11px] font-medium text-green-600">Active</p>}
+                  </div>
                 </div>
-
-                <div className="mx-3 border-t border-slate-100" />
 
                 <div
                   role="option"
                   aria-selected={!!isAdmin}
                   onClick={() => { if (!isAdmin) toggleRole(); setIsOpen(false); }}
-                  className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors ${
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3.5 transition-colors ${
                     isAdmin
                       ? "bg-amber-50 text-amber-900"
                       : "text-slate-600 hover:bg-slate-50"
                   }`}
                 >
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-full text-white ${isAdmin ? "bg-amber-400" : "bg-amber-300"}`}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>admin_panel_settings</span>
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-full text-white ${isAdmin ? "bg-amber-400" : "bg-amber-300"}`}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 22 }}>admin_panel_settings</span>
                   </div>
-                  <span className="text-sm font-medium">Admin</span>
+                  <div>
+                    <span className="text-[15px] font-semibold">Admin</span>
+                    {isAdmin && <p className="text-[11px] font-medium text-amber-600">Active</p>}
+                  </div>
                 </div>
               </div>
             )}
