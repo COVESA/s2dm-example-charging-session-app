@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { useUserContext } from "@/contexts/UserContext";
 import { useChargingSessionsQuery } from "../_hooks/useChargingSessionsQuery";
@@ -9,7 +10,9 @@ import { SessionList } from "./SessionList";
 
 export function SessionActivityScreen() {
   const { selectedUser } = useUserContext();
-  const [explicitSelectedSessionId, setExplicitSelectedSessionId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const sessionIdFromUrl = searchParams.get("sessionId");
+  const [explicitSelectedSessionId, setExplicitSelectedSessionId] = useState<string | null>(sessionIdFromUrl);
 
   const { sessions, loading, loadingMore, error, hasNextPage, loadMore } =
     useChargingSessionsQuery(selectedUser?.id ?? null);
@@ -79,7 +82,7 @@ export function SessionActivityScreen() {
 
   return (
     <main className="h-full w-full bg-slate-50 p-4">
-      <div className="flex h-full min-h-0 gap-4">
+      <div className="mx-auto flex h-full min-h-0 max-w-[1440px] gap-4">
         <SessionDetail session={selectedSession} />
         <SessionList
           sessions={sessions}

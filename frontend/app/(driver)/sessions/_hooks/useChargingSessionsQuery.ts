@@ -33,7 +33,7 @@ export function useChargingSessionsQuery(userId: string | null) {
 
   const connection = data?.chargingSessions ?? previousData?.chargingSessions;
   const sessions = connection?.edges ?? [];
-  const visibleSessions = sessions.filter((session) => session.status !== "CANCELED");
+  const visibleSessions = sessions;
   const canLoadMore = Boolean(userId) && Boolean(connection?.hasNextPage) && !loading;
 
   const loadMore = async () => {

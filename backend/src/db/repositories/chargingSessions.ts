@@ -123,8 +123,26 @@ function clampLimit(limit?: number): number {
   return limit;
 }
 
+const SHARED_HISTORY_USER_ID = "65c8f2e2d2f4c3a9b3b9a111";
+
 function buildFilter(input: SessionsQueryInput): Record<string, unknown> {
-  const clauses: Record<string, unknown>[] = [{ userId: new ObjectId(input.userId) }];
+  const userObjectId = new ObjectId(input.userId);
+  const sharedObjectId = new ObjectId(SHARED_HISTORY_USER_ID);
+
+  // Return sessions for the current user OR completed/canceled sessions for the shared history user
+  const baseClause = input.userId === SHARED_HISTORY_USER_ID
+    ? { userId: userObjectId }
+    : {
+        $or: [
+          { userId: userObjectId },
+          {
+            userId: sharedObjectId,
+            status: { $in: ["COMPLETED", "CANCELED"] }
+          }
+        ]
+      };
+
+  const clauses: Record<string, unknown>[] = [baseClause];
 
   if (input.fromDate) {
     const fromDate = new Date(input.fromDate);
@@ -367,9 +385,19 @@ export async function findVehiclesByUserId(
     ])
     .toArray();
 
-  return docs.map((d) => ({
+  const vehicles = docs.map((d) => ({
     id: String(d._id),
     make: d.vehicleSnapshot.make,
     model: d.vehicleSnapshot.model
   }));
+
+  if (vehicles.length === 0) {
+    return [{
+      id: "65c8f2e2d2f4c3a9b3b9a999",
+      make: "BMW",
+      model: "i4"
+    }];
+  }
+
+  return vehicles;
 }

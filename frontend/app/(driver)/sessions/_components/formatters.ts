@@ -51,6 +51,15 @@ export function formatConnector(
   return `${type} · ${power}`;
 }
 
+export function formatSocCurrent(
+  startPercent: number | null | undefined,
+  stopPercent: number | null | undefined
+): string {
+  const value = stopPercent ?? startPercent;
+  if (value == null) return "--";
+  return `${Math.round(value)}%`;
+}
+
 export function formatSocRange(
   startPercent: number | null | undefined,
   stopPercent: number | null | undefined
@@ -70,4 +79,17 @@ export function formatRate(centsPerKwh: number | null | undefined, currency = "E
     currency,
     minimumFractionDigits: 2
   }).format(centsPerKwh / 100) + "/kWh";
+}
+
+export function formatIdleFeePolicy(
+  idleFee: { priceCentsPerMinute: number; afterMinutes: number } | null | undefined,
+  currency = "EUR"
+): string {
+  if (!idleFee) return "--";
+  const price = new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2
+  }).format(idleFee.priceCentsPerMinute / 100);
+  return `${price}/min after ${idleFee.afterMinutes} min`;
 }

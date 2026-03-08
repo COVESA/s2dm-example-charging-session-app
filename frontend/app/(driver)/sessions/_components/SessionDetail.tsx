@@ -1,6 +1,10 @@
+"use client";
+
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import type { ChargingSessionsQuery } from "@/graphql/generated/graphql";
 import { SessionStatusBadge } from "./SessionStatusBadge";
+import { useSessionActions } from "../_hooks/useSessionActions";
 import {
   formatCurrency,
   formatEnergy,
@@ -8,11 +12,20 @@ import {
   formatSessionDate,
   formatDuration,
   formatConnector,
-  formatSocRange,
-  formatRate
+  formatSocCurrent,
+  formatRate,
+  formatIdleFeePolicy,
 } from "./formatters";
 
 type SessionItem = ChargingSessionsQuery["chargingSessions"]["edges"][number];
+
+const SessionMiniMap = dynamic(
+  () => import("./SessionMiniMap").then((mod) => mod.SessionMiniMap),
+  {
+    ssr: false,
+    loading: () => <div className="h-full w-full animate-pulse bg-slate-100" />
+  }
+);
 
 function useCountdown(expiresAtIso: string | null, enabled: boolean): string {
   const [display, setDisplay] = useState<string>("--:--");
@@ -58,11 +71,108 @@ function useLiveDuration(startIso: string | null | undefined, enabled: boolean):
   return display;
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoCard({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
   return (
-    <div className="flex justify-between text-sm">
-      <span className="text-slate-500">{label}</span>
-      <span className="font-medium text-slate-900">{value}</span>
+    <div className="flex h-full flex-col rounded-xl bg-slate-50 px-5 py-4">
+      <div className="mb-3 flex items-center gap-1.5">
+        <span className="material-symbols-outlined text-sm text-slate-400">{icon}</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{title}</span>
+      </div>
+      <div className="flex flex-1 flex-col justify-evenly">{children}</div>
+    </div>
+  );
+}
+
+function InfoItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between py-1.5">
+      <span className="text-sm text-slate-500">{label}</span>
+      <span className="text-sm font-semibold text-slate-800">{value}</span>
+    </div>
+  );
+}
+
+function BatteryBar({ startPercent, stopPercent }: { startPercent: number | null | undefined; stopPercent: number | null | undefined }) {
+  if (startPercent == null && stopPercent == null) {
+    return <InfoItem label="Battery" value="--" />;
+  }
+
+  const start = startPercent ?? 0;
+  const stop = stopPercent ?? startPercent ?? 0;
+
+  return (
+    <div className="py-1.5">
+      <div className="flex items-center">
+        <span className="shrink-0 text-sm text-slate-500">Battery</span>
+        <div className="ml-auto w-[55%]">
+          <div className="relative h-1.5 rounded-full bg-slate-200">
+            {start > 0 && (
+              <div
+                className="absolute h-full rounded-l-full bg-emerald-200"
+                style={{ left: 0, width: `${start}%` }}
+              />
+            )}
+            <div
+              className="absolute h-full bg-emerald-400"
+              style={{
+                left: `${start}%`,
+                width: `${Math.max(stop - start, 0.5)}%`,
+                borderRadius: start === 0 ? "9999px" : "0 9999px 9999px 0",
+              }}
+            />
+            {start > 0 && (
+              <div
+                className="absolute top-[-1px] h-[8px] w-[2px] rounded-full bg-white"
+                style={{ left: `${start}%`, transform: "translateX(-50%)" }}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="relative ml-auto mt-0.5 flex h-3 w-[55%]">
+        <span
+          className="absolute text-[10px] font-medium text-slate-400"
+          style={{ left: `${start}%`, transform: "translateX(-50%)" }}
+        >
+          {Math.round(start)}%
+        </span>
+        <span
+          className="absolute text-[10px] font-semibold text-emerald-600"
+          style={{ left: `${stop}%`, transform: "translateX(-50%)" }}
+        >
+          {Math.round(stop)}%
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function RatingStars({ rating }: { rating?: number | null }) {
+  const [hovered, setHovered] = useState<number>(0);
+  const active = hovered || rating || 0;
+
+  return (
+    <div className="flex items-center gap-3" onMouseLeave={() => setHovered(0)}>
+      {[1, 2, 3, 4, 5].map((i) => {
+        const filled = i <= active;
+        return (
+          <span
+            key={i}
+            onMouseEnter={() => setHovered(i)}
+            className={`material-symbols-outlined cursor-pointer transition-all ${
+              filled
+                ? hovered ? "scale-110 text-amber-300" : "text-amber-400"
+                : "text-slate-300"
+            }`}
+            style={{
+              fontSize: 36,
+              fontVariationSettings: filled ? "'FILL' 1" : "'FILL' 0",
+            }}
+          >
+            star
+          </span>
+        );
+      })}
     </div>
   );
 }
@@ -81,21 +191,43 @@ function HeroMetric({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${iconBg}`}>
+    <div className="flex items-center gap-3 px-4 py-3">
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${iconBg}`}>
         <span className={`material-symbols-outlined text-lg ${iconColor}`}>{icon}</span>
       </div>
-      <div>
+      <div className="min-w-0">
         <p className="text-xs text-slate-500">{label}</p>
-        <p className="text-lg font-semibold text-slate-900">{value}</p>
+        <p className="text-lg font-semibold leading-tight text-slate-900">{value}</p>
       </div>
     </div>
   );
 }
 
-function BookedHero({ session, countdown }: { session: SessionItem; countdown: string }) {
+function MetricGrid({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-6 grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-4">
+    <div className="grid h-full w-full grid-cols-2 grid-rows-2 gap-3">
+      {children}
+    </div>
+  );
+}
+
+function BookedHeroMetrics({ session, countdown }: { session: SessionItem; countdown: string }) {
+  return (
+    <MetricGrid>
+      <HeroMetric
+        icon="bolt"
+        iconBg="bg-amber-100"
+        iconColor="text-amber-600"
+        label="Energy"
+        value={formatEnergy(session.charging.energyDeliveredKwh)}
+      />
+      <HeroMetric
+        icon="payments"
+        iconBg="bg-emerald-100"
+        iconColor="text-emerald-600"
+        label="Cost"
+        value={formatCurrency(session.cost.totalCents, session.pricingSnapshot.currency)}
+      />
       <HeroMetric
         icon="timer"
         iconBg="bg-blue-100"
@@ -104,19 +236,19 @@ function BookedHero({ session, countdown }: { session: SessionItem; countdown: s
         value={countdown}
       />
       <HeroMetric
-        icon="bolt"
-        iconBg="bg-amber-100"
-        iconColor="text-amber-600"
-        label="Rate"
-        value={formatRate(session.pricingSnapshot.priceCentsPerKwh, session.pricingSnapshot.currency)}
+        icon="battery_charging_full"
+        iconBg="bg-cyan-100"
+        iconColor="text-cyan-600"
+        label="Charge"
+        value={formatSocCurrent(session.charging.socStartPercent, session.charging.socStopPercent)}
       />
-    </div>
+    </MetricGrid>
   );
 }
 
-function ActiveHero({ session, liveDuration }: { session: SessionItem; liveDuration: string }) {
+function ActiveHeroMetrics({ session, liveDuration }: { session: SessionItem; liveDuration: string }) {
   return (
-    <div className="mb-6 grid grid-cols-3 gap-4 rounded-lg bg-slate-50 p-4">
+    <MetricGrid>
       <HeroMetric
         icon="bolt"
         iconBg="bg-amber-100"
@@ -138,13 +270,20 @@ function ActiveHero({ session, liveDuration }: { session: SessionItem; liveDurat
         label="Duration"
         value={liveDuration}
       />
-    </div>
+      <HeroMetric
+        icon="battery_charging_full"
+        iconBg="bg-cyan-100"
+        iconColor="text-cyan-600"
+        label="Charge"
+        value={formatSocCurrent(session.charging.socStartPercent, session.charging.socStopPercent)}
+      />
+    </MetricGrid>
   );
 }
 
-function CompletedHero({ session }: { session: SessionItem }) {
+function CompletedHeroMetrics({ session }: { session: SessionItem }) {
   return (
-    <div className="mb-6 grid grid-cols-3 gap-4 rounded-lg bg-slate-50 p-4">
+    <MetricGrid>
       <HeroMetric
         icon="payments"
         iconBg="bg-emerald-100"
@@ -166,92 +305,121 @@ function CompletedHero({ session }: { session: SessionItem }) {
         label="Duration"
         value={formatDuration(session.charging.startedAt, session.charging.endedAt)}
       />
-    </div>
+      <HeroMetric
+        icon="battery_charging_full"
+        iconBg="bg-cyan-100"
+        iconColor="text-cyan-600"
+        label="Charge"
+        value={formatSocCurrent(session.charging.socStartPercent, session.charging.socStopPercent)}
+      />
+    </MetricGrid>
   );
 }
 
-function TerminalHero({ session }: { session: SessionItem }) {
+function TerminalHeroMetrics({ session }: { session: SessionItem }) {
   return (
-    <div className="mb-6 rounded-lg bg-slate-50 p-4">
+    <MetricGrid>
       <HeroMetric
-        icon="event"
+        icon="bolt"
+        iconBg="bg-amber-100"
+        iconColor="text-amber-600"
+        label="Energy"
+        value={formatEnergy(session.charging.energyDeliveredKwh)}
+      />
+      <HeroMetric
+        icon="payments"
+        iconBg="bg-emerald-100"
+        iconColor="text-emerald-600"
+        label="Cost"
+        value={formatCurrency(session.cost.totalCents, session.pricingSnapshot.currency)}
+      />
+      <HeroMetric
+        icon="schedule"
         iconBg="bg-slate-200"
         iconColor="text-slate-600"
-        label="Date"
-        value={formatSessionDate(session.createdAt)}
+        label="Duration"
+        value={formatDuration(session.charging.startedAt, session.charging.endedAt)}
       />
-    </div>
+      <HeroMetric
+        icon="battery_charging_full"
+        iconBg="bg-cyan-100"
+        iconColor="text-cyan-600"
+        label="Charge"
+        value={formatSocCurrent(session.charging.socStartPercent, session.charging.socStopPercent)}
+      />
+    </MetricGrid>
   );
 }
 
-function BookedInfo({ session }: { session: SessionItem }) {
-  return (
-    <div className="space-y-3 rounded-lg bg-slate-50 p-4">
-      <InfoRow label="Booked at" value={formatSessionDateTime(session.booking.bookedAt)} />
-      <InfoRow label="Expires at" value={formatSessionDateTime(session.booking.expiresAt)} />
-      <InfoRow label="Connector" value={formatConnector(session.charging.connectorUsed)} />
-    </div>
-  );
-}
+function SessionFooter({ session }: { session: SessionItem }) {
+  const isBooked = session.status === "BOOKED";
+  const isActive = session.status === "ACTIVE";
+  const isCompleted = session.status === "COMPLETED";
 
-function ActiveInfo({ session }: { session: SessionItem }) {
-  return (
-    <div className="space-y-3 rounded-lg bg-slate-50 p-4">
-      <InfoRow
-        label="Started"
-        value={session.charging.startedAt ? formatSessionDateTime(session.charging.startedAt) : "--"}
-      />
-      <InfoRow label="Connector" value={formatConnector(session.charging.connectorUsed)} />
-      <InfoRow
-        label="Battery"
-        value={formatSocRange(session.charging.socStartPercent, session.charging.socStopPercent)}
-      />
-      <InfoRow
-        label="Rate"
-        value={formatRate(session.pricingSnapshot.priceCentsPerKwh, session.pricingSnapshot.currency)}
-      />
-    </div>
-  );
-}
-
-function CompletedInfo({ session }: { session: SessionItem }) {
-  const hasIdleFees = (session.cost.idleCents ?? 0) > 0;
+  const { startCharging, cancelReservation, stopCharging, isUpdating, error } =
+    useSessionActions({ sessionId: session.id, isBooked });
 
   return (
-    <div className="space-y-3 rounded-lg bg-slate-50 p-4">
-      <InfoRow label="Date" value={formatSessionDate(session.createdAt)} />
-      <InfoRow label="Connector" value={formatConnector(session.charging.connectorUsed)} />
-      <InfoRow
-        label="Battery"
-        value={formatSocRange(session.charging.socStartPercent, session.charging.socStopPercent)}
-      />
-      <InfoRow
-        label="Rate"
-        value={formatRate(session.pricingSnapshot.priceCentsPerKwh, session.pricingSnapshot.currency)}
-      />
-      {hasIdleFees && (
-        <>
-          <InfoRow
-            label="Energy cost"
-            value={formatCurrency(session.cost.energyCents, session.pricingSnapshot.currency)}
-          />
-          <InfoRow
-            label="Idle fees"
-            value={formatCurrency(session.cost.idleCents, session.pricingSnapshot.currency)}
-          />
-        </>
+    <div className="mt-auto flex flex-col items-center gap-1 pt-5">
+      <div className="flex h-[52px] items-center justify-center">
+        {isCompleted && (
+          <RatingStars rating={session.feedback?.rating} />
+        )}
+        {isBooked && (
+          <button
+            type="button"
+            onClick={startCharging}
+            disabled={isUpdating}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-8 py-3.5 font-semibold text-white shadow-sm transition-colors hover:bg-emerald-600"
+            style={{ margin: 0 }}
+          >
+            <span className="material-symbols-outlined text-xl">bolt</span>
+            {isUpdating ? "Starting..." : "Start Charging"}
+          </button>
+        )}
+        {isActive && (
+          <button
+            type="button"
+            onClick={stopCharging}
+            disabled={isUpdating}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-800 px-8 py-3.5 font-semibold text-white shadow-sm transition-colors hover:bg-slate-700"
+            style={{ margin: 0 }}
+          >
+            <span className="material-symbols-outlined text-xl">stop_circle</span>
+            {isUpdating ? "Stopping..." : "Stop Charging"}
+          </button>
+        )}
+      </div>
+
+      {error && (
+        <div className="flex w-full items-start gap-2 rounded-xl bg-rose-50 p-3 text-[13px] text-rose-600">
+          <span className="material-symbols-outlined mt-0.5 shrink-0" style={{ fontSize: 16 }}>error</span>
+          {error}
+        </div>
       )}
-    </div>
-  );
-}
 
-function TerminalInfo({ session }: { session: SessionItem }) {
-  return (
-    <div className="space-y-3 rounded-lg bg-slate-50 p-4">
-      <InfoRow label="Booked at" value={formatSessionDateTime(session.booking.bookedAt)} />
-      {session.booking.cancelReason && (
-        <InfoRow label="Reason" value={session.booking.cancelReason} />
-      )}
+      <div className="flex w-full items-center justify-between">
+        <button
+          type="button"
+          onClick={() => {}}
+          className="inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-[14px] font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
+          style={{ margin: 0, border: "none", background: "transparent" }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>flag</span>
+          Report an Issue
+        </button>
+        {isBooked && (
+          <button
+            type="button"
+            onClick={cancelReservation}
+            disabled={isUpdating}
+            className="inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-[14px] font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
+            style={{ margin: 0, border: "none", background: "transparent" }}
+          >
+            {isUpdating ? "Updating..." : "Cancel Reservation"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -265,8 +433,11 @@ export function SessionDetail({ session }: { session: SessionItem }) {
   const countdown = useCountdown(session.booking.expiresAt, isBooked);
   const liveDuration = useLiveDuration(session.charging.startedAt, isActive);
 
+  const vehicleLabel = `${session.vehicleSnapshot.make} ${session.vehicleSnapshot.model}`;
+
   return (
-    <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="flex min-h-0 flex-1 flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      {/* Header */}
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100">
@@ -282,22 +453,78 @@ export function SessionDetail({ session }: { session: SessionItem }) {
         <SessionStatusBadge status={session.status} />
       </div>
 
-      {isBooked && <BookedHero session={session} countdown={countdown} />}
-      {isActive && <ActiveHero session={session} liveDuration={liveDuration} />}
-      {isCompleted && <CompletedHero session={session} />}
-      {isTerminal && <TerminalHero session={session} />}
-
-      {isBooked && <BookedInfo session={session} />}
-      {isActive && <ActiveInfo session={session} />}
-      {isCompleted && <CompletedInfo session={session} />}
-      {isTerminal && <TerminalInfo session={session} />}
-
-      <div className="mt-4 flex items-center gap-1.5 text-xs text-slate-400">
-        <span className="material-symbols-outlined text-sm">directions_car</span>
-        <span>
-          {session.vehicleSnapshot.make} {session.vehicleSnapshot.model} · VIN ...{session.vehicleSnapshot.vinLast6}
-        </span>
+      {/* Minimap + Hero metrics side by side */}
+      <div className="mb-6 flex gap-4">
+        <div className="h-[230px] w-1/2 shrink-0 overflow-hidden rounded-xl">
+          <SessionMiniMap
+            lat={session.stationSnapshot.location.lat}
+            lng={session.stationSnapshot.location.lng}
+            sessionId={session.id}
+          />
+        </div>
+        <div className="flex h-[230px] w-1/2">
+          {isBooked && <BookedHeroMetrics session={session} countdown={countdown} />}
+          {isActive && <ActiveHeroMetrics session={session} liveDuration={liveDuration} />}
+          {isCompleted && <CompletedHeroMetrics session={session} />}
+          {isTerminal && <TerminalHeroMetrics session={session} />}
+        </div>
       </div>
+
+      {/* Info cards */}
+      <div className="flex flex-1 items-stretch gap-4">
+        <div className="w-1/2">
+          <InfoCard icon="ev_station" title="Charging">
+            <InfoItem label="Vehicle" value={vehicleLabel} />
+            <InfoItem label="Connector" value={formatConnector(session.charging.connectorUsed)} />
+            <InfoItem
+              label={isActive || isCompleted ? "Started" : "Booked at"}
+              value={
+                isActive || isCompleted
+                  ? session.charging.startedAt ? formatSessionDateTime(session.charging.startedAt) : "--"
+                  : formatSessionDateTime(session.booking.bookedAt)
+              }
+            />
+            <BatteryBar startPercent={session.charging.socStartPercent} stopPercent={session.charging.socStopPercent} />
+          </InfoCard>
+        </div>
+
+        <div className="w-1/2">
+          {isActive && (
+            <InfoCard icon="receipt_long" title="Pricing">
+              <InfoItem label="Rate" value={formatRate(session.pricingSnapshot.priceCentsPerKwh, session.pricingSnapshot.currency)} />
+              <InfoItem label="Idle fee" value={formatIdleFeePolicy(session.pricingSnapshot.idleFee, session.pricingSnapshot.currency)} />
+              <InfoItem label="Booked at" value={formatSessionDateTime(session.booking.bookedAt)} />
+            </InfoCard>
+          )}
+          {isBooked && (
+            <InfoCard icon="receipt_long" title="Pricing">
+              <InfoItem label="Expires at" value={formatSessionDateTime(session.booking.expiresAt)} />
+              <InfoItem label="Rate" value={formatRate(session.pricingSnapshot.priceCentsPerKwh, session.pricingSnapshot.currency)} />
+              <InfoItem label="Idle fee" value={formatIdleFeePolicy(session.pricingSnapshot.idleFee, session.pricingSnapshot.currency)} />
+            </InfoCard>
+          )}
+          {isCompleted && (
+            <InfoCard icon="receipt_long" title="Pricing">
+              <InfoItem label="Date" value={formatSessionDate(session.createdAt)} />
+              <InfoItem label="Rate" value={formatRate(session.pricingSnapshot.priceCentsPerKwh, session.pricingSnapshot.currency)} />
+              <InfoItem label="Energy cost" value={formatCurrency(session.cost.energyCents, session.pricingSnapshot.currency)} />
+              <InfoItem label="Idle fees" value={formatCurrency(session.cost.idleCents ?? 0, session.pricingSnapshot.currency)} />
+            </InfoCard>
+          )}
+          {isTerminal && (
+            <InfoCard icon="receipt_long" title="Pricing">
+              <InfoItem label="Rate" value={formatRate(session.pricingSnapshot.priceCentsPerKwh, session.pricingSnapshot.currency)} />
+              <InfoItem label="Idle fee" value={formatIdleFeePolicy(session.pricingSnapshot.idleFee, session.pricingSnapshot.currency)} />
+              {session.booking.cancelReason && (
+                <InfoItem label="Reason" value={session.booking.cancelReason} />
+              )}
+            </InfoCard>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <SessionFooter session={session} />
     </section>
   );
 }

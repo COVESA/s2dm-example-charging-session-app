@@ -147,7 +147,7 @@ export function ActiveSessionBubble({ session, onClick }: ActiveSessionBubblePro
     isBooked || isActive
   );
   const chargingTime = useElapsedTime(
-    session.charging.startedAt,
+    session.charging.startedAt ?? null,
     isActive
   );
 
@@ -204,9 +204,9 @@ export function ActiveSessionBubble({ session, onClick }: ActiveSessionBubblePro
       </div>
 
       {isBooked ? (
-        <div className="flex items-center gap-1.5 whitespace-nowrap text-[13px] text-slate-500">
+        <div className="flex items-center gap-1.5 whitespace-nowrap pl-2 text-[13px]">
           <span className="font-semibold text-emerald-600">{countdown}</span>
-          <span>remaining</span>
+          <span className="font-semibold text-emerald-600">remaining</span>
         </div>
       ) : (
         <div className="flex items-center gap-2.5 whitespace-nowrap text-[12px]">

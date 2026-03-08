@@ -1,17 +1,12 @@
 "use client";
 
-import { useQuery } from "@apollo/client/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useUserContext } from "@/contexts/UserContext";
-import {
-  UsersDocument,
-  UserRole,
-  type User
-} from "@/graphql/generated/graphql";
+import { UserRole } from "@/graphql/generated/graphql";
 
 const NAV_LINKS = [
   { href: "/map", label: "Station Finder" },
@@ -23,34 +18,14 @@ function getAvatarBubbleClass(roles: UserRole[] | undefined): string {
   return roles.includes(UserRole.Admin) ? "bg-amber-400" : "bg-slate-300";
 }
 
-function getPrimaryRole(roles: UserRole[] | undefined): string {
-  if (!roles?.length) return "—";
-  return roles.includes(UserRole.Admin) ? "Admin" : "Driver";
-}
-
 export function Navbar() {
   const pathname = usePathname();
-  const { data, loading } = useQuery(UsersDocument);
-  const { selectedUser, setSelectedUser } = useUserContext();
+  const { selectedUser, toggleRole } = useUserContext();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const users = data?.users ?? [];
-  const currentUser = selectedUser ?? users[0] ?? null;
-
-  useEffect(() => {
-    if (!selectedUser && users.length > 0) {
-      setSelectedUser(users[0]);
-    }
-  }, [users, selectedUser, setSelectedUser]);
-
-  const handleSelectUser = useCallback(
-    (user: User) => {
-      setSelectedUser(user);
-      setIsOpen(false);
-    },
-    [setSelectedUser]
-  );
+  const currentUser = selectedUser;
+  const isAdmin = currentUser?.roles.includes(UserRole.Admin);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -64,6 +39,8 @@ export function Navbar() {
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
+
+  if (!currentUser) return null;
 
   return (
     <header className="sticky top-0 z-[1100] flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
@@ -104,76 +81,71 @@ export function Navbar() {
       <div className="flex flex-shrink-0 items-center gap-6">
         <div ref={dropdownRef}>
           <div className="relative">
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => users.length > 0 && setIsOpen((prev) => !prev)}
-            onKeyDown={(e) => {
-              if (users.length === 0) return;
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setIsOpen((prev) => !prev);
-              }
-            }}
-            className={
-              users.length > 0
-                ? "cursor-pointer"
-                : "cursor-default"
-            }
-            aria-expanded={isOpen}
-            aria-haspopup="listbox"
-            aria-label="Select user"
-          >
             <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white ${getAvatarBubbleClass(currentUser?.roles)}`}
-              aria-hidden
+              role="button"
+              tabIndex={0}
+              onClick={() => setIsOpen((prev) => !prev)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setIsOpen((prev) => !prev);
+                }
+              }}
+              className="cursor-pointer"
+              aria-expanded={isOpen}
+              aria-haspopup="listbox"
+              aria-label="User menu"
             >
-              <span
-                className={`material-symbols-outlined ${loading ? "opacity-50" : ""}`}
-                style={{ fontSize: 24 }}
+              <div
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-shadow hover:ring-2 hover:ring-offset-1 ${isAdmin ? "hover:ring-amber-300" : "hover:ring-slate-300"} ${getAvatarBubbleClass(currentUser?.roles)}`}
+                aria-hidden
               >
-                person
-              </span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 24 }}
+                >
+                  person
+                </span>
+              </div>
             </div>
-          </div>
 
-          {isOpen && users.length > 0 && (
-            <ul
-              role="listbox"
-              className="absolute right-0 top-full z-[1100] mt-1 min-w-[200px] divide-y divide-slate-100 rounded-lg bg-white py-1 shadow-lg"
-            >
-              {users.map((user) => (
-                <li
-                  key={user.id}
+            {isOpen && (
+              <div className="absolute right-0 top-full z-[1100] mt-2 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5">
+                <div
                   role="option"
-                  onClick={() => handleSelectUser(user)}
-                  className={`flex cursor-pointer items-center gap-3 px-4 py-2 text-sm transition-colors first:pt-2 ${
-                    currentUser?.id === user.id
-                      ? "bg-green-50/80 text-green-900"
-                      : "text-slate-700 hover:bg-slate-50/80"
+                  aria-selected={!isAdmin}
+                  onClick={() => { if (isAdmin) toggleRole(); setIsOpen(false); }}
+                  className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors ${
+                    !isAdmin
+                      ? "bg-green-50 text-green-900"
+                      : "text-slate-600 hover:bg-slate-50"
                   }`}
                 >
-                  <div
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white ${getAvatarBubbleClass(user.roles)}`}
-                    aria-hidden
-                  >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ fontSize: 20 }}
-                    >
-                      person
-                    </span>
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full text-white ${!isAdmin ? "bg-slate-500" : "bg-slate-300"}`}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>directions_car</span>
                   </div>
-                  <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="font-medium">{user.displayName}</span>
-                    <span className="text-xs text-slate-500">
-                      {getPrimaryRole(user.roles)}
-                    </span>
+                  <span className="text-sm font-medium">Driver</span>
+                </div>
+
+                <div className="mx-3 border-t border-slate-100" />
+
+                <div
+                  role="option"
+                  aria-selected={!!isAdmin}
+                  onClick={() => { if (!isAdmin) toggleRole(); setIsOpen(false); }}
+                  className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors ${
+                    isAdmin
+                      ? "bg-amber-50 text-amber-900"
+                      : "text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full text-white ${isAdmin ? "bg-amber-400" : "bg-amber-300"}`}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>admin_panel_settings</span>
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                  <span className="text-sm font-medium">Admin</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

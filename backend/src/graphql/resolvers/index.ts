@@ -1,7 +1,6 @@
 import { GraphQLError } from "graphql";
 import type { GraphQLContext } from "../../server/context";
 import { findVehiclesByUserId } from "../../db/repositories/chargingSessions";
-import { findUsers } from "../../db/repositories/users";
 import {
   getChargingStationFacets,
   getMapItemsInBounds
@@ -24,20 +23,13 @@ import {
   BookingExpiredError
 } from "../../modules/chargingSessions/service";
 
-function mapRole(role: string): "USER" | "ADMIN" {
-  return role === "ADMIN" ? "ADMIN" : "USER";
-}
 
 export const resolvers = {
   Query: {
-    users: async (_parent: unknown, _args: unknown, context: GraphQLContext) => {
-      const rows = await findUsers(context.db);
-      return rows.map((row) => ({
-        id: row.id,
-        email: row.email,
-        displayName: row.displayName,
-        roles: row.roles.map(mapRole)
-      }));
+// Users are now handled client-side via guest identity.
+    // The users query is deprecated and will return an empty list.
+    users: async () => {
+      return [];
     },
     chargingStationsInBounds: async (
       _parent: unknown,

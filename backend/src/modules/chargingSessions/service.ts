@@ -197,8 +197,8 @@ export async function createBooking(db: Db, input: ReserveChargingPointInput) {
   const vehicleSnapshot = await getVehicleSnapshotFromSession(db, input.vehicleId);
   const snapshot = vehicleSnapshot ?? {
     vinLast6: "------",
-    make: "Demo",
-    model: "Vehicle"
+    make: "BMW",
+    model: "i4"
   };
 
   const now = new Date();

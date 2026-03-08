@@ -2,13 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { useMutation } from "@apollo/client/react";
-import {
-  StartChargingSessionDocument,
-  CancelChargingSessionDocument,
-  CompleteChargingSessionDocument
-} from "@/graphql/generated/graphql";
+import Link from "next/link";
 import { formatCurrency } from "../../sessions/_components/formatters";
+import { useSessionActions } from "../../sessions/_hooks/useSessionActions";
 import type { ChargingSessionsQuery } from "@/graphql/generated/graphql";
 import { BatteryIcon, getSocTier, SOC_COLORS } from "./ActiveSessionBubble";
 
@@ -110,78 +106,29 @@ export function SessionSummaryModal({
   onClose,
   onSessionChanged
 }: SessionSummaryModalProps) {
-  const [isUpdatingSession, setIsUpdatingSession] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
   const isBooked = session.status === "BOOKED";
   const isActive = session.status === "ACTIVE";
-
-  const [startChargingMutation] = useMutation(StartChargingSessionDocument, {
-    refetchQueries: "active"
-  });
-  const [cancelChargingMutation] = useMutation(CancelChargingSessionDocument, {
-    refetchQueries: "active"
-  });
-  const [completeChargingMutation] = useMutation(CompleteChargingSessionDocument, {
-    refetchQueries: "active"
-  });
 
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
 
-  const handleStartCharging = useCallback(async () => {
-    if (!isBooked || isUpdatingSession) return;
-    setActionError(null);
-    setIsUpdatingSession(true);
-    try {
-      await startChargingMutation({
-        variables: { input: { sessionId: session.id } }
-      });
-      await onSessionChanged?.();
-      handleClose();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to start charging";
-      setActionError(message);
-    } finally {
-      setIsUpdatingSession(false);
-    }
-  }, [handleClose, isBooked, isUpdatingSession, session.id, startChargingMutation, onSessionChanged]);
+  const handleSuccess = useCallback(async () => {
+    await onSessionChanged?.();
+    handleClose();
+  }, [onSessionChanged, handleClose]);
 
-  const handleCancelReservation = useCallback(async () => {
-    if (!isBooked || isUpdatingSession) return;
-    setActionError(null);
-    setIsUpdatingSession(true);
-    try {
-      await cancelChargingMutation({
-        variables: { input: { sessionId: session.id } }
-      });
-      await onSessionChanged?.();
-      handleClose();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to cancel reservation";
-      setActionError(message);
-    } finally {
-      setIsUpdatingSession(false);
-    }
-  }, [cancelChargingMutation, handleClose, isBooked, isUpdatingSession, session.id, onSessionChanged]);
-
-  const handleStopCharging = useCallback(async () => {
-    if (isBooked || isUpdatingSession) return;
-    setActionError(null);
-    setIsUpdatingSession(true);
-    try {
-      await completeChargingMutation({
-        variables: { input: { sessionId: session.id } }
-      });
-      await onSessionChanged?.();
-      handleClose();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to stop charging";
-      setActionError(message);
-    } finally {
-      setIsUpdatingSession(false);
-    }
-  }, [completeChargingMutation, handleClose, isBooked, isUpdatingSession, session.id, onSessionChanged]);
+  const {
+    startCharging: handleStartCharging,
+    cancelReservation: handleCancelReservation,
+    stopCharging: handleStopCharging,
+    isUpdating: isUpdatingSession,
+    error: actionError
+  } = useSessionActions({
+    sessionId: session.id,
+    isBooked,
+    onSuccess: handleSuccess
+  });
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -196,7 +143,7 @@ export function SessionSummaryModal({
     isBooked || isActive
   );
   const chargingTime = useElapsedTime(
-    session.charging.startedAt,
+    session.charging.startedAt ?? null,
     isActive
   );
 
@@ -353,6 +300,16 @@ export function SessionSummaryModal({
               </div>
             )}
           </div>
+          {!isBooked && (
+            <Link
+              href={`/sessions?sessionId=${session.id}`}
+              className="mt-3 flex w-full items-center justify-center gap-1.5 py-2 text-[13px] font-medium text-slate-400 no-underline transition-colors hover:text-slate-600"
+              style={{ margin: 0, border: "none", background: "transparent" }}
+            >
+              View more details
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_forward</span>
+            </Link>
+          )}
         </div>
       </div>
     </div>
