@@ -3,7 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { useUserContext } from "@/contexts/UserContext";
+import { isAdminRole, getDefaultRouteForRoles } from "@/lib/utils/roleNavigation";
+
 export function HomeScreen() {
+  const { selectedUser } = useUserContext();
+  const isAdmin = isAdminRole(selectedUser?.roles);
+  const primaryHref = getDefaultRouteForRoles(selectedUser?.roles);
+
   return (
     <main className="max-w-4xl mx-auto px-6 py-12">
       {/* Main hero card */}
@@ -37,10 +44,10 @@ export function HomeScreen() {
             </span>
           </div>
           <Link
-            href="/map"
+            href={primaryHref}
             className="inline-flex items-center justify-center rounded-lg bg-green-800 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-green-700 transition-colors"
           >
-            Get Started
+            {isAdmin ? "Open Analytics Dashboard" : "Get Started"}
           </Link>
         </div>
       </section>

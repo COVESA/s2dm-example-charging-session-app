@@ -32,6 +32,7 @@ import {
   IncidentSessionNotFoundError,
   InvalidIncidentDescriptionError
 } from "../../modules/incidents/service";
+import { getAdminDashboard } from "../../modules/adminDashboard/service";
 
 
 export const resolvers = {
@@ -40,6 +41,13 @@ export const resolvers = {
     // The users query is deprecated and will return an empty list.
     users: async () => {
       return [];
+    },
+    adminDashboard: async (
+      _parent: unknown,
+      _args: unknown,
+      context: GraphQLContext
+    ) => {
+      return getAdminDashboard(context.db);
     },
     chargingStationsInBounds: async (
       _parent: unknown,

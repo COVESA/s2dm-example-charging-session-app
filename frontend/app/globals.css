@@ -33,6 +33,13 @@
     height: 100%;
   }
 
+  [data-route="dashboard"] main {
+    max-width: none;
+    margin: 0;
+    min-height: 100%;
+    padding: 0;
+  }
+
   button {
     margin-right: 0.5rem;
     padding: 0.5rem 0.75rem;

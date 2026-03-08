@@ -2,16 +2,17 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { useUserContext } from "@/contexts/UserContext";
 import { UserRole } from "@/graphql/generated/graphql";
-
-const NAV_LINKS = [
-  { href: "/map", label: "Station Finder" },
-  { href: "/sessions", label: "Session Activity" }
-] as const;
+import {
+  ADMIN_NAV_LINKS,
+  DRIVER_NAV_LINKS,
+  getDefaultRouteForRole,
+  isAdminRole
+} from "@/lib/utils/roleNavigation";
 
 function getAvatarBubbleClass(roles: UserRole[] | undefined): string {
   if (!roles?.length) return "bg-slate-300";
@@ -20,12 +21,20 @@ function getAvatarBubbleClass(roles: UserRole[] | undefined): string {
 
 export function Navbar() {
   const pathname = usePathname();
-  const { selectedUser, toggleRole } = useUserContext();
+  const router = useRouter();
+  const { selectedUser, setRole } = useUserContext();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const currentUser = selectedUser;
-  const isAdmin = currentUser?.roles.includes(UserRole.Admin);
+  const isAdmin = isAdminRole(currentUser?.roles);
+  const navLinks = isAdmin ? ADMIN_NAV_LINKS : DRIVER_NAV_LINKS;
+
+  const handleRoleSelect = (role: UserRole) => {
+    setRole(role);
+    setIsOpen(false);
+    router.replace(getDefaultRouteForRole(role));
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -63,12 +72,12 @@ export function Navbar() {
       </div>
 
       <nav className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
-        {NAV_LINKS.map(({ href, label }) => (
+        {navLinks.map(({ href, label }) => (
           <Link
             key={href}
             href={href}
             className={`rounded-md px-4 py-2 text-[0.9375rem] font-medium no-underline transition-colors ${
-              pathname === href
+              pathname === href || pathname.startsWith(`${href}/`)
                 ? "bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900"
                 : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
             }`}
@@ -114,7 +123,7 @@ export function Navbar() {
                 <div
                   role="option"
                   aria-selected={!isAdmin}
-                  onClick={() => { if (isAdmin) toggleRole(); setIsOpen(false); }}
+                  onClick={() => handleRoleSelect(UserRole.User)}
                   className={`flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3.5 transition-colors ${
                     !isAdmin
                       ? "bg-green-50 text-green-900"
@@ -133,7 +142,7 @@ export function Navbar() {
                 <div
                   role="option"
                   aria-selected={!!isAdmin}
-                  onClick={() => { if (!isAdmin) toggleRole(); setIsOpen(false); }}
+                  onClick={() => handleRoleSelect(UserRole.Admin)}
                   className={`flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3.5 transition-colors ${
                     isAdmin
                       ? "bg-amber-50 text-amber-900"

@@ -3,13 +3,14 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-import { useUserContext } from "@/contexts/UserContext";
+import { UserRole } from "@/graphql/generated/graphql";
+import { useRoleRouteGuard } from "@/hooks/useRoleRouteGuard";
 import { useChargingSessionsQuery } from "../_hooks/useChargingSessionsQuery";
 import { SessionDetail } from "./SessionDetail";
 import { SessionList } from "./SessionList";
 
 export function SessionActivityScreen() {
-  const { selectedUser } = useUserContext();
+  const { selectedUser, isReady, isAllowed } = useRoleRouteGuard(UserRole.User);
   const searchParams = useSearchParams();
   const sessionIdFromUrl = searchParams.get("sessionId");
   const [explicitSelectedSessionId, setExplicitSelectedSessionId] = useState<string | null>(sessionIdFromUrl);
@@ -31,6 +32,14 @@ export function SessionActivityScreen() {
     }
     return sessions.find((session) => session.id === selectedSessionId) ?? sessions[0];
   }, [sessions, selectedSessionId]);
+
+  if (!isReady || !isAllowed) {
+    return (
+      <main className="flex h-full items-center justify-center">
+        <p className="text-sm text-slate-600">Loading session activity...</p>
+      </main>
+    );
+  }
 
   if (!selectedUser) {
     return (

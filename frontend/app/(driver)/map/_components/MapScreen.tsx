@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
-import { useUserContext } from "@/contexts/UserContext";
+import { UserRole, type ChargingStationFiltersInput } from "@/graphql/generated/graphql";
+import { useRoleRouteGuard } from "@/hooks/useRoleRouteGuard";
 import { useGeocode } from "../_hooks/useGeocode";
 import { useActiveOrBookedSession } from "../_hooks/useActiveOrBookedSession";
 import {
@@ -14,7 +15,6 @@ import {
 import { SearchBar } from "./SearchBar";
 import { ActiveSessionBubble } from "./ActiveSessionBubble";
 import { SessionSummaryModal } from "./SessionSummaryModal";
-import type { ChargingStationFiltersInput } from "@/graphql/generated/graphql";
 
 const StationMap = dynamic(
   () =>
@@ -40,7 +40,7 @@ function filtersToApiInput(filters: FilterState): ChargingStationFiltersInput {
 }
 
 export function MapScreen() {
-  const { selectedUser } = useUserContext();
+  const { selectedUser, isReady, isAllowed } = useRoleRouteGuard(UserRole.User);
   const { session, hasActiveOrBookedSession, refetch } = useActiveOrBookedSession(
     selectedUser?.id ?? null
   );
@@ -119,6 +119,14 @@ export function MapScreen() {
   const apiFilters = filtersToApiInput(filters);
   const filterWidth = isExpanded ? FILTER_WIDTH_EXPANDED : FILTER_WIDTH_COLLAPSED;
   const displayedModalSession = sessionModalOpen ? session ?? modalSession : null;
+
+  if (!isReady || !isAllowed) {
+    return (
+      <main className="flex h-full items-center justify-center">
+        <p className="text-sm text-slate-600">Loading station finder...</p>
+      </main>
+    );
+  }
 
   const handleToggle = () => {
     setFilterOpen((o) => !o);

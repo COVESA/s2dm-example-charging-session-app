@@ -10,11 +10,12 @@ import {
 } from "react";
 
 import { UserRole, type User } from "@/graphql/generated/graphql";
-import { getOrInitGuestIdentity } from "@/lib/utils/guestIdentity";
+import { getOrInitGuestIdentity, setGuestRole } from "@/lib/utils/guestIdentity";
 
 type UserContextValue = {
   selectedUser: User | null;
   setSelectedUser: (user: User | null) => void;
+  setRole: (role: UserRole) => void;
   toggleRole: () => void;
 };
 
@@ -26,33 +27,46 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Initialize guest identity on client side
     const guest = getOrInitGuestIdentity();
-    setSelectedUserState(guest);
+    const frameId = window.requestAnimationFrame(() => {
+      setSelectedUserState(guest);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
   }, []);
 
   const setSelectedUser = useCallback((user: User | null) => {
     setSelectedUserState(user);
+    if (user?.roles[0]) {
+      setGuestRole(user.roles[0]);
+    }
+  }, []);
+
+  const setRole = useCallback((role: UserRole) => {
+    setSelectedUserState((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        roles: [role]
+      };
+    });
+    setGuestRole(role);
   }, []);
 
   const toggleRole = useCallback(() => {
-    setSelectedUserState((prev) => {
-      if (!prev) return null;
-      
-      const currentRole = prev.roles.includes(UserRole.Admin)
-        ? UserRole.Admin
-        : UserRole.User;
-      
-      const newRole = currentRole === UserRole.Admin ? UserRole.User : UserRole.Admin;
-      
-      return {
-        ...prev,
-        roles: [newRole]
-      };
-    });
-  }, []);
+    const nextRole = selectedUser?.roles.includes(UserRole.Admin)
+      ? UserRole.User
+      : UserRole.Admin;
+
+    if (!selectedUser) {
+      return;
+    }
+
+    setRole(nextRole);
+  }, [selectedUser, setRole]);
 
   const value = useMemo(
-    () => ({ selectedUser, setSelectedUser, toggleRole }),
-    [selectedUser, setSelectedUser, toggleRole]
+    () => ({ selectedUser, setSelectedUser, setRole, toggleRole }),
+    [selectedUser, setRole, setSelectedUser, toggleRole]
   );
 
   return (

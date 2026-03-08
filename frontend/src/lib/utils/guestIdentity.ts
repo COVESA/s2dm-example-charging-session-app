@@ -4,6 +4,7 @@ import { UserRole, type User } from "@/graphql/generated/graphql";
 
 const GUEST_ID_KEY = "leafycharge_guest_id";
 const GUEST_NAME_KEY = "leafycharge_guest_name";
+const GUEST_ROLE_KEY = "leafycharge_guest_role";
 
 const ADJECTIVES = [
   "Swift",
@@ -56,6 +57,15 @@ function generateGuestName(): string {
   return `${adj} ${animal}`;
 }
 
+function getStoredGuestRole(): UserRole {
+  if (typeof window === "undefined") {
+    return UserRole.User;
+  }
+
+  const storedRole = localStorage.getItem(GUEST_ROLE_KEY);
+  return storedRole === UserRole.Admin ? UserRole.Admin : UserRole.User;
+}
+
 export type GuestIdentity = User & {
   isGuest: true;
 };
@@ -85,19 +95,31 @@ export function getOrInitGuestIdentity(): GuestIdentity {
     localStorage.setItem(GUEST_NAME_KEY, guestName);
   }
 
+  const role = getStoredGuestRole();
+  localStorage.setItem(GUEST_ROLE_KEY, role);
+
   return {
     id: guestId,
     displayName: guestName,
     email: `${guestName.toLowerCase().replace(/\s+/g, ".")}@example.com`,
-    roles: [UserRole.User],
+    roles: [role],
     isGuest: true,
   };
+}
+
+export function setGuestRole(role: UserRole): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  localStorage.setItem(GUEST_ROLE_KEY, role);
 }
 
 export function resetGuestIdentity(): GuestIdentity {
   if (typeof window !== "undefined") {
     localStorage.removeItem(GUEST_ID_KEY);
     localStorage.removeItem(GUEST_NAME_KEY);
+    localStorage.removeItem(GUEST_ROLE_KEY);
   }
   return getOrInitGuestIdentity();
 }
