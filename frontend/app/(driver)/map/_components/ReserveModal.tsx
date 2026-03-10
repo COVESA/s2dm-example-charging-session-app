@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { useMutation } from "@apollo/client/react";
 import { Modal } from "@/ui/Modal";
 import {
-  ReserveChargingPointDocument,
-  VehiclesDocument
+  ReserveChargingPointDocument
 } from "@/graphql/generated/graphql";
 import { useUserContext } from "@/contexts/UserContext";
+import { getStoredGuestVehicles } from "@/lib/utils/guestIdentity";
 import type { MapStation } from "../_hooks/useChargingStationsQuery";
 
 const PAYMENT_SIMULATION_MS = 2500;
@@ -151,15 +151,18 @@ export function ReserveModal({
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [reservationError, setReservationError] = useState<string | null>(null);
 
-  const { data: vehiclesData } = useQuery(VehiclesDocument, {
-    variables: { userId: selectedUser?.id ?? "" },
-    skip: !selectedUser?.id
-  });
-
-  const vehicles = vehiclesData?.vehicles ?? [];
+  const vehicles = useMemo(
+    () => (selectedUser ? getStoredGuestVehicles() : []),
+    [selectedUser]
+  );
   const [selectedVehicleId, setSelectedVehicleId] = useState("");
   useEffect(() => {
-    if (vehicles.length > 0 && !vehicles.some((v) => v.id === selectedVehicleId)) {
+    if (vehicles.length === 0) {
+      setSelectedVehicleId("");
+      return;
+    }
+
+    if (!vehicles.some((v) => v.id === selectedVehicleId)) {
       setSelectedVehicleId(vehicles[0].id);
     }
   }, [vehicles, selectedVehicleId]);

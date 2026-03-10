@@ -1,6 +1,6 @@
 import { GraphQLError } from "graphql";
 import type { GraphQLContext } from "../../server/context";
-import { findVehiclesByUserId } from "../../db/repositories/chargingSessions";
+import { findVehiclesByUserId } from "../../db/repositories/vehicles";
 import {
   getChargingStationFacets,
   getMapItemsInBounds
@@ -89,7 +89,19 @@ export const resolvers = {
       args: { userId: string },
       context: GraphQLContext
     ) => {
-      return findVehiclesByUserId(context.db, args.userId);
+      const vehicles = await findVehiclesByUserId(context.db, args.userId);
+      return vehicles.map((vehicle) => ({
+        id: String(vehicle._id),
+        userId: String(vehicle.userId),
+        vin: vehicle.vin,
+        make: vehicle.make,
+        model: vehicle.model,
+        year: vehicle.year,
+        batteryCapacityKwh: vehicle.batteryCapacityKwh,
+        maxChargePowerKw: vehicle.maxChargePowerKw,
+        connectorTypes: vehicle.connectorTypes,
+        createdAt: vehicle.createdAt.toISOString()
+      }));
     }
   },
   Mutation: {

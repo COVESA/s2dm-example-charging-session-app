@@ -278,8 +278,15 @@ type ReportSessionIncidentPayload {
 
 type Vehicle {
   id: ID!
+  userId: ID!
+  vin: String!
   make: String!
   model: String!
+  year: Int!
+  batteryCapacityKwh: Float!
+  maxChargePowerKw: Float!
+  connectorTypes: [String!]!
+  createdAt: String!
 }
 
 type AdminDashboardSummary {

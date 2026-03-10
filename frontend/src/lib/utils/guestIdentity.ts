@@ -5,6 +5,12 @@ import { UserRole, type User } from "@/graphql/generated/graphql";
 const GUEST_ID_KEY = "leafycharge_guest_id";
 const GUEST_NAME_KEY = "leafycharge_guest_name";
 const GUEST_ROLE_KEY = "leafycharge_guest_role";
+const GUEST_VEHICLES_KEY = "leafycharge_guest_vehicles";
+const DEFAULT_GUEST_VEHICLES = ["BMW i3", "Volkswagen ID.4"] as const;
+const DEMO_GUEST_VEHICLE_IDS: Record<string, string> = {
+  "BMW i3": "64f111111111111111111111",
+  "Volkswagen ID.4": "64f222222222222222222222"
+};
 
 const ADJECTIVES = [
   "Swift",
@@ -66,9 +72,88 @@ function getStoredGuestRole(): UserRole {
   return storedRole === UserRole.Admin ? UserRole.Admin : UserRole.User;
 }
 
+function normalizeGuestVehicles(raw: unknown): string[] {
+  if (!Array.isArray(raw)) {
+    return [...DEFAULT_GUEST_VEHICLES];
+  }
+
+  const vehicles = raw
+    .filter((vehicle): vehicle is string => typeof vehicle === "string")
+    .map((vehicle) => vehicle.trim())
+    .filter(Boolean);
+
+  return vehicles.length > 0 ? vehicles : [...DEFAULT_GUEST_VEHICLES];
+}
+
+function getGuestVehicleId(vehicleName: string): string {
+  const knownVehicleId = DEMO_GUEST_VEHICLE_IDS[vehicleName];
+  if (knownVehicleId) {
+    return knownVehicleId;
+  }
+
+  let hash = 0;
+  for (const char of vehicleName) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+
+  const hex = hash.toString(16).padStart(8, "0");
+  return `${hex}${hex}${hex}`.slice(0, 24);
+}
+
+function splitVehicleLabel(vehicleName: string): { make: string; model: string } {
+  const [make = vehicleName, ...modelParts] = vehicleName.split(" ");
+  return {
+    make,
+    model: modelParts.join(" ") || vehicleName
+  };
+}
+
 export type GuestIdentity = User & {
   isGuest: true;
+  vehicles: string[];
 };
+
+export type GuestVehicle = {
+  id: string;
+  name: string;
+  make: string;
+  model: string;
+};
+
+export function getStoredGuestVehicleNames(): string[] {
+  if (typeof window === "undefined") {
+    return [...DEFAULT_GUEST_VEHICLES];
+  }
+
+  const storedVehicles = localStorage.getItem(GUEST_VEHICLES_KEY);
+  if (!storedVehicles) {
+    const vehicles = [...DEFAULT_GUEST_VEHICLES];
+    localStorage.setItem(GUEST_VEHICLES_KEY, JSON.stringify(vehicles));
+    return vehicles;
+  }
+
+  try {
+    const vehicles = normalizeGuestVehicles(JSON.parse(storedVehicles));
+    localStorage.setItem(GUEST_VEHICLES_KEY, JSON.stringify(vehicles));
+    return vehicles;
+  } catch {
+    const vehicles = [...DEFAULT_GUEST_VEHICLES];
+    localStorage.setItem(GUEST_VEHICLES_KEY, JSON.stringify(vehicles));
+    return vehicles;
+  }
+}
+
+export function getStoredGuestVehicles(): GuestVehicle[] {
+  return getStoredGuestVehicleNames().map((vehicleName) => {
+    const { make, model } = splitVehicleLabel(vehicleName);
+    return {
+      id: getGuestVehicleId(vehicleName),
+      name: vehicleName,
+      make,
+      model
+    };
+  });
+}
 
 export function getOrInitGuestIdentity(): GuestIdentity {
   if (typeof window === "undefined") {
@@ -79,6 +164,7 @@ export function getOrInitGuestIdentity(): GuestIdentity {
       email: "guest@example.com",
       roles: [UserRole.User],
       isGuest: true,
+      vehicles: [...DEFAULT_GUEST_VEHICLES]
     };
   }
 
@@ -96,6 +182,7 @@ export function getOrInitGuestIdentity(): GuestIdentity {
   }
 
   const role = getStoredGuestRole();
+  const vehicles = getStoredGuestVehicleNames();
   localStorage.setItem(GUEST_ROLE_KEY, role);
 
   return {
@@ -104,6 +191,7 @@ export function getOrInitGuestIdentity(): GuestIdentity {
     email: `${guestName.toLowerCase().replace(/\s+/g, ".")}@example.com`,
     roles: [role],
     isGuest: true,
+    vehicles
   };
 }
 
@@ -120,6 +208,7 @@ export function resetGuestIdentity(): GuestIdentity {
     localStorage.removeItem(GUEST_ID_KEY);
     localStorage.removeItem(GUEST_NAME_KEY);
     localStorage.removeItem(GUEST_ROLE_KEY);
+    localStorage.removeItem(GUEST_VEHICLES_KEY);
   }
   return getOrInitGuestIdentity();
 }

@@ -20,6 +20,22 @@ import {
   markChargingPointAvailable
 } from "../../db/repositories/chargingStations";
 
+const DEMO_VEHICLE_SNAPSHOTS: Record<
+  string,
+  { vinLast6: string; make: string; model: string }
+> = {
+  "64f111111111111111111111": {
+    vinLast6: "BMWI03",
+    make: "BMW",
+    model: "i3"
+  },
+  "64f222222222222222222222": {
+    vinLast6: "VWID04",
+    make: "Volkswagen",
+    model: "ID.4"
+  }
+};
+
 export class UserAlreadyHasActiveBookingError extends Error {
   constructor() {
     super("User already has an active or booked session");
@@ -204,7 +220,7 @@ export async function createBooking(db: Db, input: ReserveChargingPointInput) {
   }
 
   const vehicleSnapshot = await getVehicleSnapshotFromSession(db, input.vehicleId);
-  const snapshot = vehicleSnapshot ?? {
+  const snapshot = vehicleSnapshot ?? DEMO_VEHICLE_SNAPSHOTS[input.vehicleId] ?? {
     vinLast6: "------",
     make: "BMW",
     model: "i4"
