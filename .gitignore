@@ -31,6 +31,7 @@ coverage/
 .next/
 out/
 .vercel/
+frontend/next-env.d.ts
 
 # --- GraphQL codegen outputs (generated) ---
 backend/src/generated/
