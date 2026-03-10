@@ -15,6 +15,7 @@ from app.db.mongo import (
     get_charging_stations_collection,
     get_telemetry_collection,
 )
+from app.session_pricing import calculate_booked_idle_cents, resolve_idle_fee
 
 MESSAGE_TYPE_SESSION_SAMPLE = "SESSION_SAMPLE"
 MESSAGE_TYPE_FAULT = "FAULT"
@@ -43,6 +44,7 @@ class SessionSimulationState:
     price_cents_per_kwh: float
     battery_capacity_kwh: float
     vehicle_max_power_kw: float
+    booked_idle_cents: int
 
 
 @dataclass(frozen=True)
@@ -217,6 +219,7 @@ class SimulationService:
                     "stationId": 1,
                     "chargingPointId": 1,
                     "booking": 1,
+                    "cost": 1,
                     "charging.socStartPercent": 1,
                     "charging.socStopPercent": 1,
                     "charging.startedAt": 1,
@@ -224,6 +227,7 @@ class SimulationService:
                     "charging.meterStopKwh": 1,
                     "charging.energyDeliveredKwh": 1,
                     "pricingSnapshot.priceCentsPerKwh": 1,
+                    "pricingSnapshot.idleFee": 1,
                     "updatedAt": 1,
                 },
             ),
@@ -231,6 +235,7 @@ class SimulationService:
 
         active_session_ids: set[str] = set()
         no_show_count = 0
+        synced_booked = 0
         resumed_active = 0
         for doc in docs:
             status = doc.get("status")
@@ -239,9 +244,11 @@ class SimulationService:
                 continue
 
             if status == "BOOKED":
-                if self._is_booking_expired(doc, now):
-                    if await self._mark_session_no_show(doc, now):
+                if await self._reconcile_booked_session(doc, now):
+                    if self._is_booking_expired(doc, now):
                         no_show_count += 1
+                    else:
+                        synced_booked += 1
                 continue
 
             if status != "ACTIVE":
@@ -259,8 +266,9 @@ class SimulationService:
             await self.stop_session_simulation(ObjectId(session_key))
 
         logger.info(
-            "reconciliation pass done: noShow=%s, resumedActive=%s, active=%s, scanned=%s",
+            "reconciliation pass done: noShow=%s, booked=%s, resumedActive=%s, active=%s, scanned=%s",
             no_show_count,
+            synced_booked,
             resumed_active,
             len(active_session_ids),
             len(docs),
@@ -288,6 +296,16 @@ class SimulationService:
             return False
 
         sessions = get_charging_sessions_collection()
+        final_timestamp = self._booking_reference_time(session_doc, timestamp)
+        set_payload = self._build_booked_session_cost_update(
+            session_doc, final_timestamp
+        )
+        set_payload.update(
+            {
+                "status": "NO_SHOW",
+                "updatedAt": final_timestamp,
+            }
+        )
         result = await asyncio.to_thread(
             sessions.update_one,
             {
@@ -295,12 +313,7 @@ class SimulationService:
                 "status": "BOOKED",
                 "booking.canceledAt": None,
             },
-            {
-                "$set": {
-                    "status": "NO_SHOW",
-                    "updatedAt": timestamp,
-                }
-            },
+            {"$set": set_payload},
         )
         if result.modified_count != 1:
             return False
@@ -313,6 +326,103 @@ class SimulationService:
         await self.stop_session_simulation(session_id)
         logger.info("session %s marked as NO_SHOW", session_id)
         return True
+
+    def _booking_reference_time(
+        self, session_doc: dict[str, Any], reference_time: datetime
+    ) -> datetime:
+        booking = session_doc.get("booking")
+        if not isinstance(booking, dict):
+            return reference_time
+
+        expires_at = _normalize_datetime(booking.get("expiresAt") or booking.get("endAt"))
+        if expires_at is None:
+            return reference_time
+        return min(reference_time, expires_at)
+
+    def _calculate_booked_idle_cents(
+        self, session_doc: dict[str, Any], reference_time: datetime | None
+    ) -> int:
+        booking = session_doc.get("booking")
+        if not isinstance(booking, dict):
+            return 0
+
+        booked_at = _normalize_datetime(booking.get("bookedAt"))
+        if booked_at is None:
+            return 0
+
+        expires_at = _normalize_datetime(booking.get("expiresAt") or booking.get("endAt"))
+        return calculate_booked_idle_cents(
+            booked_at=booked_at,
+            reference_time=reference_time,
+            idle_fee=resolve_idle_fee(session_doc.get("pricingSnapshot")),
+            expires_at=expires_at,
+        )
+
+    def _build_booked_session_cost_update(
+        self, session_doc: dict[str, Any], timestamp: datetime
+    ) -> dict[str, Any]:
+        idle_cents = self._calculate_booked_idle_cents(session_doc, timestamp)
+        return {
+            "cost.energyCents": 0,
+            "cost.idleCents": idle_cents,
+            "cost.totalCents": idle_cents,
+        }
+
+    def _needs_booked_session_cost_sync(
+        self, session_doc: dict[str, Any], desired_idle_cents: int
+    ) -> bool:
+        cost = session_doc.get("cost")
+        if not isinstance(cost, dict):
+            return True
+
+        current_energy = cost.get("energyCents")
+        current_idle = cost.get("idleCents")
+        current_total = cost.get("totalCents")
+        return (
+            current_energy != 0
+            or current_idle != desired_idle_cents
+            or current_total != desired_idle_cents
+        )
+
+    def _sync_booked_session_state(
+        self,
+        sessions_collection: Any,
+        session_doc: dict[str, Any],
+        timestamp: datetime,
+    ) -> bool:
+        session_id = session_doc.get("_id")
+        if not isinstance(session_id, ObjectId):
+            return False
+
+        idle_cents = self._calculate_booked_idle_cents(session_doc, timestamp)
+        if not self._needs_booked_session_cost_sync(session_doc, idle_cents):
+            return True
+
+        set_payload = self._build_booked_session_cost_update(session_doc, timestamp)
+        set_payload["updatedAt"] = timestamp
+        result = sessions_collection.update_one(
+            {
+                "_id": session_id,
+                "status": "BOOKED",
+                "booking.canceledAt": None,
+            },
+            {"$set": set_payload},
+        )
+        return result.matched_count == 1
+
+    async def _reconcile_booked_session(
+        self, session_doc: dict[str, Any], reference_time: datetime
+    ) -> bool:
+        if self._is_booking_expired(session_doc, reference_time):
+            return await self._mark_session_no_show(session_doc, reference_time)
+
+        sessions = get_charging_sessions_collection()
+        return await asyncio.to_thread(
+            self._sync_booked_session_state,
+            sessions,
+            session_doc,
+            self._booking_reference_time(session_doc, reference_time),
+        )
 
     def _is_battery_full(self, session_doc: dict[str, Any]) -> bool:
         charging = session_doc.get("charging")
@@ -379,12 +489,14 @@ class SimulationService:
                     "$or": [
                         {
                             "operationType": "insert",
-                            "fullDocument.status": "ACTIVE",
+                            "fullDocument.status": {"$in": ["ACTIVE", "BOOKED"]},
                         },
                         {
                             "operationType": "update",
                             "updateDescription.updatedFields.status": {"$exists": True},
                         },
+                        {"operationType": "replace"},
+                        {"operationType": "delete"},
                     ]
                 }
             }
@@ -429,6 +541,11 @@ class SimulationService:
 
         if status == "ACTIVE":
             await self.ensure_session_simulation_started(full_document)
+            return
+
+        if status == "BOOKED":
+            await self.stop_session_simulation(session_id)
+            await self._reconcile_booked_session(full_document, datetime.now(UTC))
             return
 
         logger.info(
@@ -668,6 +785,8 @@ class SimulationService:
         battery_capacity_kwh = 40 + _stable_fraction(
             f"{session_key}:battery-capacity"
         ) * 60
+        booked_idle_cents = 0
+        charging_started_at: datetime | None = None
 
         vehicle_profile = _stable_fraction(f"{session_key}:vehicle-profile")
         if vehicle_profile < 0.6:
@@ -691,6 +810,7 @@ class SimulationService:
 
             if started_at_value is not None:
                 started_at = started_at_value
+                charging_started_at = started_at_value
 
             if isinstance(meter_start, (int, float)):
                 meter_start_kwh = float(meter_start)
@@ -724,6 +844,15 @@ class SimulationService:
             if isinstance(price, (int, float)) and price > 0:
                 price_cents_per_kwh = float(price)
 
+        cost = session_doc.get("cost")
+        if isinstance(cost, dict) and isinstance(cost.get("idleCents"), (int, float)):
+            booked_idle_cents = max(int(cost["idleCents"]), 0)
+        if charging_started_at is not None:
+            booked_idle_cents = max(
+                booked_idle_cents,
+                self._calculate_booked_idle_cents(session_doc, charging_started_at),
+            )
+
         soc_delta_percent = max(soc_stop_percent - soc_start_percent, 0.0)
         if cumulative_energy_kwh > 0 and soc_delta_percent > 0:
             estimated_capacity_kwh = cumulative_energy_kwh / (soc_delta_percent / 100.0)
@@ -740,6 +869,7 @@ class SimulationService:
             price_cents_per_kwh=price_cents_per_kwh,
             battery_capacity_kwh=round(battery_capacity_kwh, 2),
             vehicle_max_power_kw=vehicle_max_power_kw,
+            booked_idle_cents=booked_idle_cents,
         )
 
     def _is_state_full(self, state: SessionSimulationState) -> bool:
@@ -846,6 +976,7 @@ class SimulationService:
     ) -> dict[str, Any]:
         meter_stop_kwh = round(state.meter_start_kwh + state.cumulative_energy_kwh, 3)
         energy_cents = int(round(state.cumulative_energy_kwh * state.price_cents_per_kwh))
+        total_cents = energy_cents + state.booked_idle_cents
         return {
             "charging.startedAt": state.started_at,
             "charging.meterStartKwh": state.meter_start_kwh,
@@ -854,8 +985,8 @@ class SimulationService:
             "charging.socStartPercent": round(state.soc_start_percent, 1),
             "charging.socStopPercent": round(state.soc_stop_percent, 1),
             "cost.energyCents": energy_cents,
-            "cost.idleCents": 0,
-            "cost.totalCents": energy_cents,
+            "cost.idleCents": state.booked_idle_cents,
+            "cost.totalCents": total_cents,
             "updatedAt": timestamp,
         }
 

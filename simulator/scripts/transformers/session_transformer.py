@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from bson.objectid import ObjectId
+from app.session_pricing import build_pricing_snapshot, calculate_booked_idle_cents
 
 # Constants
 TARGET_YEAR = 2026
@@ -145,24 +146,7 @@ def _make_address_short(station: Dict[str, Any]) -> str:
 def _get_price_snapshot(
     station: Dict[str, Any],
 ) -> Dict[str, Any]:
-    price_cents = DEFAULT_PRICE_CENTS_PER_KWH
-    idle_cents_per_min = DEFAULT_IDLE_FEE_CENTS_PER_MIN
-
-    station_pricing = station.get("pricing") or {}
-    station_tariff = station_pricing.get("defaultTariff") or {}
-    if isinstance(station_tariff.get("priceCentsPerKwh"), int):
-        price_cents = station_tariff["priceCentsPerKwh"]
-    if isinstance(station_tariff.get("priceCentsPerMinuteIdleAfterMinutes"), int):
-        idle_cents_per_min = station_tariff["priceCentsPerMinuteIdleAfterMinutes"]
-
-    return {
-        "currency": "EUR",
-        "priceCentsPerKwh": int(price_cents),
-        "idleFee": {
-            "priceCentsPerMinute": int(idle_cents_per_min),
-            "afterMinutes": DEFAULT_IDLE_FEE_AFTER_MINUTES,
-        },
-    }
+    return build_pricing_snapshot(station)
 
 
 def transform_row_to_session(
@@ -310,19 +294,19 @@ def transform_row_to_session(
     price_cents_per_kwh = pricing_snapshot["priceCentsPerKwh"]
     idle_fee = pricing_snapshot["idleFee"]
 
-    total_cents = None
-    energy_cents = None
-    idle_cents = None
-    if status in ["ACTIVE", "COMPLETED"] and energy_delivered_kwh is not None:
-        energy_cents = int(round(energy_delivered_kwh * price_cents_per_kwh))
-
-        idle_cents = 0
-        if status == "COMPLETED" and connector_power is not None and connector_power > 0:
-            active_minutes_est = (energy_delivered_kwh / connector_power) * 60.0
-            idle_minutes = max(0.0, duration_minutes - active_minutes_est - idle_fee["afterMinutes"])
-            idle_cents = int(round(idle_minutes * idle_fee["priceCentsPerMinute"]))
-
-        total_cents = int((energy_cents or 0) + (idle_cents or 0))
+    energy_cents = (
+        int(round(energy_delivered_kwh * price_cents_per_kwh))
+        if energy_delivered_kwh is not None
+        else 0
+    )
+    idle_reference = min(now, expires_at) if status == "BOOKED" else start_time
+    idle_cents = calculate_booked_idle_cents(
+        booked_at=booked_at,
+        reference_time=idle_reference,
+        idle_fee=idle_fee,
+        expires_at=expires_at,
+    )
+    total_cents = energy_cents + idle_cents
 
     feedback = None
     if status == "COMPLETED" and rng.random() < 0.35:

@@ -15,7 +15,9 @@ from scripts.synthetic.generators import (
 
 def _parse_coordinates(koordinaten: Any) -> tuple[float, float] | None:
     """Parse 'lat, lon' string to (lon, lat) for GeoJSON."""
-    if koordinaten is None or (isinstance(koordinaten, float) and str(koordinaten) == "nan"):
+    if koordinaten is None or (
+        isinstance(koordinaten, float) and str(koordinaten) == "nan"
+    ):
         return None
     s = str(koordinaten).strip()
     if not s:
@@ -75,7 +77,10 @@ def transform_row_to_station(
         raise ValueError(f"Row {row_index}: invalid or missing koordinaten")
 
     operator = str(row.get("Betreiber", "") or "").strip() or "Unknown"
-    is_fast = str(row.get("Art der Ladeeinrichung", "")).strip().lower() == "schnellladeeinrichtung"
+    is_fast = (
+        str(row.get("Art der Ladeeinrichung", "")).strip().lower()
+        == "schnellladeeinrichtung"
+    )
 
     characteristics = generate_characteristics(row_index, is_fast)
     pricing = generate_pricing(row_index, is_fast)
@@ -93,19 +98,24 @@ def transform_row_to_station(
         operational = pt["status"]["operational"] in ("OPERATIONAL",)
         availability = pt["status"]["availability"]
         available_now = operational and availability == "AVAILABLE"
-        out_of_service = pt["status"]["operational"] in ("BROKEN", "OFFLINE") or availability == "OUT_OF_SERVICE"
+        out_of_service = (
+            pt["status"]["operational"] in ("BROKEN", "OFFLINE")
+            or availability == "OUT_OF_SERVICE"
+        )
 
         if operational:
             operational_count += 1
         if available_now:
             available_now_count += 1
 
-        embedded_points.append({
-            "chargingPointId": pt["_id"],
-            "connectors": connectors_simple,
-            "availableNow": available_now,
-            "outOfService": out_of_service,
-        })
+        embedded_points.append(
+            {
+                "chargingPointId": pt["_id"],
+                "connectors": connectors_simple,
+                "availableNow": available_now,
+                "outOfService": out_of_service,
+            }
+        )
 
     now = datetime.now(UTC)
 

@@ -71,12 +71,14 @@ def generate_pricing(row_index: int, is_fast: bool) -> dict[str, Any]:
         price = random.randint(55, 85)
     else:
         price = random.randint(45, 75)
-    idle_after = random.randint(15, 30)
+    idle_price = random.randint(15, 30)
+    idle_after_minutes = random.randint(5, 15)
     return {
         "currency": "EUR",
         "defaultTariff": {
             "priceCentsPerKwh": price,
-            "priceCentsPerMinuteIdleAfterMinutes": idle_after,
+            "priceCentsPerMinuteIdleAfterMinutes": idle_price,
+            "idleFeeAfterMinutes": idle_after_minutes,
         },
     }
 
