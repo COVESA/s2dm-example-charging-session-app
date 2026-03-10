@@ -633,11 +633,11 @@ export function SessionDetail({
             <InfoItem label="Connector" value={formatConnector(session.charging.connectorUsed)} />
             <InfoItem label="Energy delivered" value={formatEnergy(session.charging.energyDeliveredKwh)} />
             <InfoItem
-              label={isActive || isCompleted ? "Started" : "Booked at"}
+              label="Started"
               value={
                 isActive || isCompleted
                   ? session.charging.startedAt ? formatSessionDateTime(session.charging.startedAt) : "--"
-                  : formatSessionDateTime(session.booking.bookedAt)
+                  : "--"
               }
             />
             <BatteryBar startPercent={session.charging.socStartPercent} stopPercent={session.charging.socStopPercent} />
@@ -656,9 +656,11 @@ export function SessionDetail({
           )}
           {isBooked && (
             <InfoCard icon="receipt_long" title="Pricing">
-              <InfoItem label="Expires at" value={formatSessionDateTime(session.booking.expiresAt)} />
               <InfoItem label="Rate" value={formatRate(session.pricingSnapshot.priceCentsPerKwh, session.pricingSnapshot.currency)} />
-              <InfoItem label="Idle fee" value={formatIdleFeePolicy(session.pricingSnapshot.idleFee, session.pricingSnapshot.currency)} />
+              <InfoItem label="Energy cost" value={formatCurrency(session.cost.energyCents ?? 0, session.pricingSnapshot.currency)} />
+              <InfoItem label="Idle fees" value={formatCurrency(session.cost.idleCents ?? 0, session.pricingSnapshot.currency)} />
+              <InfoItem label="Idle rate" value={formatIdleFeePolicy(session.pricingSnapshot.idleFee, session.pricingSnapshot.currency)} />
+              <InfoItem label="Booking time" value={formatSessionDateTime(session.booking.bookedAt)} />
             </InfoCard>
           )}
           {isCompleted && (
