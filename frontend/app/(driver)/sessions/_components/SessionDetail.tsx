@@ -81,21 +81,21 @@ function useLiveDuration(startIso: string | null | undefined, enabled: boolean):
 
 function InfoCard({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
   return (
-    <div className="flex h-full flex-col rounded-xl bg-slate-50 px-5 py-4">
-      <div className="mb-3 flex items-center gap-1.5">
+    <div className="flex h-full flex-col rounded-xl bg-slate-50 px-5 py-4 3xl:px-6 3xl:py-5">
+      <div className="mb-3 flex items-center gap-1.5 3xl:mb-4">
         <span className="material-symbols-outlined text-sm text-slate-400">{icon}</span>
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{title}</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 3xl:text-[13px]">{title}</span>
       </div>
-      <div className="flex flex-1 flex-col justify-evenly">{children}</div>
+      <div className="flex flex-1 flex-col justify-center gap-1.5 3xl:gap-2.5">{children}</div>
     </div>
   );
 }
 
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between py-1.5">
-      <span className="text-sm text-slate-500">{label}</span>
-      <span className="text-sm font-semibold text-slate-800">{value}</span>
+    <div className="flex items-center justify-between py-1.5 3xl:py-2">
+      <span className="text-sm text-slate-500 3xl:text-[15px]">{label}</span>
+      <span className="text-sm font-semibold text-slate-800 3xl:text-[15px]">{value}</span>
     </div>
   );
 }
@@ -109,9 +109,9 @@ function BatteryBar({ startPercent, stopPercent }: { startPercent: number | null
   const stop = stopPercent ?? startPercent ?? 0;
 
   return (
-    <div className="py-1.5">
+    <div className="py-1.5 3xl:py-2">
       <div className="flex items-center">
-        <span className="shrink-0 text-sm text-slate-500">Battery</span>
+        <span className="shrink-0 text-sm text-slate-500 3xl:text-[15px]">Battery</span>
         <div className="ml-auto w-[55%]">
           <div className="relative h-1.5 rounded-full bg-slate-200">
             {start > 0 && (
@@ -181,13 +181,13 @@ function HeroMetric({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3">
-      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${iconBg}`}>
-        <span className={`material-symbols-outlined text-lg ${iconColor}`}>{icon}</span>
+    <div className="flex items-center gap-3 px-4 py-3 3xl:gap-4 3xl:px-5 3xl:py-4">
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full 3xl:h-11 3xl:w-11 ${iconBg}`}>
+        <span className={`material-symbols-outlined text-lg 3xl:text-xl ${iconColor}`}>{icon}</span>
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-slate-500">{label}</p>
-        <p className="text-lg font-semibold leading-tight text-slate-900">{value}</p>
+        <p className="text-xs text-slate-500 3xl:text-[13px]">{label}</p>
+        <p className="text-lg font-semibold leading-tight text-slate-900 3xl:text-xl">{value}</p>
       </div>
     </div>
   );
@@ -195,7 +195,7 @@ function HeroMetric({
 
 function MetricGrid({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-2 grid-rows-2 gap-8">
+    <div className="grid grid-cols-2 grid-rows-2 gap-8 3xl:gap-12">
       {children}
     </div>
   );
@@ -462,7 +462,7 @@ function SessionFooter({
   };
 
   return (
-    <div className="mt-auto flex flex-col items-center gap-1 pt-5">
+    <div className="flex flex-col items-center gap-1">
       <div className="flex min-h-[52px] items-center justify-center">
         {isCompleted && (
           <div className="flex flex-col items-center gap-2">
@@ -591,15 +591,15 @@ export function SessionDetail({
   const vehicleLabel = `${session.vehicleSnapshot.make} ${session.vehicleSnapshot.model}`;
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="flex min-h-0 flex-1 flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm 3xl:gap-9 3xl:p-8">
       {/* Header */}
-      <div className="mb-5 flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 3xl:h-11 3xl:w-11">
             <span className="material-symbols-outlined text-xl text-slate-600">ev_station</span>
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900">{session.stationSnapshot.name}</h2>
+            <h2 className="text-lg font-bold text-slate-900 3xl:text-xl">{session.stationSnapshot.name}</h2>
             <p className="text-sm text-slate-500">
               {session.stationSnapshot.chargingPointLabel} · {session.stationSnapshot.addressShort}
             </p>
@@ -609,15 +609,15 @@ export function SessionDetail({
       </div>
 
       {/* Minimap + Hero metrics side by side */}
-      <div className="mb-6 flex gap-4">
-        <div className="h-[230px] w-1/2 shrink-0 overflow-hidden rounded-xl">
+      <div className="flex min-h-[220px] flex-1 gap-4">
+        <div className="w-1/2 shrink-0 overflow-hidden rounded-xl">
           <SessionMiniMap
             lat={session.stationSnapshot.location.lat}
             lng={session.stationSnapshot.location.lng}
             sessionId={session.id}
           />
         </div>
-        <div className="flex h-[230px] w-1/2 items-center justify-center">
+        <div className="flex w-1/2 items-center justify-center">
           {isBooked && <BookedHeroMetrics session={session} countdown={countdown} />}
           {isActive && <ActiveHeroMetrics session={session} liveDuration={liveDuration} />}
           {isCompleted && <CompletedHeroMetrics session={session} />}
