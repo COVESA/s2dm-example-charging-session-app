@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { UIEvent } from "react";
 import type { ChargingSessionsQuery } from "@/graphql/generated/graphql";
 import type { SessionStatus } from "@/graphql/generated/graphql";
 import { SessionStatusBadge } from "./SessionStatusBadge";
@@ -99,28 +98,13 @@ export function SessionList({
   loadingMore,
   onLoadMore
 }: SessionListProps) {
-  const handleScroll = (event: UIEvent<HTMLDivElement>) => {
-    if (!hasNextPage || loadingMore) {
-      return;
-    }
-
-    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
-    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 24;
-    if (isNearBottom) {
-      onLoadMore();
-    }
-  };
-
   return (
-    <aside className="flex h-full w-full max-w-sm flex-col rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="px-5 py-4">
+    <aside className="flex h-full min-h-0 w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="shrink-0 px-5 py-4">
         <h2 className="text-sm font-semibold text-slate-800">Recent Sessions</h2>
       </div>
 
-      <div
-        className="min-h-0 flex-1 overflow-y-auto px-3 pb-3"
-        onScroll={handleScroll}
-      >
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
         <div className="flex flex-col gap-2">
           {sessions.map((session) => {
             const isSelected = session.id === selectedSessionId;
@@ -168,8 +152,16 @@ export function SessionList({
             );
           })}
 
-          {loadingMore ? (
-            <p className="px-1 py-2 text-xs text-slate-500">Loading more sessions...</p>
+          {hasNextPage ? (
+            <button
+              type="button"
+              onClick={() => void onLoadMore()}
+              disabled={loadingMore}
+              className="mt-1 self-center text-xs font-medium text-slate-500 underline-offset-2 transition-colors hover:text-slate-700 hover:underline disabled:cursor-not-allowed disabled:no-underline disabled:opacity-60"
+              style={{ marginBottom: 0, border: "none", background: "transparent" }}
+            >
+              {loadingMore ? "Loading..." : "Load more"}
+            </button>
           ) : null}
         </div>
       </div>

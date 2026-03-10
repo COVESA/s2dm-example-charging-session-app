@@ -90,8 +90,8 @@ export function SessionActivityScreen() {
   }
 
   return (
-    <main className="flex h-full w-full items-center justify-center bg-slate-50 p-4">
-      <div className="flex h-full max-h-[940px] 3xl:max-h-[1080px] min-h-0 w-full max-w-[1440px] gap-4">
+    <main className="flex h-full w-full items-center justify-center overflow-hidden bg-slate-50 p-4">
+      <div className="flex h-full max-h-[940px] 3xl:max-h-[1080px] min-h-0 w-full max-w-[1440px] gap-4 overflow-hidden">
         <SessionDetail session={selectedSession} onSessionChanged={refetch} />
         <SessionList
           sessions={sessions}

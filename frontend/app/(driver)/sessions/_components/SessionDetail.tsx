@@ -631,6 +631,7 @@ export function SessionDetail({
           <InfoCard icon="ev_station" title="Charging">
             <InfoItem label="Vehicle" value={vehicleLabel} />
             <InfoItem label="Connector" value={formatConnector(session.charging.connectorUsed)} />
+            <InfoItem label="Energy delivered" value={formatEnergy(session.charging.energyDeliveredKwh)} />
             <InfoItem
               label={isActive || isCompleted ? "Started" : "Booked at"}
               value={
@@ -647,8 +648,10 @@ export function SessionDetail({
           {isActive && (
             <InfoCard icon="receipt_long" title="Pricing">
               <InfoItem label="Rate" value={formatRate(session.pricingSnapshot.priceCentsPerKwh, session.pricingSnapshot.currency)} />
-              <InfoItem label="Idle fee" value={formatIdleFeePolicy(session.pricingSnapshot.idleFee, session.pricingSnapshot.currency)} />
-              <InfoItem label="Booked at" value={formatSessionDateTime(session.booking.bookedAt)} />
+              <InfoItem label="Energy cost" value={formatCurrency(session.cost.energyCents ?? 0, session.pricingSnapshot.currency)} />
+              <InfoItem label="Idle fees" value={formatCurrency(session.cost.idleCents ?? 0, session.pricingSnapshot.currency)} />
+              <InfoItem label="Idle rate" value={formatIdleFeePolicy(session.pricingSnapshot.idleFee, session.pricingSnapshot.currency)} />
+              <InfoItem label="Booking time" value={formatSessionDateTime(session.booking.bookedAt)} />
             </InfoCard>
           )}
           {isBooked && (
@@ -662,8 +665,10 @@ export function SessionDetail({
             <InfoCard icon="receipt_long" title="Pricing">
               <InfoItem label="Date" value={formatSessionDate(session.createdAt)} />
               <InfoItem label="Rate" value={formatRate(session.pricingSnapshot.priceCentsPerKwh, session.pricingSnapshot.currency)} />
+              <InfoItem label="Booked at" value={formatSessionDateTime(session.booking.bookedAt)} />
               <InfoItem label="Energy cost" value={formatCurrency(session.cost.energyCents, session.pricingSnapshot.currency)} />
               <InfoItem label="Idle fees" value={formatCurrency(session.cost.idleCents ?? 0, session.pricingSnapshot.currency)} />
+              <InfoItem label="Idle rate" value={formatIdleFeePolicy(session.pricingSnapshot.idleFee, session.pricingSnapshot.currency)} />
             </InfoCard>
           )}
           {isTerminal && (

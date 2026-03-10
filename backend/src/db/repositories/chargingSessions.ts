@@ -105,6 +105,12 @@ type CursorPayload = {
   id: string;
 };
 
+const ALWAYS_VISIBLE_SESSION_STATUSES: ChargingSessionDoc["status"][] = [
+  "ACTIVE",
+  "BOOKED",
+  "COMPLETED"
+];
+
 function encodeCursor(payload: CursorPayload): string {
   return Buffer.from(JSON.stringify(payload)).toString("base64");
 }
@@ -130,6 +136,18 @@ function clampLimit(limit?: number): number {
 
 const SHARED_HISTORY_USER_ID = "65c8f2e2d2f4c3a9b3b9a111";
 
+function buildVisibleSessionsClause(): Record<string, unknown> {
+  return {
+    $or: [
+      { status: { $in: ALWAYS_VISIBLE_SESSION_STATUSES } },
+      {
+        status: { $nin: ALWAYS_VISIBLE_SESSION_STATUSES },
+        "cost.totalCents": { $gt: 0 }
+      }
+    ]
+  };
+}
+
 function buildFilter(input: SessionsQueryInput): Record<string, unknown> {
   const userObjectId = new ObjectId(input.userId);
   const sharedObjectId = new ObjectId(SHARED_HISTORY_USER_ID);
@@ -147,7 +165,10 @@ function buildFilter(input: SessionsQueryInput): Record<string, unknown> {
         ]
       };
 
-  const clauses: Record<string, unknown>[] = [baseClause];
+  const clauses: Record<string, unknown>[] = [
+    baseClause,
+    buildVisibleSessionsClause()
+  ];
 
   if (input.fromDate) {
     const fromDate = new Date(input.fromDate);

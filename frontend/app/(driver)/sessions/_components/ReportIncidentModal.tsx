@@ -18,7 +18,7 @@ const SEVERITY_OPTIONS: Array<{
   {
     value: IncidentSeverity.Medium,
     label: "Medium",
-    helpText: "Charging worked, but something needs attention."
+    helpText: ""
   },
   {
     value: IncidentSeverity.High,
@@ -111,9 +111,11 @@ export function ReportIncidentModal({
                 </option>
               ))}
             </select>
-            <p className="text-xs text-slate-500">
-              {SEVERITY_OPTIONS.find((option) => option.value === severity)?.helpText}
-            </p>
+            {SEVERITY_OPTIONS.find((o) => o.value === severity)?.helpText && (
+              <p className="text-xs text-slate-500">
+                {SEVERITY_OPTIONS.find((o) => o.value === severity)?.helpText}
+              </p>
+            )}
           </div>
 
           <div className="mt-5">
@@ -132,8 +134,7 @@ export function ReportIncidentModal({
               maxLength={1000}
               className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
             />
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-              <span>Include anything that helps operations investigate the issue.</span>
+            <div className="mt-2 flex justify-end text-xs text-slate-500">
               <span>{description.length}/1000</span>
             </div>
           </div>
