@@ -1,0 +1,63 @@
+[
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9b101" },
+    "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b001" },
+    "chargingPointCode": "cp_station-001_01",
+    "label": "Bay 1",
+    "evseId": "DE*CITY*E12345*1",
+    "connectors": [
+      { "type": "CCS", "current": "DC", "power": 150, "tethered": true },
+      { "type": "TYPE2", "current": "AC", "power": 22, "tethered": false }
+    ],
+    "status": {
+      "operational": "OPERATIONAL",
+      "availability": "RESERVED",
+      "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+    },
+    "pricingOverride": null,
+    "createdAt": { "$date": "2026-01-10T09:05:00Z" },
+    "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+  },
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9b102" },
+    "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b001" },
+    "chargingPointCode": "cp_station-001_02",
+    "label": "Bay 2",
+    "evseId": "DE*CITY*E12345*2",
+    "connectors": [
+      { "type": "TYPE2", "current": "AC", "power": 22, "tethered": false }
+    ],
+    "status": {
+      "operational": "OPERATIONAL",
+      "availability": "AVAILABLE",
+      "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+    },
+    "pricingOverride": null,
+    "createdAt": { "$date": "2026-01-10T09:05:00Z" },
+    "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+  },
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9b201" },
+    "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b002" },
+    "chargingPointCode": "cp_station-002_01",
+    "label": "Ultra 1",
+    "evseId": "DE*ROAD*F90000*1",
+    "connectors": [
+      { "type": "CCS", "current": "DC", "power": 300, "tethered": true }
+    ],
+    "status": {
+      "operational": "OPERATIONAL",
+      "availability": "CHARGING",
+      "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+    },
+    "pricingOverride": {
+      "currency": "EUR",
+      "tariff": {
+        "priceCentsPerKwh": 79,
+        "priceCentsPerMinuteIdleAfterMinutes": 35
+      }
+    },
+    "createdAt": { "$date": "2026-01-05T07:45:00Z" },
+    "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+  }
+]

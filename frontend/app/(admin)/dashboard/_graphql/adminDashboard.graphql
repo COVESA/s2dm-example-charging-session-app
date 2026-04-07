@@ -1,0 +1,75 @@
+query AdminDashboard {
+  adminDashboard {
+    summary {
+      totalStations
+      totalChargingPoints
+      operationalPoints
+      availableNowPoints
+      chargingPointsInUse
+      reservedPoints
+      outOfServicePoints
+      activeSessions
+      completedSessionsLast7Days
+      revenueLast7DaysCents
+      energyLast7DaysKwh
+      openIncidents
+      avgPriceCentsPerKwh
+    }
+    sessionStatusBreakdown {
+      label
+      value
+    }
+    pointOperationalBreakdown {
+      label
+      value
+    }
+    pointAvailabilityBreakdown {
+      label
+      value
+    }
+    recentSessionTrend {
+      bucket
+      sessions
+      completedSessions
+      revenueCents
+      energyKwh
+    }
+    recentTelemetryTrend {
+      bucket
+      sampleCount
+      avgPowerKw
+      maxPowerKw
+      energyDeltaKwh
+    }
+    topOperators {
+      operator
+      stations
+      chargingPoints
+      availableNowPoints
+      utilizationPercent
+      avgPriceCentsPerKwh
+    }
+    recentSessions {
+      id
+      stationName
+      chargingPointLabel
+      vehicleLabel
+      status
+      startedAt
+      endedAt
+      energyDeliveredKwh
+      totalCents
+      updatedAt
+    }
+    recentIncidents {
+      id
+      type
+      severity
+      status
+      stationName
+      chargingPointLabel
+      description
+      createdAt
+    }
+  }
+}

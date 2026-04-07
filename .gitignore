@@ -31,6 +31,7 @@ coverage/
 .next/
 out/
 .vercel/
+frontend/next-env.d.ts
 
 # --- GraphQL codegen outputs (generated) ---
 backend/src/generated/
@@ -49,6 +50,8 @@ __pycache__/
 coverage.xml
 htmlcov/
 .tox/
+simulator/data
+simulator/scripts/output/
 
 # Virtualenvs
 .venv/
@@ -56,9 +59,5 @@ venv/
 ENV/
 env/
 
-# --- Local data / Docker volumes (if created) ---
-data/
-mongo-data/
-mongodb-data/
-*.sqlite
+
 

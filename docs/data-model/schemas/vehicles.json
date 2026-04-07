@@ -1,0 +1,40 @@
+{
+  "bsonType": "object",
+  "required": ["userId", "vin", "make", "model", "year", "batteryCapacityKwh", "maxChargePowerKw", "connectorTypes", "createdAt"],
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "bsonType": "objectId"
+    },
+    "userId": {
+      "bsonType": "objectId"
+    },
+    "vin": {
+      "bsonType": "string"
+    },
+    "make": {
+      "bsonType": "string"
+    },
+    "model": {
+      "bsonType": "string"
+    },
+    "year": {
+      "bsonType": "int"
+    },
+    "batteryCapacityKwh": {
+      "bsonType": "double"
+    },
+    "maxChargePowerKw": {
+      "bsonType": "double"
+    },
+    "connectorTypes": {
+      "bsonType": "array",
+      "items": {
+        "bsonType": "string"
+      }
+    },
+    "createdAt": {
+      "bsonType": "date"
+    }
+  }
+}

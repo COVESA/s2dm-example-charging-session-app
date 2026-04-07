@@ -1,0 +1,108 @@
+[
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9b001" },
+    "stationCode": "station-001",
+    "name": "Downtown Mall Charging",
+    "operator": "CityCharge",
+    "location": { "type": "Point", "coordinates": [8.5417, 47.3769] },
+    "address": {
+      "street": "Main St 10",
+      "city": "Zurich",
+      "country": "CH",
+      "postalCode": "8001"
+    },
+    "timezone": "Europe/Zurich",
+    "hasFastCharging": false,
+    "characteristics": {
+      "parkingType": "PUBLIC",
+      "amenities": ["MALL", "TOILET", "CAFE"],
+      "access": {
+        "open24h": false,
+        "openingHours": [
+          { "day": "MON", "open": "08:00", "close": "22:00" },
+          { "day": "TUE", "open": "08:00", "close": "22:00" },
+          { "day": "WED", "open": "08:00", "close": "22:00" },
+          { "day": "THU", "open": "08:00", "close": "22:00" },
+          { "day": "FRI", "open": "08:00", "close": "23:00" },
+          { "day": "SAT", "open": "09:00", "close": "23:00" },
+          { "day": "SUN", "open": "09:00", "close": "21:00" }
+        ]
+      }
+    },
+    "pricing": {
+      "currency": "EUR",
+      "defaultTariff": {
+        "priceCentsPerKwh": 55,
+        "priceCentsPerMinuteIdleAfterMinutes": 20
+      }
+    },
+    "chargingPoints": [
+      {
+        "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b101" },
+        "connectors": [
+          { "type": "CCS", "power": 150, "tethered": true },
+          { "type": "TYPE2", "power": 22, "tethered": false }
+        ],
+        "availableNow": false,
+        "outOfService": false
+      },
+      {
+        "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b102" },
+        "connectors": [{ "type": "TYPE2", "power": 22, "tethered": false }],
+        "availableNow": true,
+        "outOfService": false
+      }
+    ],
+    "availability": {
+      "totalPoints": 2,
+      "operationalPoints": 2,
+      "availableNowPoints": 1,
+      "lastComputedAt": { "$date": "2026-02-12T08:12:00Z" }
+    },
+    "createdAt": { "$date": "2026-01-10T09:00:00Z" },
+    "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+  },
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9b002" },
+    "stationCode": "station-002",
+    "name": "Highway Service Area East",
+    "operator": "RoadFast",
+    "location": { "type": "Point", "coordinates": [8.725, 47.47] },
+    "address": {
+      "street": "A1 Service Area East",
+      "city": "Winterthur",
+      "country": "CH",
+      "postalCode": "8400"
+    },
+    "timezone": "Europe/Zurich",
+    "hasFastCharging": true,
+    "characteristics": {
+      "parkingType": "PUBLIC",
+      "amenities": ["RESTROOM", "FOOD", "SHOP"],
+      "access": { "open24h": true, "openingHours": [] }
+    },
+    "pricing": {
+      "currency": "EUR",
+      "defaultTariff": {
+        "priceCentsPerKwh": 69,
+        "priceCentsPerMinuteIdleAfterMinutes": 35
+      }
+    },
+    "chargingPoints": [
+      {
+        "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b201" },
+        "connectors": [{ "type": "CCS", "power": 300, "tethered": true }],
+        "availableNow": false,
+        "outOfService": false
+      }
+    ],
+    "availability": {
+      "totalPoints": 1,
+      "operationalPoints": 1,
+      "availableNowPoints": 0,
+      "lastComputedAt": { "$date": "2026-02-12T08:12:00Z" }
+    },
+    "createdAt": { "$date": "2026-01-05T07:30:00Z" },
+    "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+  }
+]

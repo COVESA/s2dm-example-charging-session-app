@@ -1,0 +1,27 @@
+mutation ReserveChargingPoint($input: ReserveChargingPointInput!) {
+  reserveChargingPoint(input: $input) {
+    session {
+      id
+      status
+      stationSnapshot {
+        name
+        addressShort
+        chargingPointLabel
+      }
+      vehicleSnapshot {
+        make
+        model
+      }
+      booking {
+        bookedAt
+        expiresAt
+      }
+      pricingSnapshot {
+        currency
+        priceCentsPerKwh
+      }
+      createdAt
+      updatedAt
+    }
+  }
+}

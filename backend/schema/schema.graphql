@@ -1,4 +1,411 @@
+enum UserRole {
+  USER
+  ADMIN
+}
+
+type User {
+  id: ID!
+  email: String!
+  displayName: String!
+  roles: [UserRole!]!
+}
+
+# Geo types
+type GeoPoint {
+  lat: Float!
+  lng: Float!
+}
+
+# Map-optimized station (matches data model availability + pricing)
+type Address {
+  street: String
+  city: String
+  postalCode: String
+  country: String
+}
+
+type ChargingStation {
+  id: ID!
+  name: String!
+  operator: String!
+  stationCode: String!
+  location: GeoPoint!
+  address: Address
+  availability: StationAvailability!
+  priceCentsPerKwh: Int!
+  hasFastCharging: Boolean!
+  connectorTypes: [String!]!
+  maxPowerKw: Float!
+  chargingPoints: [ChargingPointInfo!]!
+}
+
+type StationAvailability {
+  totalPoints: Int!
+  availableNowPoints: Int!
+  operationalPoints: Int!
+}
+
+type ConnectorInfo {
+  type: String!
+  powerKw: Float!
+  tethered: Boolean
+}
+
+type ChargingPointInfo {
+  id: ID!
+  availableNow: Boolean!
+  outOfService: Boolean!
+  connectors: [ConnectorInfo!]!
+}
+
+enum SessionStatus {
+  BOOKED
+  ACTIVE
+  COMPLETED
+  CANCELED
+  NO_SHOW
+  FAILED
+}
+
+type StationSnapshot {
+  name: String!
+  location: GeoPoint!
+  addressShort: String!
+  chargingPointLabel: String!
+}
+
+type VehicleSnapshot {
+  vinLast6: String!
+  make: String!
+  model: String!
+}
+
+type SessionBooking {
+  bookedAt: String!
+  expiresAt: String!
+  canceledAt: String
+  cancelReason: String
+}
+
+type SessionConnectorUsed {
+  type: String
+  power: Float
+  tethered: Boolean
+}
+
+type SessionCharging {
+  startedAt: String
+  endedAt: String
+  connectorUsed: SessionConnectorUsed
+  meterStartKwh: Float
+  meterStopKwh: Float
+  energyDeliveredKwh: Float
+  socStartPercent: Float
+  socStopPercent: Float
+}
+
+type SessionFeedback {
+  rating: Int!
+  comment: String
+  createdAt: String!
+}
+
+type IdleFee {
+  priceCentsPerMinute: Int!
+  afterMinutes: Int!
+}
+
+type PricingSnapshot {
+  currency: String!
+  priceCentsPerKwh: Int!
+  idleFee: IdleFee
+}
+
+type SessionCost {
+  totalCents: Int
+  energyCents: Int
+  idleCents: Int
+}
+
+type ChargingSession {
+  id: ID!
+  userId: ID!
+  vehicleId: ID!
+  stationId: ID!
+  chargingPointId: ID!
+  stationSnapshot: StationSnapshot!
+  vehicleSnapshot: VehicleSnapshot!
+  status: SessionStatus!
+  booking: SessionBooking!
+  charging: SessionCharging!
+  feedback: SessionFeedback
+  pricingSnapshot: PricingSnapshot!
+  cost: SessionCost!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type SessionConnection {
+  edges: [ChargingSession!]!
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+# Facet types for filter options (from MongoDB aggregation)
+type ConnectorFacet {
+  type: String!
+  count: Int!
+}
+
+type NumericRange {
+  min: Float!
+  max: Float!
+}
+
+type ChargingStationFacets {
+  connectorTypes: [ConnectorFacet!]!
+  powerRange: NumericRange!
+  priceRange: NumericRange!
+  availableNowCount: Int!
+}
+
+# Filters for map query
+input ChargingStationFiltersInput {
+  connectorTypes: [String!]
+  minPowerKw: Float
+  maxPowerKw: Float
+  minPriceCentsPerKwh: Int
+  maxPriceCentsPerKwh: Int
+  availableNow: Boolean
+  fastCharging: Boolean
+  tethered: Boolean
+}
+
+# Bounds: [minLng, minLat, maxLng, maxLat]
+input BoundsInput {
+  minLng: Float!
+  minLat: Float!
+  maxLng: Float!
+  maxLat: Float!
+}
+
+# Server-side cluster for zoomed-out map view
+type StationCluster {
+  id: ID!
+  location: GeoPoint!
+  count: Int!
+}
+
+# Union: either individual stations or pre-aggregated clusters
+union MapItem = ChargingStation | StationCluster
+
+input ReserveChargingPointInput {
+  userId: ID!
+  vehicleId: ID!
+  stationId: ID!
+  chargingPointId: ID!
+}
+
+type ReserveChargingPointPayload {
+  session: ChargingSession!
+}
+
+input StartChargingSessionInput {
+  sessionId: ID!
+}
+
+type StartChargingSessionPayload {
+  session: ChargingSession!
+}
+
+input CancelChargingSessionInput {
+  sessionId: ID!
+  reason: String
+}
+
+type CancelChargingSessionPayload {
+  session: ChargingSession!
+}
+
+input CompleteChargingSessionInput {
+  sessionId: ID!
+}
+
+type CompleteChargingSessionPayload {
+  session: ChargingSession!
+}
+
+input AddSessionFeedbackInput {
+  sessionId: ID!
+  rating: Int!
+  comment: String
+}
+
+type AddSessionFeedbackPayload {
+  session: ChargingSession!
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum IncidentType {
+  USER_REPORT
+  NO_HEARTBEAT
+  CONNECTOR_FAULT
+  POWER_DERATE
+  MAINTENANCE
+}
+
+input ReportSessionIncidentInput {
+  sessionId: ID!
+  severity: IncidentSeverity!
+  description: String!
+}
+
+type ReportSessionIncidentPayload {
+  incidentId: ID!
+}
+
+type Vehicle {
+  id: ID!
+  userId: ID!
+  vin: String!
+  make: String!
+  model: String!
+  year: Int!
+  batteryCapacityKwh: Float!
+  maxChargePowerKw: Float!
+  connectorTypes: [String!]!
+  createdAt: String!
+}
+
+type AdminDashboardSummary {
+  totalStations: Int!
+  totalChargingPoints: Int!
+  operationalPoints: Int!
+  availableNowPoints: Int!
+  chargingPointsInUse: Int!
+  reservedPoints: Int!
+  outOfServicePoints: Int!
+  activeSessions: Int!
+  completedSessionsLast7Days: Int!
+  revenueLast7DaysCents: Int!
+  energyLast7DaysKwh: Float!
+  openIncidents: Int!
+  avgPriceCentsPerKwh: Float!
+}
+
+type AdminDashboardBreakdownItem {
+  label: String!
+  value: Float!
+}
+
+type AdminDashboardTrendPoint {
+  bucket: String!
+  sessions: Int!
+  completedSessions: Int!
+  revenueCents: Int!
+  energyKwh: Float!
+}
+
+type AdminTelemetryTrendPoint {
+  bucket: String!
+  sampleCount: Int!
+  avgPowerKw: Float!
+  maxPowerKw: Float!
+  energyDeltaKwh: Float!
+}
+
+type AdminOperatorPerformance {
+  operator: String!
+  stations: Int!
+  chargingPoints: Int!
+  availableNowPoints: Int!
+  utilizationPercent: Float!
+  avgPriceCentsPerKwh: Float!
+}
+
+type AdminRecentSession {
+  id: ID!
+  stationName: String!
+  chargingPointLabel: String!
+  vehicleLabel: String!
+  status: SessionStatus!
+  startedAt: String
+  endedAt: String
+  energyDeliveredKwh: Float
+  totalCents: Int
+  updatedAt: String!
+}
+
+type AdminRecentIncident {
+  id: ID!
+  type: IncidentType!
+  severity: IncidentSeverity!
+  status: IncidentStatus!
+  stationName: String
+  chargingPointLabel: String
+  description: String!
+  createdAt: String!
+}
+
+type AdminDashboard {
+  summary: AdminDashboardSummary!
+  sessionStatusBreakdown: [AdminDashboardBreakdownItem!]!
+  pointOperationalBreakdown: [AdminDashboardBreakdownItem!]!
+  pointAvailabilityBreakdown: [AdminDashboardBreakdownItem!]!
+  recentSessionTrend: [AdminDashboardTrendPoint!]!
+  recentTelemetryTrend: [AdminTelemetryTrendPoint!]!
+  topOperators: [AdminOperatorPerformance!]!
+  recentSessions: [AdminRecentSession!]!
+  recentIncidents: [AdminRecentIncident!]!
+}
+
 type Query {
-  hello: String!
-  simulationStatus: String!
+  users: [User!]!
+  vehicles(userId: ID!): [Vehicle!]!
+  adminDashboard: AdminDashboard!
+  chargingStationsInBounds(
+    bounds: BoundsInput!
+    zoom: Int!
+    filters: ChargingStationFiltersInput
+  ): [MapItem!]!
+  chargingStationFacets: ChargingStationFacets!
+  chargingSessions(
+    userId: ID!
+    limit: Int
+    cursor: String
+    fromDate: String
+  ): SessionConnection!
+}
+
+type Mutation {
+  reserveChargingPoint(
+    input: ReserveChargingPointInput!
+  ): ReserveChargingPointPayload!
+  startChargingSession(
+    input: StartChargingSessionInput!
+  ): StartChargingSessionPayload!
+  cancelChargingSession(
+    input: CancelChargingSessionInput!
+  ): CancelChargingSessionPayload!
+  completeChargingSession(
+    input: CompleteChargingSessionInput!
+  ): CompleteChargingSessionPayload!
+  addSessionFeedback(
+    input: AddSessionFeedbackInput!
+  ): AddSessionFeedbackPayload!
+  reportSessionIncident(
+    input: ReportSessionIncidentInput!
+  ): ReportSessionIncidentPayload!
 }

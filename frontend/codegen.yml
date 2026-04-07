@@ -1,5 +1,6 @@
 schema: ../backend/schema/schema.graphql
 documents:
+  - ./app/**/_graphql/**/*.graphql
   - ./src/graphql/operations/**/*.graphql
 generates:
   ./src/graphql/generated/:

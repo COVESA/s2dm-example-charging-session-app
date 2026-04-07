@@ -1,0 +1,51 @@
+{
+  "bsonType": "object",
+  "required": ["email", "displayName", "roles", "createdAt"],
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "bsonType": "objectId"
+    },
+    "email": {
+      "bsonType": "string",
+      "pattern": "^.+@.+$"
+    },
+    "displayName": {
+      "bsonType": "string"
+    },
+    "roles": {
+      "bsonType": "array",
+      "items": {
+        "bsonType": "string",
+        "enum": ["USER", "ADMIN"]
+      }
+    },
+    "createdAt": {
+      "bsonType": "date"
+    },
+    "lastLoginAt": {
+      "bsonType": ["date", "null"]
+    },
+    "preferences": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "preferredConnectorTypes": {
+          "bsonType": "array",
+          "items": {
+            "bsonType": "string"
+          }
+        },
+        "preferDcFast": {
+          "bsonType": "bool"
+        },
+        "maxPriceCentsPerKwh": {
+          "bsonType": "int"
+        },
+        "searchRadiusMeters": {
+          "bsonType": "int"
+        }
+      }
+    }
+  }
+}

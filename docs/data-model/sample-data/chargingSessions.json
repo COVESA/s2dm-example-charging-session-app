@@ -1,0 +1,150 @@
+[
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9d001" },
+    "userId": { "$oid": "65c8f2e2d2f4c3a9b3b9a111" },
+    "vehicleId": { "$oid": "65c8f2e2d2f4c3a9b3b9a222" },
+    "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b001" },
+    "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b101" },
+    "stationSnapshot": {
+      "name": "Downtown Mall Charging",
+      "location": { "type": "Point", "coordinates": [8.5417, 47.3769] },
+      "addressShort": "Main St 10, Zurich",
+      "chargingPointLabel": "Bay 1"
+    },
+    "vehicleSnapshot": {
+      "vinLast6": "000002",
+      "make": "BMW",
+      "model": "i3"
+    },
+    "status": "BOOKED",
+    "booking": {
+      "bookedAt": { "$date": "2026-02-12T08:20:00Z" },
+      "expiresAt": { "$date": "2026-02-12T08:50:00Z" },
+      "canceledAt": null,
+      "cancelReason": null
+    },
+    "charging": {
+      "startedAt": null,
+      "endedAt": null,
+      "connectorUsed": null,
+      "meterStartKwh": null,
+      "meterStopKwh": null,
+      "energyDeliveredKwh": null,
+      "socStartPercent": null,
+      "socStopPercent": null
+    },
+    "pricingSnapshot": {
+      "currency": "EUR",
+      "priceCentsPerKwh": 55,
+      "idleFee": { "priceCentsPerMinute": 20, "afterMinutes": 5 }
+    },
+    "cost": {
+      "totalCents": null,
+      "energyCents": null,
+      "idleCents": null
+    },
+    "feedback": null,
+    "createdAt": { "$date": "2026-02-12T08:20:00Z" },
+    "updatedAt": { "$date": "2026-02-12T08:20:00Z" }
+  },
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9d002" },
+    "userId": { "$oid": "65c8f2e2d2f4c3a9b3b9a111" },
+    "vehicleId": { "$oid": "65c8f2e2d2f4c3a9b3b9a221" },
+    "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b002" },
+    "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b201" },
+    "stationSnapshot": {
+      "name": "Highway Service Area East",
+      "location": { "type": "Point", "coordinates": [8.725, 47.47] },
+      "addressShort": "A1 Service Area East, Winterthur",
+      "chargingPointLabel": "Ultra 1"
+    },
+    "vehicleSnapshot": {
+      "vinLast6": "000001",
+      "make": "Volkswagen",
+      "model": "ID.4"
+    },
+    "status": "ACTIVE",
+    "booking": {
+      "bookedAt": { "$date": "2026-02-12T07:55:00Z" },
+      "expiresAt": { "$date": "2026-02-12T08:25:00Z" },
+      "canceledAt": null,
+      "cancelReason": null
+    },
+    "charging": {
+      "startedAt": { "$date": "2026-02-12T08:02:10Z" },
+      "endedAt": null,
+      "connectorUsed": { "type": "CCS", "power": 300.0, "tethered": true },
+      "meterStartKwh": 10421.31,
+      "meterStopKwh": null,
+      "energyDeliveredKwh": 12.4,
+      "socStartPercent": 10.0,
+      "socStopPercent": null
+    },
+    "pricingSnapshot": {
+      "currency": "EUR",
+      "priceCentsPerKwh": 79,
+      "idleFee": { "priceCentsPerMinute": 35, "afterMinutes": 5 }
+    },
+    "cost": {
+      "totalCents": 980,
+      "energyCents": 980,
+      "idleCents": 0
+    },
+    "feedback": null,
+    "createdAt": { "$date": "2026-02-12T07:55:00Z" },
+    "updatedAt": { "$date": "2026-02-12T08:12:00Z" }
+  },
+  {
+    "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9d003" },
+    "userId": { "$oid": "65c8f2e2d2f4c3a9b3b9a111" },
+    "vehicleId": { "$oid": "65c8f2e2d2f4c3a9b3b9a221" },
+    "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b001" },
+    "chargingPointId": { "$oid": "65c8f2e2d2f4c3a9b3b9b102" },
+    "stationSnapshot": {
+      "name": "Downtown Mall Charging",
+      "location": { "type": "Point", "coordinates": [8.5417, 47.3769] },
+      "addressShort": "Main St 10, Zurich",
+      "chargingPointLabel": "Bay 2"
+    },
+    "vehicleSnapshot": {
+      "vinLast6": "000001",
+      "make": "Volkswagen",
+      "model": "ID.4"
+    },
+    "status": "COMPLETED",
+    "booking": {
+      "bookedAt": { "$date": "2026-02-10T17:10:00Z" },
+      "expiresAt": { "$date": "2026-02-10T17:40:00Z" },
+      "canceledAt": null,
+      "cancelReason": null
+    },
+    "charging": {
+      "startedAt": { "$date": "2026-02-10T17:32:04Z" },
+      "endedAt": { "$date": "2026-02-10T18:48:31Z" },
+      "connectorUsed": { "type": "TYPE2", "power": 22.0, "tethered": false },
+      "meterStartKwh": 9951.12,
+      "meterStopKwh": 9970.84,
+      "energyDeliveredKwh": 19.72,
+      "socStartPercent": 20.0,
+      "socStopPercent": 80.0
+    },
+    "pricingSnapshot": {
+      "currency": "EUR",
+      "priceCentsPerKwh": 55,
+      "idleFee": { "priceCentsPerMinute": 20, "afterMinutes": 5 }
+    },
+    "cost": {
+      "totalCents": 1085,
+      "energyCents": 1085,
+      "idleCents": 0
+    },
+    "feedback": {
+      "rating": 5,
+      "comment": "Easy start and the bay was clean.",
+      "createdAt": { "$date": "2026-02-10T18:55:00Z" }
+    },
+    "createdAt": { "$date": "2026-02-10T17:10:00Z" },
+    "updatedAt": { "$date": "2026-02-10T18:48:31Z" }
+  }
+]

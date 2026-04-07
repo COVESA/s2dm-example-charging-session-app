@@ -1,0 +1,143 @@
+{
+  "bsonType": "object",
+  "required": [
+    "userId",
+    "vehicleId",
+    "stationId",
+    "chargingPointId",
+    "stationSnapshot",
+    "vehicleSnapshot",
+    "status",
+    "booking",
+    "charging",
+    "pricingSnapshot",
+    "cost",
+    "createdAt",
+    "updatedAt"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "bsonType": "objectId"
+    },
+    "userId": {
+      "bsonType": "objectId"
+    },
+    "vehicleId": {
+      "bsonType": "objectId"
+    },
+    "stationId": {
+      "bsonType": "objectId"
+    },
+    "chargingPointId": {
+      "bsonType": "objectId"
+    },
+    "stationSnapshot": {
+      "bsonType": "object",
+      "required": ["name", "location", "addressShort", "chargingPointLabel"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "bsonType": "string" },
+        "location": {
+          "bsonType": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": { "bsonType": "string", "enum": ["Point"] },
+            "coordinates": {
+              "bsonType": "array",
+              "items": { "bsonType": "double" },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        },
+        "addressShort": { "bsonType": "string" },
+        "chargingPointLabel": { "bsonType": "string" }
+      }
+    },
+    "vehicleSnapshot": {
+      "bsonType": "object",
+      "required": ["vinLast6", "make", "model"],
+      "additionalProperties": false,
+      "properties": {
+        "vinLast6": { "bsonType": "string" },
+        "make": { "bsonType": "string" },
+        "model": { "bsonType": "string" }
+      }
+    },
+    "status": {
+      "bsonType": "string",
+      "enum": ["BOOKED", "ACTIVE", "COMPLETED", "CANCELED", "NO_SHOW", "FAILED"]
+    },
+    "booking": {
+      "bsonType": "object",
+      "required": ["bookedAt", "expiresAt", "canceledAt", "cancelReason"],
+      "additionalProperties": false,
+      "properties": {
+        "bookedAt": { "bsonType": "date" },
+        "expiresAt": { "bsonType": "date" },
+        "canceledAt": { "bsonType": ["date", "null"] },
+        "cancelReason": { "bsonType": ["string", "null"] }
+      }
+    },
+    "charging": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "startedAt": { "bsonType": ["date", "null"] },
+        "endedAt": { "bsonType": ["date", "null"] },
+        "connectorUsed": {
+          "bsonType": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "bsonType": ["string", "null"] },
+            "power": { "bsonType": ["double", "null"] },
+            "tethered": { "bsonType": ["bool", "null"] }
+          }
+        },
+        "meterStartKwh": { "bsonType": ["double", "null"] },
+        "meterStopKwh": { "bsonType": ["double", "null"] },
+        "energyDeliveredKwh": { "bsonType": ["double", "null"] },
+        "socStartPercent": { "bsonType": ["double", "null"] },
+        "socStopPercent": { "bsonType": ["double", "null"] }
+      }
+    },
+    "feedback": {
+      "bsonType": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["rating", "createdAt"],
+      "properties": {
+        "rating": { "bsonType": "int", "minimum": 1, "maximum": 5 },
+        "comment": { "bsonType": ["string", "null"] },
+        "createdAt": { "bsonType": "date" }
+      }
+    },
+    "pricingSnapshot": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "currency": { "bsonType": "string" },
+        "priceCentsPerKwh": { "bsonType": "int" },
+        "idleFee": {
+          "bsonType": "object",
+          "additionalProperties": false,
+          "properties": {
+            "priceCentsPerMinute": { "bsonType": "int" },
+            "afterMinutes": { "bsonType": "int" }
+          }
+        }
+      }
+    },
+    "cost": {
+      "bsonType": "object",
+      "additionalProperties": false,
+      "properties": {
+        "totalCents": { "bsonType": ["int", "null"] },
+        "energyCents": { "bsonType": ["int", "null"] },
+        "idleCents": { "bsonType": ["int", "null"] }
+      }
+    },
+    "createdAt": { "bsonType": "date" },
+    "updatedAt": { "bsonType": "date" }
+  }
+}

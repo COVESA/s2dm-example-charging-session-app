@@ -8,6 +8,7 @@ import { expressMiddleware } from "@as-integrations/express5";
 import cors from "cors";
 import express from "express";
 
+import { connectMongo } from "../db/mongo";
 import { resolvers } from "../graphql/resolvers/index";
 import { createGraphQLContext } from "./context";
 
@@ -17,6 +18,13 @@ const loadTypeDefs = async (): Promise<string> => {
 };
 
 const startServer = async (): Promise<void> => {
+  const db = await connectMongo();
+
+  await db.collection("chargingStations").createIndex(
+    { location: "2dsphere" },
+    { name: "location_2dsphere" }
+  ).catch(() => {});
+
   const app = express();
   app.use(express.json());
 
@@ -33,7 +41,7 @@ const startServer = async (): Promise<void> => {
       origin: process.env.BACKEND_CORS_ORIGIN ?? "http://localhost:3000"
     }),
     expressMiddleware(server, {
-      context: async () => createGraphQLContext()
+      context: async () => createGraphQLContext(db)
     })
   );
 
@@ -49,4 +57,5 @@ const startServer = async (): Promise<void> => {
   });
 };
 
+// Force restart on schema change
 void startServer();

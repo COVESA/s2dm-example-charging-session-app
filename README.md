@@ -15,6 +15,8 @@ The demo uses a simple EV charging station domain to illustrate an end-to-end wo
 ### For Docker-based run
 
 - Docker Desktop (with `docker compose` available)
+- **Important**: The local MongoDB container starts as a single-node **Replica Set** (`rs0`) to support Change Streams (required by the Simulator).
+  - If connecting from your host machine (e.g. Compass, scripts), use `directConnection=true` in your connection string: `mongodb://localhost:27017/charging_demo?replicaSet=rs0&directConnection=true`.
 
 ## Setup
 
@@ -51,9 +53,7 @@ make clean
 - **Frontend**: `http://localhost:3000`
 - **Backend GraphQL**: `http://localhost:4000/graphql`
 - **Simulator**: `http://localhost:8000`
-  - `POST /start`
-  - `POST /stop`
-  - `GET /status`
+  - `GET /health`
 
 ## Architecture
 
@@ -61,14 +61,14 @@ The system is intentionally minimal and consists of:
 
 - **Backend**: Node.js + Express + Apollo Server exposing a **schema-first GraphQL API**
 - **Frontend**: Next.js (App Router) client consuming the GraphQL API
-- **Simulator**: Python + FastAPI that can be started/stopped and emits random telemetry into MongoDB
+- **Simulator**: Python + FastAPI worker that listens to `chargingSessions` change streams and emits session telemetry into MongoDB
 - **Database**: MongoDB (local container by default; Atlas-compatible via `MONGODB_URI`)
 - **Orchestration**: Docker Compose
 
 ```mermaid
 flowchart LR
   browser[Frontend_Nextjs] -->|GraphQL| backend[Backend_ApolloGraphQL]
-  browser -->|REST_start_stop_status| simulator[Simulator_FastAPI]
+  mongo[MongoDB] -->|change_stream_chargingSessions| simulator[Simulator_FastAPI]
   simulator -->|insert_telemetry| mongo[MongoDB]
   backend -->|reads_later| mongo
 ```
