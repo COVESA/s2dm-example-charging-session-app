@@ -5,7 +5,7 @@ type ChargingSession {
   chargingPointId: ID!
   status: SessionStatus!
   booking: SessionBooking!
-  charging: SessionCharging!
+  charging: ChargingDetails!
   createdAt: String!
   updatedAt: String!
 }

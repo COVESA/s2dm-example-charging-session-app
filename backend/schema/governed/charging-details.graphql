@@ -1,4 +1,4 @@
-type SessionCharging {
+type ChargingDetails {
   startedAt: String
   endedAt: String
   connectorUsed: SessionConnectorUsed
