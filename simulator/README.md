@@ -1,59 +1,67 @@
 # Simulator (FastAPI)
 
-Small telemetry simulator service implemented with **FastAPI**.
+FastAPI service that watches charging sessions in MongoDB and emits simulated telemetry for active sessions.
 
-It supports:
+On startup, it:
 
-- `POST /start` to start a background loop
-- `POST /stop` to stop the loop
-- `GET /status` to check whether it’s running
-
-While running, it inserts simple random telemetry documents into MongoDB.
+- listens to MongoDB change streams on `chargingSessions`
+- starts telemetry simulation when a session becomes `ACTIVE`
+- stops telemetry simulation when a session is no longer `ACTIVE`
+- prevents duplicate simulations for the same session ID
 
 ## Prerequisites
 
-- Python 3.12+
-- A reachable MongoDB instance (local or Atlas)
+- Docker and Docker Compose, or Python 3.12+ for local development
+- A reachable MongoDB replica set or compatible deployment with change streams enabled
 
-## Environment variables
+## Run With Docker Compose
 
-For local development, this service expects a `.env` file **in this folder**.
-
-Recommended approach (single source of truth):
+From the repository root:
 
 ```bash
-# from repo root
 cp .env.example .env
-cp .env simulator/.env
+docker compose up --build mongodb simulator
 ```
 
-Key vars used by the simulator:
+The simulator is exposed on `http://localhost:8000`.
 
-- `MONGODB_URI` (default `mongodb://localhost:27017/charging_demo`)
-- `MONGODB_DATABASE` (default `charging_demo`)
-- `SIMULATOR_URL` (default `http://localhost:8000`) – simulator derives its bind port from this
-- `SIMULATION_INTERVAL_SECONDS` (default `2`)
+Health check:
 
-## Install
+```bash
+curl http://localhost:8000/health
+```
+
+To start the full application stack instead of only MongoDB and the simulator:
+
+```bash
+docker compose up --build
+```
+
+## Run Locally Without Docker
+
+For direct local runs, place a `.env` file in `simulator/` or export the same variables in your shell.
 
 ```bash
 cd simulator
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-```
-
-## Run (local dev, without Docker)
-
-```bash
-cd simulator
-source .venv/bin/activate
 python run.py
 ```
 
-### Endpoints
+## Environment Variables
 
-- Health: `{SIMULATOR_URL}/health` (e.g. `http://localhost:8000/health`)
-- Status: `{SIMULATOR_URL}/status`
-- Start: `POST {SIMULATOR_URL}/start`
-- Stop: `POST {SIMULATOR_URL}/stop`
+Key variables used by the simulator:
+
+- `MONGODB_URI` (default `mongodb://localhost:27017/charging_demo`)
+- `MONGODB_DATABASE` (default `charging_demo`)
+- `SIMULATOR_URL` (default `http://localhost:8000`)
+- `SESSION_TELEMETRY_INTERVAL_SECONDS` (default `2`)
+- `SESSION_RECONCILIATION_INTERVAL_SECONDS` (default `10`)
+- `CHANGE_STREAM_RETRY_SECONDS` (default `2`)
+
+## Data Expectations
+
+This README intentionally covers only the simulator runtime. The repository does not currently document or ship public data-loading or transformation workflows for the simulator.
+
+To use the service, load your own application data into MongoDB using the schema expected by the app and your preferred import process.
