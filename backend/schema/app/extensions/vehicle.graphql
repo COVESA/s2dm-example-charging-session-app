@@ -1,0 +1,4 @@
+extend type Vehicle {
+  userId: ID!
+  createdAt: String!
+}

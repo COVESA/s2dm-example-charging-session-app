@@ -1,0 +1,4 @@
+type GeoPoint {
+  lat: Float!
+  lng: Float!
+}

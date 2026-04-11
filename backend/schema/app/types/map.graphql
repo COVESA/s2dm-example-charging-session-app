@@ -1,0 +1,7 @@
+type StationCluster {
+  id: ID!
+  location: GeoPoint!
+  count: Int!
+}
+
+union MapItem = ChargingStation | StationCluster

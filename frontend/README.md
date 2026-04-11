@@ -33,7 +33,12 @@ npm install
 
 ## Generate types (operations + schema)
 
-Frontend codegen reads the schema directly from `../backend/schema/schema.graphql`.
+Frontend codegen reads the backend's modular SDL source set directly from:
+
+- `../backend/schema/governed/**/*.graphql`
+- `../backend/schema/app/types/**/*.graphql`
+- `../backend/schema/app/extensions/**/*.graphql`
+- `../backend/schema/app/operations/**/*.graphql`
 
 Run codegen:
 

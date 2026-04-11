@@ -97,7 +97,7 @@ flowchart LR
 
 ## Notes and troubleshooting
 
-- **Schema-first GraphQL**: SDL in `backend/schema/schema.graphql` is the single source of truth. After changing it, re-run `npm run codegen`.
+- **Schema-first GraphQL**: SDL source files live under `backend/schema/governed` and `backend/schema/app`. After changing them, re-run `npm run codegen`.
 - **Docker credential helper issues**: if `docker compose` fails while pulling images with a credentials/keychain error, try fixing Docker Desktop login/credentials storage. As a workaround, you can also run compose with a temporary `DOCKER_CONFIG` that does not use a credential helper (advanced).
 
 ## License

@@ -1,0 +1,6 @@
+extend type ChargingStation {
+  priceCentsPerKwh: Int!
+  hasFastCharging: Boolean!
+  connectorTypes: [String!]!
+  maxPowerKw: Float!
+}

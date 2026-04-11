@@ -1,0 +1,5 @@
+type SessionConnection {
+  edges: [ChargingSession!]!
+  hasNextPage: Boolean!
+  endCursor: String
+}

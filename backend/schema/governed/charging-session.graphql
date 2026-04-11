@@ -1,0 +1,11 @@
+type ChargingSession {
+  id: ID!
+  vehicleId: ID!
+  stationId: ID!
+  chargingPointId: ID!
+  status: SessionStatus!
+  booking: SessionBooking!
+  charging: SessionCharging!
+  createdAt: String!
+  updatedAt: String!
+}

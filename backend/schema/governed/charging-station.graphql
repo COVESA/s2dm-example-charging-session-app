@@ -1,0 +1,10 @@
+type ChargingStation {
+  id: ID!
+  name: String!
+  operator: String!
+  stationCode: String!
+  location: GeoPoint!
+  address: Address
+  availability: StationAvailability!
+  chargingPoints: [ChargingPointInfo!]!
+}

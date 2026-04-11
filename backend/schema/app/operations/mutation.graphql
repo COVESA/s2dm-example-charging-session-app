@@ -1,0 +1,76 @@
+input ReserveChargingPointInput {
+  userId: ID!
+  vehicleId: ID!
+  stationId: ID!
+  chargingPointId: ID!
+}
+
+type ReserveChargingPointPayload {
+  session: ChargingSession!
+}
+
+input StartChargingSessionInput {
+  sessionId: ID!
+}
+
+type StartChargingSessionPayload {
+  session: ChargingSession!
+}
+
+input CancelChargingSessionInput {
+  sessionId: ID!
+  reason: String
+}
+
+type CancelChargingSessionPayload {
+  session: ChargingSession!
+}
+
+input CompleteChargingSessionInput {
+  sessionId: ID!
+}
+
+type CompleteChargingSessionPayload {
+  session: ChargingSession!
+}
+
+input AddSessionFeedbackInput {
+  sessionId: ID!
+  rating: Int!
+  comment: String
+}
+
+type AddSessionFeedbackPayload {
+  session: ChargingSession!
+}
+
+input ReportSessionIncidentInput {
+  sessionId: ID!
+  severity: IncidentSeverity!
+  description: String!
+}
+
+type ReportSessionIncidentPayload {
+  incidentId: ID!
+}
+
+type Mutation {
+  reserveChargingPoint(
+    input: ReserveChargingPointInput!
+  ): ReserveChargingPointPayload!
+  startChargingSession(
+    input: StartChargingSessionInput!
+  ): StartChargingSessionPayload!
+  cancelChargingSession(
+    input: CancelChargingSessionInput!
+  ): CancelChargingSessionPayload!
+  completeChargingSession(
+    input: CompleteChargingSessionInput!
+  ): CompleteChargingSessionPayload!
+  addSessionFeedback(
+    input: AddSessionFeedbackInput!
+  ): AddSessionFeedbackPayload!
+  reportSessionIncident(
+    input: ReportSessionIncidentInput!
+  ): ReportSessionIncidentPayload!
+}

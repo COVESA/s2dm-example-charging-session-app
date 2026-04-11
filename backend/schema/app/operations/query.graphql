@@ -1,0 +1,17 @@
+type Query {
+  users: [User!]!
+  vehicles(userId: ID!): [Vehicle!]!
+  adminDashboard: AdminDashboard!
+  chargingStationsInBounds(
+    bounds: BoundsInput!
+    zoom: Int!
+    filters: ChargingStationFiltersInput
+  ): [MapItem!]!
+  chargingStationFacets: ChargingStationFacets!
+  chargingSessions(
+    userId: ID!
+    limit: Int
+    cursor: String
+    fromDate: String
+  ): SessionConnection!
+}
