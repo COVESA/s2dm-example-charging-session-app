@@ -59,9 +59,3 @@ Key variables used by the simulator:
 - `SESSION_TELEMETRY_INTERVAL_SECONDS` (default `2`)
 - `SESSION_RECONCILIATION_INTERVAL_SECONDS` (default `10`)
 - `CHANGE_STREAM_RETRY_SECONDS` (default `2`)
-
-## Data Expectations
-
-This README intentionally covers only the simulator runtime. The repository does not currently document or ship public data-loading or transformation workflows for the simulator.
-
-To use the service, load your own application data into MongoDB using the schema expected by the app and your preferred import process.
