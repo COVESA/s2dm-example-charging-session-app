@@ -6,5 +6,5 @@ type Vehicle {
   year: Int!
   batteryCapacityKwh: Float!
   maxChargePowerKw: Float!
-  connectorTypes: [String!]!
+  connectorTypes: [ConnectorType!]!
 }

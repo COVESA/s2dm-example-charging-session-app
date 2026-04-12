@@ -1,8 +1,9 @@
 import type { Db } from "mongodb";
 import { ObjectId } from "mongodb";
+import type { ConnectorType } from "../../types/connectorType";
 
 type ConnectorUsedDoc = {
-  type?: string | null;
+  type?: ConnectorType | null;
   power?: number | null;
   tethered?: boolean | null;
 };
@@ -294,7 +295,7 @@ export async function findChargingSessionById(
 export async function markSessionActive(
   database: Db,
   sessionId: string,
-  connectorUsed?: { type?: string | null; power?: number | null; tethered?: boolean | null } | null
+  connectorUsed?: { type?: ConnectorType | null; power?: number | null; tethered?: boolean | null } | null
 ): Promise<ChargingSessionDoc | null> {
   const nowDate = now();
   const setPayload: Record<string, unknown> = {

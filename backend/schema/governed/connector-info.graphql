@@ -1,5 +1,5 @@
 type ConnectorInfo {
-  type: String!
+  type: ConnectorType!
   powerKw: Float!
   tethered: Boolean
 }

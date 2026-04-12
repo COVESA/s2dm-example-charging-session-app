@@ -7,6 +7,14 @@ enum SessionStatus {
   FAILED
 }
 
+enum ConnectorType {
+  CCS
+  CHAdeMO
+  SCHUKO
+  TYPE1
+  TYPE2
+}
+
 enum IncidentSeverity {
   LOW
   MEDIUM

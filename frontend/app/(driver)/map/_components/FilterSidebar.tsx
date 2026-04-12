@@ -2,10 +2,11 @@
 
 import * as Slider from "@radix-ui/react-slider";
 import * as Switch from "@radix-ui/react-switch";
+import type { ConnectorType } from "@/graphql/generated/graphql";
 import { useChargingStationFacets } from "../_hooks/useChargingStationFacets";
 
 export interface FilterState {
-  connectorTypes: string[];
+  connectorTypes: ConnectorType[];
   minPowerKw: number | null;
   maxPowerKw: number | null;
   minPriceCentsPerKwh: number | null;
@@ -57,7 +58,7 @@ export function FilterSidebar({
     a.type.localeCompare(b.type)
   );
 
-  const toggleConnector = (connector: string) => {
+  const toggleConnector = (connector: ConnectorType) => {
     const next = filters.connectorTypes.includes(connector)
       ? filters.connectorTypes.filter((c) => c !== connector)
       : [...filters.connectorTypes, connector];

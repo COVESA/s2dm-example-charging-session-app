@@ -1,5 +1,5 @@
 type ConnectorFacet {
-  type: String!
+  type: ConnectorType!
   count: Int!
 }
 
@@ -16,7 +16,7 @@ type ChargingStationFacets {
 }
 
 input ChargingStationFiltersInput {
-  connectorTypes: [String!]
+  connectorTypes: [ConnectorType!]
   minPowerKw: Float
   maxPowerKw: Float
   minPriceCentsPerKwh: Int
