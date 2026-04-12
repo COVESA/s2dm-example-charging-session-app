@@ -1,0 +1,34 @@
+type ConnectorFacet {
+  type: ConnectorType!
+  count: Int!
+}
+
+type NumericRange {
+  min: Float!
+  max: Float!
+}
+
+type ChargingStationFacets {
+  connectorTypes: [ConnectorFacet!]!
+  powerRange: NumericRange!
+  priceRange: NumericRange!
+  availableNowCount: Int!
+}
+
+input ChargingStationFiltersInput {
+  connectorTypes: [ConnectorType!]
+  minPowerKw: Float
+  maxPowerKw: Float
+  minPriceCentsPerKwh: Int
+  maxPriceCentsPerKwh: Int
+  availableNow: Boolean
+  fastCharging: Boolean
+  tethered: Boolean
+}
+
+input BoundsInput {
+  minLng: Float!
+  minLat: Float!
+  maxLng: Float!
+  maxLat: Float!
+}

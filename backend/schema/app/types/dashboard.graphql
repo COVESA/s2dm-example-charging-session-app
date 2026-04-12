@@ -1,0 +1,81 @@
+type AdminDashboardSummary {
+  totalStations: Int!
+  totalChargingPoints: Int!
+  operationalPoints: Int!
+  availableNowPoints: Int!
+  chargingPointsInUse: Int!
+  reservedPoints: Int!
+  outOfServicePoints: Int!
+  activeSessions: Int!
+  completedSessionsLast7Days: Int!
+  revenueLast7DaysCents: Int!
+  energyLast7DaysKwh: Float!
+  openIncidents: Int!
+  avgPriceCentsPerKwh: Float!
+}
+
+type AdminDashboardBreakdownItem {
+  label: String!
+  value: Float!
+}
+
+type AdminDashboardTrendPoint {
+  bucket: String!
+  sessions: Int!
+  completedSessions: Int!
+  revenueCents: Int!
+  energyKwh: Float!
+}
+
+type AdminTelemetryTrendPoint {
+  bucket: String!
+  sampleCount: Int!
+  avgPowerKw: Float!
+  maxPowerKw: Float!
+  energyDeltaKwh: Float!
+}
+
+type AdminOperatorPerformance {
+  operator: String!
+  stations: Int!
+  chargingPoints: Int!
+  availableNowPoints: Int!
+  utilizationPercent: Float!
+  avgPriceCentsPerKwh: Float!
+}
+
+type AdminRecentSession {
+  id: ID!
+  stationName: String!
+  chargingPointLabel: String!
+  vehicleLabel: String!
+  status: SessionStatus!
+  startedAt: String
+  endedAt: String
+  energyDeliveredKwh: Float
+  totalCents: Int
+  updatedAt: String!
+}
+
+type AdminRecentIncident {
+  id: ID!
+  type: IncidentType!
+  severity: IncidentSeverity!
+  status: IncidentStatus!
+  stationName: String
+  chargingPointLabel: String
+  description: String!
+  createdAt: String!
+}
+
+type AdminDashboard {
+  summary: AdminDashboardSummary!
+  sessionStatusBreakdown: [AdminDashboardBreakdownItem!]!
+  pointOperationalBreakdown: [AdminDashboardBreakdownItem!]!
+  pointAvailabilityBreakdown: [AdminDashboardBreakdownItem!]!
+  recentSessionTrend: [AdminDashboardTrendPoint!]!
+  recentTelemetryTrend: [AdminTelemetryTrendPoint!]!
+  topOperators: [AdminOperatorPerformance!]!
+  recentSessions: [AdminRecentSession!]!
+  recentIncidents: [AdminRecentIncident!]!
+}

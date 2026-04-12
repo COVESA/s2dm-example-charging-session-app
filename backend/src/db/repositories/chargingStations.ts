@@ -1,5 +1,6 @@
 import type { Db } from "mongodb";
 import type { ObjectId } from "mongodb";
+import type { ConnectorType } from "../../types/connectorType";
 
 export type Bounds = {
   minLng: number;
@@ -9,7 +10,7 @@ export type Bounds = {
 };
 
 export type ChargingStationFilters = {
-  connectorTypes?: string[];
+  connectorTypes?: ConnectorType[];
   minPowerKw?: number;
   maxPowerKw?: number;
   minPriceCentsPerKwh?: number;
@@ -20,14 +21,14 @@ export type ChargingStationFilters = {
 };
 
 export type ChargingStationFacetsResult = {
-  connectorTypes: { type: string; count: number }[];
+  connectorTypes: { type: ConnectorType; count: number }[];
   powerRange: { min: number; max: number };
   priceRange: { min: number; max: number };
   availableNowCount: number;
 };
 
 type ConnectorDoc = {
-  type: string;
+  type: ConnectorType;
   power: number;
   tethered?: boolean;
 };
@@ -106,7 +107,7 @@ export async function findChargingStationFacets(
 
   const [result] = await collection
     .aggregate<{
-      connectorTypes: { type: string; count: number }[];
+      connectorTypes: { type: ConnectorType; count: number }[];
       powerRange: { min: number; max: number }[];
       priceRange: { min: number; max: number }[];
       availableNowCount: { count: number }[];

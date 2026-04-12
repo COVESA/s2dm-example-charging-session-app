@@ -2,7 +2,7 @@
 
 import { useQuery } from "@apollo/client/react";
 import { ChargingStationsInBoundsDocument } from "@/graphql/generated/graphql";
-import type { ChargingStationFiltersInput } from "@/graphql/generated/graphql";
+import type { ChargingStationFiltersInput, ConnectorType } from "@/graphql/generated/graphql";
 import type { MapBounds } from "./useMapBounds";
 
 export type MapStation = {
@@ -21,7 +21,7 @@ export type MapStation = {
   totalPoints: number;
   operationalPoints: number;
   hasFastCharging: boolean;
-  connectorTypes: string[];
+  connectorTypes: ConnectorType[];
   maxPowerKw: number;
   priceCentsPerKwh: number;
   chargingPoints: {
@@ -29,7 +29,7 @@ export type MapStation = {
     availableNow: boolean;
     outOfService: boolean;
     connectors: {
-      type: string;
+      type: ConnectorType;
       powerKw: number;
       tethered?: boolean | null;
     }[];
@@ -76,7 +76,7 @@ function apiStationToMapStation(
     address?: { street?: string | null; city?: string | null; postalCode?: string | null; country?: string | null } | null;
     availability: { totalPoints: number; availableNowPoints: number; operationalPoints: number };
     hasFastCharging: boolean;
-    connectorTypes: string[];
+    connectorTypes: ConnectorType[];
     maxPowerKw: number;
     priceCentsPerKwh: number;
     chargingPoints?: {
@@ -84,7 +84,7 @@ function apiStationToMapStation(
       availableNow: boolean;
       outOfService: boolean;
       connectors: {
-        type: string;
+        type: ConnectorType;
         powerKw: number;
         tethered?: boolean | null;
       }[];

@@ -1,3 +1,5 @@
+import type { ConnectorType } from "@/graphql/generated/graphql";
+
 export function formatSessionDateTime(value: string): string {
   return new Intl.DateTimeFormat(undefined, {
     year: "numeric",
@@ -43,7 +45,7 @@ export function formatDuration(startIso: string | null | undefined, endIso: stri
 }
 
 export function formatConnector(
-  connectorUsed: { type?: string | null; power?: number | null; tethered?: boolean | null } | null | undefined
+  connectorUsed: { type?: ConnectorType | null; power?: number | null; tethered?: boolean | null } | null | undefined
 ): string {
   if (!connectorUsed) return "--";
   const type = connectorUsed.type ?? "--";

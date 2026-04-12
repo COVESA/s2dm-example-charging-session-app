@@ -79,9 +79,11 @@ export function useChargingSessionsQuery(userId: string | null) {
     return () => clearInterval(id);
   }, [userId, hasLiveSession, refreshLoadedSessions]);
 
-  useEffect(() => {
+  const [prevUserId, setPrevUserId] = useState(userId);
+  if (userId !== prevUserId) {
+    setPrevUserId(userId);
     setIsLoadingMore(false);
-  }, [userId]);
+  }
 
   const loadMore = async () => {
     if (!canLoadMore || !connection?.endCursor) {

@@ -1,0 +1,5 @@
+type ConnectorInfo {
+  type: ConnectorType!
+  powerKw: Float!
+  tethered: Boolean
+}

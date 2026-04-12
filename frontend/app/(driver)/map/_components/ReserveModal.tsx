@@ -4,7 +4,8 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useMutation } from "@apollo/client/react";
 import { Modal } from "@/ui/Modal";
 import {
-  ReserveChargingPointDocument
+  ReserveChargingPointDocument,
+  type ConnectorType
 } from "@/graphql/generated/graphql";
 import { useUserContext } from "@/contexts/UserContext";
 import { getStoredGuestVehicles } from "@/lib/utils/guestIdentity";
@@ -31,7 +32,7 @@ function formatPriceShort(centsPerKwh: number): string {
   return `${(centsPerKwh / 100).toFixed(2)} €/kWh`;
 }
 
-function formatConnectorLabel(type: string, powerKw: number): string {
+function formatConnectorLabel(type: ConnectorType, powerKw: number): string {
   return `${type} · ${Math.round(powerKw)} kW`;
 }
 

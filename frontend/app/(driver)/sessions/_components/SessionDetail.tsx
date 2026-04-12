@@ -510,12 +510,12 @@ function SessionFooter({
         </div>
       )}
 
-      <div className="flex w-full items-center justify-between gap-4">
+      <div className="flex w-full flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <button
             type="button"
             onClick={openIncidentModal}
-            className="inline-flex shrink-0 items-center gap-2 rounded-2xl px-4 py-2.5 text-[14px] font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-2xl px-3 py-2.5 text-[13px] font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
             style={{ margin: 0, border: "none", background: "transparent" }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>flag</span>
@@ -542,7 +542,7 @@ function SessionFooter({
             type="button"
             onClick={() => void handleCancelReservation()}
             disabled={isUpdating}
-            className="inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-[14px] font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
+            className="inline-flex items-center gap-1.5 rounded-2xl px-3 py-2.5 text-[13px] font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
             style={{ margin: 0, border: "none", background: "transparent" }}
           >
             {isUpdating ? "Updating..." : "Cancel Reservation"}

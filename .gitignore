@@ -51,6 +51,7 @@ coverage.xml
 htmlcov/
 .tox/
 simulator/data
+simulator/scripts/
 simulator/scripts/output/
 
 # Virtualenvs

@@ -1,0 +1,10 @@
+type Vehicle {
+  id: ID!
+  vin: String!
+  make: String!
+  model: String!
+  year: Int!
+  batteryCapacityKwh: Float!
+  maxChargePowerKw: Float!
+  connectorTypes: [ConnectorType!]!
+}

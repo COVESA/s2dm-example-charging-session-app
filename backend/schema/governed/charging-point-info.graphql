@@ -1,0 +1,6 @@
+type ChargingPointInfo {
+  id: ID!
+  availableNow: Boolean!
+  outOfService: Boolean!
+  connectors: [ConnectorInfo!]!
+}

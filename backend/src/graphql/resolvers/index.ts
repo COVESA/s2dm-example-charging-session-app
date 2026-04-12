@@ -1,5 +1,6 @@
 import { GraphQLError } from "graphql";
 import type { GraphQLContext } from "../../server/context";
+import type { ConnectorType } from "../../types/connectorType";
 import { findVehiclesByUserId } from "../../db/repositories/vehicles";
 import {
   getChargingStationFacets,
@@ -55,7 +56,7 @@ export const resolvers = {
         bounds: { minLng: number; minLat: number; maxLng: number; maxLat: number };
         zoom: number;
         filters?: {
-          connectorTypes?: string[];
+          connectorTypes?: ConnectorType[];
           minPowerKw?: number;
           maxPowerKw?: number;
           minPriceCentsPerKwh?: number;

@@ -1,5 +1,6 @@
 services:
   mongodb:
+    profiles: ["local"]
     image: mongo:8
     container_name: ev-demo-mongodb
     command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
@@ -23,8 +24,8 @@ services:
     env_file:
       - .env
     environment:
-      MONGODB_URI: ${MONGODB_URI_DOCKER:-mongodb://mongodb:27017/charging_demo?replicaSet=rs0&directConnection=true}
-      MONGODB_DATABASE: charging_demo
+      MONGODB_URI: ${MONGODB_URI}
+      MONGODB_DATABASE: ${MONGODB_DATABASE:-charging_demo}
       SESSION_TELEMETRY_INTERVAL_SECONDS: ${SESSION_TELEMETRY_INTERVAL_SECONDS:-2}
       CHANGE_STREAM_RETRY_SECONDS: ${CHANGE_STREAM_RETRY_SECONDS:-2}
       SIMULATOR_URL: ${SIMULATOR_URL:-http://localhost:8000}
@@ -33,6 +34,7 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+        required: false
 
   backend:
     build:
@@ -44,12 +46,13 @@ services:
     environment:
       BACKEND_URL: ${BACKEND_URL:-http://localhost:4000}
       BACKEND_CORS_ORIGIN: ${BACKEND_CORS_ORIGIN:-http://localhost:3000}
-      MONGODB_URI: ${MONGODB_URI_DOCKER:-mongodb://mongodb:27017/charging_demo?replicaSet=rs0&directConnection=true}
+      MONGODB_URI: ${MONGODB_URI}
     ports:
       - "4000:4000"
     depends_on:
       mongodb:
         condition: service_healthy
+        required: false
 
   frontend:
     build:

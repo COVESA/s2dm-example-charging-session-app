@@ -1,0 +1,5 @@
+type StationAvailability {
+  totalPoints: Int!
+  availableNowPoints: Int!
+  operationalPoints: Int!
+}

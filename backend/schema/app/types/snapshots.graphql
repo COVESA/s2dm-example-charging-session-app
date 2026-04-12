@@ -1,0 +1,12 @@
+type StationSnapshot {
+  name: String!
+  location: GeoPoint!
+  addressShort: String!
+  chargingPointLabel: String!
+}
+
+type VehicleSnapshot {
+  vinLast6: String!
+  make: String!
+  model: String!
+}

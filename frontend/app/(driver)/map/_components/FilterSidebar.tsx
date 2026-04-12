@@ -2,10 +2,11 @@
 
 import * as Slider from "@radix-ui/react-slider";
 import * as Switch from "@radix-ui/react-switch";
+import { ConnectorType } from "@/graphql/generated/graphql";
 import { useChargingStationFacets } from "../_hooks/useChargingStationFacets";
 
 export interface FilterState {
-  connectorTypes: string[];
+  connectorTypes: ConnectorType[];
   minPowerKw: number | null;
   maxPowerKw: number | null;
   minPriceCentsPerKwh: number | null;
@@ -17,6 +18,7 @@ export interface FilterState {
 
 const POWER_FALLBACK = { min: 0, max: 350 };
 const PRICE_FALLBACK = { min: 0, max: 100 };
+const CONNECTOR_TYPE_OPTIONS = Object.values(ConnectorType) as ConnectorType[];
 
 function FilterIcon({ className }: { className?: string }) {
   return (
@@ -49,15 +51,13 @@ export function FilterSidebar({
   open,
   onToggle,
 }: FilterSidebarProps) {
-  const { facets, loading: facetsLoading } = useChargingStationFacets();
+  const { facets } = useChargingStationFacets();
 
   const powerRange = facets?.powerRange ?? POWER_FALLBACK;
   const priceRange = facets?.priceRange ?? PRICE_FALLBACK;
-  const connectorTypes = [...(facets?.connectorTypes ?? [])].sort((a, b) =>
-    a.type.localeCompare(b.type)
-  );
+  const connectorTypes = CONNECTOR_TYPE_OPTIONS;
 
-  const toggleConnector = (connector: string) => {
+  const toggleConnector = (connector: ConnectorType) => {
     const next = filters.connectorTypes.includes(connector)
       ? filters.connectorTypes.filter((c) => c !== connector)
       : [...filters.connectorTypes, connector];
@@ -135,21 +135,19 @@ export function FilterSidebar({
         <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-slate-500">
           Connector type
         </h3>
-        {facetsLoading ? (
-          <div className="text-sm text-slate-400">Loading…</div>
-        ) : connectorTypes.length === 0 ? (
+        {connectorTypes.length === 0 ? (
           <div className="text-sm text-slate-400">No connector types</div>
         ) : (
           <div className="flex flex-col gap-2">
-            {connectorTypes.map((c) => (
-              <label key={c.type} className="flex cursor-pointer items-center gap-2">
+            {connectorTypes.map((connectorType) => (
+              <label key={connectorType} className="flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
-                  checked={filters.connectorTypes.includes(c.type)}
-                  onChange={() => toggleConnector(c.type)}
+                  checked={filters.connectorTypes.includes(connectorType)}
+                  onChange={() => toggleConnector(connectorType)}
                   className="rounded border-slate-300"
                 />
-                <span className="text-sm text-slate-700">{c.type}</span>
+                <span className="text-sm text-slate-700">{connectorType}</span>
               </label>
             ))}
           </div>
@@ -163,7 +161,9 @@ export function FilterSidebar({
         <Slider.Root
           className="relative flex w-full touch-none select-none items-center"
           value={powerValue}
-          onValueChange={(v) => setPowerRange([v[0] ?? powerRange.min, v[1] ?? powerRange.max])}
+          onValueChange={(values: number[]) =>
+            setPowerRange([values[0] ?? powerRange.min, values[1] ?? powerRange.max])
+          }
           min={powerRange.min}
           max={powerRange.max}
           step={powerStep}
@@ -184,7 +184,9 @@ export function FilterSidebar({
         <Slider.Root
           className="relative flex w-full touch-none select-none items-center"
           value={priceValue}
-          onValueChange={(v) => setPriceRange([v[0] ?? priceRange.min, v[1] ?? priceRange.max])}
+          onValueChange={(values: number[]) =>
+            setPriceRange([values[0] ?? priceRange.min, values[1] ?? priceRange.max])
+          }
           min={priceRange.min}
           max={priceRange.max}
           step={priceStep}

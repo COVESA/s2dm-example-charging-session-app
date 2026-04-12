@@ -1,5 +1,15 @@
-query ChargingSessions($userId: ID!, $limit: Int, $cursor: String, $fromDate: String) {
-  chargingSessions(userId: $userId, limit: $limit, cursor: $cursor, fromDate: $fromDate) {
+query ChargingSessions(
+  $userId: ID!
+  $limit: Int
+  $cursor: String
+  $fromDate: String
+) {
+  chargingSessions(
+    userId: $userId
+    limit: $limit
+    cursor: $cursor
+    fromDate: $fromDate
+  ) {
     edges {
       id
       userId

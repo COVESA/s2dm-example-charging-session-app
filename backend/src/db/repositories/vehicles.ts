@@ -1,5 +1,6 @@
 import type { Db, ObjectId } from "mongodb";
 import { ObjectId as MongoObjectId } from "mongodb";
+import type { ConnectorType } from "../../types/connectorType";
 
 export type VehicleDoc = {
   _id: ObjectId;
@@ -10,7 +11,7 @@ export type VehicleDoc = {
   year: number;
   batteryCapacityKwh: number;
   maxChargePowerKw: number;
-  connectorTypes: string[];
+  connectorTypes: ConnectorType[];
   createdAt: Date;
 };
 

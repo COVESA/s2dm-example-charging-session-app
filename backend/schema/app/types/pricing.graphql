@@ -1,0 +1,22 @@
+type SessionFeedback {
+  rating: Int!
+  comment: String
+  createdAt: String!
+}
+
+type IdleFee {
+  priceCentsPerMinute: Int!
+  afterMinutes: Int!
+}
+
+type PricingSnapshot {
+  currency: String!
+  priceCentsPerKwh: Int!
+  idleFee: IdleFee
+}
+
+type SessionCost {
+  totalCents: Int
+  energyCents: Int
+  idleCents: Int
+}

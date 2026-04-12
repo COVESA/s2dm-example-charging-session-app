@@ -1,0 +1,5 @@
+type SessionConnectorUsed {
+  type: ConnectorType
+  power: Float
+  tethered: Boolean
+}

@@ -34,7 +34,12 @@ npm install
 
 ## Generate types (schema-first workflow)
 
-The SDL is the source of truth: `backend/schema/schema.graphql`.
+The SDL source of truth is the modular schema under:
+
+- `backend/schema/governed` for centrally governed domain entities and enums
+- `backend/schema/app` for app-owned types, extensions, and operations
+
+The backend runtime and codegen both load the same schema source set from those folders.
 
 Run codegen:
 

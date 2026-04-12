@@ -1,0 +1,8 @@
+extend type ChargingSession {
+  userId: ID!
+  stationSnapshot: StationSnapshot!
+  vehicleSnapshot: VehicleSnapshot!
+  feedback: SessionFeedback
+  pricingSnapshot: PricingSnapshot!
+  cost: SessionCost!
+}

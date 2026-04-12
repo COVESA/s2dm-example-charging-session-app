@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, memo, useRef, useEffect } from "react";
+import { useMemo, memo, useState } from "react";
 import { Marker } from "react-leaflet";
 import { divIcon, type LeafletMouseEvent } from "leaflet";
 import type { MapStation } from "../_hooks/useChargingStationsQuery";
@@ -79,7 +79,6 @@ function createStationIcon(
 ) {
   const status = getPinStatus(station);
   const isMaintenance = status === "maintenance";
-  const isAllBooked = status === "all-booked";
 
   const isGrayStatus = status === "maintenance";
   const isOrangeStatus = status === "all-booked";
@@ -232,15 +231,13 @@ export const StationPin = memo(function StationPin({
   hasActiveOrBookedSession = false,
   selectedChargingPointId = null,
 }: StationPinProps) {
-  const wasExpandedRef = useRef(isExpanded);
-  
-  // We only animate if we are expanding from a collapsed state.
-  // If we were already expanded, we switch to static mode to avoid re-running CSS animations on update.
-  const shouldAnimate = isExpanded && !wasExpandedRef.current;
+  const [prevIsExpanded, setPrevIsExpanded] = useState(isExpanded);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
 
-  useEffect(() => {
-    wasExpandedRef.current = isExpanded;
-  }, [isExpanded]);
+  if (isExpanded !== prevIsExpanded) {
+    setPrevIsExpanded(isExpanded);
+    setShouldAnimate(isExpanded && !prevIsExpanded);
+  }
 
   const icon = useMemo(
     () => createStationIcon(station, isExpanded, hasActiveOrBookedSession, selectedChargingPointId, shouldAnimate),
