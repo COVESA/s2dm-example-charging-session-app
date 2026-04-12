@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, useMapEvents } from "react-leaflet";
 import { useMap } from "react-leaflet";
 import { useMapBounds } from "../_hooks/useMapBounds";
@@ -85,10 +85,6 @@ function StationsLayer({
   );
 
   const lastPannedId = useRef<string | null>(null);
-
-  useEffect(() => {
-    setSelectedChargingPointId(null);
-  }, [expandedStationId]);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -251,6 +247,7 @@ export function StationMap({
   const [expandedStationId, setExpandedStationId] = useState<string | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

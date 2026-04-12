@@ -42,19 +42,23 @@ export function SearchBar({
         className="flex items-center rounded-full border border-white/55 bg-white/30 shadow-lg backdrop-blur-xl transition-all duration-300 ease-out"
       >
         <div className="flex flex-1 items-center gap-2 px-4 py-2.5">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="shrink-0 text-slate-700/75"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.35-4.35" />
-          </svg>
+          {loading ? (
+            <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-slate-700/30 border-t-slate-700/75" />
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="shrink-0 text-slate-700/75"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+          )}
           <input
             type="text"
             value={query}

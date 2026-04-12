@@ -31,6 +31,7 @@ export function useMapBounds() {
   }, [map]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     updateBounds();
     let timeoutId: ReturnType<typeof setTimeout>;
     const handler = () => {

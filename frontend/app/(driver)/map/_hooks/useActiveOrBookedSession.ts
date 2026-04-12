@@ -34,15 +34,14 @@ export function useActiveOrBookedSession(userId: string | null) {
     }
   );
 
-  const connection = data?.chargingSessions ?? previousData?.chargingSessions;
-  const sessions = connection?.edges ?? [];
-
   const session = useMemo(() => {
+    const connection = data?.chargingSessions ?? previousData?.chargingSessions;
+    const sessions = connection?.edges ?? [];
     return sessions.find(
       (s): s is SessionItem =>
         s.status === "BOOKED" || s.status === "ACTIVE"
     ) ?? null;
-  }, [sessions]);
+  }, [data?.chargingSessions, previousData?.chargingSessions]);
 
   useEffect(() => {
     if (!session || !userId) return;

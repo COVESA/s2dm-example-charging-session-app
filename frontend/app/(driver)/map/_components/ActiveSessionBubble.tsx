@@ -40,7 +40,6 @@ function useElapsedTime(startedAtIso: string | null, enabled: boolean): string {
 
   useEffect(() => {
     if (!enabled || !startedAtIso) {
-      setDisplay("0:00");
       return;
     }
 
@@ -69,7 +68,7 @@ function useElapsedTime(startedAtIso: string | null, enabled: boolean): string {
     return () => clearInterval(id);
   }, [startedAtIso, enabled]);
 
-  return display;
+  return (!enabled || !startedAtIso) ? "0:00" : display;
 }
 
 type SocTier = "red" | "orange" | "green";
