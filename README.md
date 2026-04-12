@@ -28,7 +28,7 @@ This demo application illustrates with a practical example how a conceptual mode
 
 ![S2DM Artifacts Example](docs/assets/s2dm-artifacts-example.png)
 
-- **Storage Layer**: The conceptual model is translated into JSON Schema to enforce data validation rules in **MongoDB**. This provides a unified and flexible data foundation that adapts to changing requirements while maintaining control, allowing teams to enforce rules with varying validation levels.
+- **Storage Layer**: The conceptual model is translated into a [MongoDB](https://www.mongodb.com/) compatible JSON Schema to enforce [schema validation](https://www.mongodb.com/docs/manual/core/schema-validation/) rules. This provides a unified and flexible data foundation that adapts to changing requirements while maintaining control, allowing teams to enforce rules with varying validation levels.
 - **Application Layer**: A **schema-first GraphQL API** defines the communication contract. This schema not only structures the API but also drives code generation for both backend and frontend type definitions, ensuring the application aligns perfectly with the model.
 
 ---
@@ -40,7 +40,7 @@ The system is intentionally minimal to focus on the concepts, consisting of four
 1. **Backend**: A Node.js + Express server exposing a **schema-first GraphQL API** (Apollo Server).
 2. **Frontend**: A Next.js (App Router) client that consumes the GraphQL API to show charging station data.
 3. **Simulator**: A Python + FastAPI worker that listens to MongoDB change streams (`chargingSessions`) and emits real-time telemetry back into the database.
-4. **Database**: MongoDB (runs locally via Docker, configured as a single-node Replica Set to support change streams).
+4. **Database**: MongoDB (either the bundled local Docker container or a MongoDB Atlas deployment).
 
 ```mermaid
 flowchart LR
@@ -56,9 +56,10 @@ Ready to see it in action? Follow these simple steps to spin up the entire ecosy
 
 ### Prerequisites
 
-- **Docker Desktop** (with `docker compose` available).
-- _Note on MongoDB_: The local container starts as a single-node **Replica Set** (`rs0`). If you want to connect a tool like MongoDB Compass to your local instance, use this connection string:
-  `mongodb://localhost:27017/charging_demo?replicaSet=rs0&directConnection=true`
+- **Docker Desktop** or **Docker Engine** (with `docker compose` available).
+- **Node.js** (v24+) and **npm** (if running the web apps locally).
+- **Python** 3.12+ (if running the simulator locally).
+- **[MongoDB Atlas](https://www.mongodb.com/products/platform)** cluster (M0 free tier or higher) optional to use the fully managed cloud version instead of the local container.
 
 ### 1. Setup Environment Variables
 
@@ -68,14 +69,56 @@ Copy the example environment file to set up your configuration:
 cp .env.example .env
 ```
 
-_(Optional: You can edit `.env` to point `MONGODB_URI` to an external MongoDB Atlas cluster if you prefer.)_
+### 2. Run the Application
 
-### 2. Run the Application (Docker)
+#### With Docker (Recommended)
 
-We've provided a convenient Makefile to handle Docker orchestration. Build and start all services with one command:
+Docker provides the easiest way to run the entire stack.
+
+**Start the Stack**
+
+Build and start the full stack. First, ensure `MONGODB_URI` in `.env` is correctly set if using MongoDB Atlas. Choose your target:
+
+- **Local**: `make build`
+- **Atlas**: `make build-atlas`
+
+_(Note: If your images are already built, you can simply use `make start` or `make start-atlas` to spin everything back up)._
+
+**Teardown**
+
+To stop the services without losing data:
+
+- **Local**: `make stop`
+- **Atlas**: `make stop-atlas`
+
+To completely remove the services:
+
+- **Local**: `make clean`
+- **Atlas**: `make clean-atlas`
+
+#### Local Development (Without Docker)
+
+If you prefer to run the services directly on your machine without Docker, first make sure `MONGODB_URI` in `.env` points to a running MongoDB deployment (like Atlas or a local instance).
+
+**Web Apps (Backend & Frontend)**
+
+Install dependencies and start both the backend and frontend in parallel using Turborepo:
 
 ```bash
-make build
+npm install
+npm run dev
+```
+
+**Simulator**
+
+Open a separate terminal and start the simulator:
+
+```bash
+cd simulator
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python run.py
 ```
 
 ### 3. Explore the Endpoints
@@ -85,20 +128,6 @@ Once the containers are up and running, you can access the different parts of th
 - **Frontend UI**: [http://localhost:3000](http://localhost:3000)
 - **Backend GraphQL API**: [http://localhost:4000/graphql](http://localhost:4000/graphql)
 - **Simulator Health Check**: [http://localhost:8000/health](http://localhost:8000/health)
-
-### 4. Teardown
-
-To stop the services without losing data:
-
-```bash
-make stop
-```
-
-To completely remove the services and clear the database volumes:
-
-```bash
-make clean
-```
 
 ---
 
@@ -119,14 +148,16 @@ make clean
 ├── frontend/           # Next.js client
 ├── simulator/          # Python telemetry simulator
 ├── docs/               # Project documentation
-├── docker-compose.yml  # Orchestration for the local demo
-├── Makefile            # Convenience commands (build/stop/clean)
+├── docker-compose.yml  # Orchestration
+├── Makefile            # Convenience commands
 └── .env.example        # Template for environment variables
 ```
 
 ## Troubleshooting & Notes
 
 - **Schema-first GraphQL**: The SDL source files live under `backend/schema/governed` and `backend/schema/app`. If you modify them, remember to re-run `npm run codegen` in the respective folders to update the generated types.
+- **MongoDB Compass**: The local container starts as a single-node **Replica Set** (`rs0`). If you want to connect a tool like MongoDB Compass to your local instance, use this connection string:
+  `mongodb://localhost:27017/?replicaSet=rs0&directConnection=true`
 - **Docker Credential Helper Issues**: If `docker compose` fails while pulling images with a keychain/credentials error, try resetting your Docker Desktop login credentials. Alternatively, run compose with a temporary `DOCKER_CONFIG` that bypasses the credential helper.
 
 ## License

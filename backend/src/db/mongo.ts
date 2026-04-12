@@ -1,7 +1,7 @@
 import { MongoClient, type Db } from "mongodb";
 
-const uri = process.env.MONGODB_URI ?? "mongodb://localhost:27017/charging_demo?directConnection=true";
-const dbName = new URL(uri).pathname.slice(1) || "charging_demo";
+const uri = process.env.MONGODB_URI ?? "mongodb://localhost:27017/?directConnection=true";
+const dbName = process.env.MONGODB_DATABASE ?? (new URL(uri).pathname.slice(1) || "charging_demo");
 
 let client: MongoClient | null = null;
 let db: Db | null = null;

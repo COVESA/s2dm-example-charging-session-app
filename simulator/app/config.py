@@ -30,7 +30,7 @@ def _port_from_url(url: str, default: int = 8000) -> int:
 def get_settings() -> Settings:
     simulator_url = os.getenv("SIMULATOR_URL", "http://localhost:8000")
     return Settings(
-        mongodb_uri=os.getenv("MONGODB_URI", "mongodb://localhost:27017/charging_demo"),
+        mongodb_uri=os.getenv("MONGODB_URI", "mongodb://localhost:27017/"),
         mongodb_database=os.getenv("MONGODB_DATABASE", "charging_demo"),
         simulator_url=simulator_url,
         bind_port=_port_from_url(simulator_url),

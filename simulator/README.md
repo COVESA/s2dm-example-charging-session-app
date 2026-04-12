@@ -20,7 +20,7 @@ From the repository root:
 
 ```bash
 cp .env.example .env
-docker compose up --build mongodb simulator
+MONGODB_URI=mongodb://mongodb:27017/?replicaSet=rs0&directConnection=true docker compose --profile local up --build mongodb simulator
 ```
 
 The simulator is exposed on `http://localhost:8000`.
@@ -34,7 +34,13 @@ curl http://localhost:8000/health
 To start the full application stack instead of only MongoDB and the simulator:
 
 ```bash
-docker compose up --build
+MONGODB_URI=mongodb://mongodb:27017/?replicaSet=rs0&directConnection=true docker compose --profile local up --build
+```
+
+To run the stack against MongoDB Atlas instead of the local container, set `MONGODB_URI` in `.env`, optionally set `MONGODB_DATABASE`, and start only the application services:
+
+```bash
+docker compose up --build frontend backend simulator
 ```
 
 ## Run Locally Without Docker
@@ -53,7 +59,7 @@ python run.py
 
 Key variables used by the simulator:
 
-- `MONGODB_URI` (default `mongodb://localhost:27017/charging_demo`)
+- `MONGODB_URI` (default `mongodb://localhost:27017/`)
 - `MONGODB_DATABASE` (default `charging_demo`)
 - `SIMULATOR_URL` (default `http://localhost:8000`)
 - `SESSION_TELEMETRY_INTERVAL_SECONDS` (default `2`)
