@@ -161,7 +161,9 @@ export function FilterSidebar({
         <Slider.Root
           className="relative flex w-full touch-none select-none items-center"
           value={powerValue}
-          onValueChange={(v) => setPowerRange([v[0] ?? powerRange.min, v[1] ?? powerRange.max])}
+          onValueChange={(values: number[]) =>
+            setPowerRange([values[0] ?? powerRange.min, values[1] ?? powerRange.max])
+          }
           min={powerRange.min}
           max={powerRange.max}
           step={powerStep}
@@ -182,7 +184,9 @@ export function FilterSidebar({
         <Slider.Root
           className="relative flex w-full touch-none select-none items-center"
           value={priceValue}
-          onValueChange={(v) => setPriceRange([v[0] ?? priceRange.min, v[1] ?? priceRange.max])}
+          onValueChange={(values: number[]) =>
+            setPriceRange([values[0] ?? priceRange.min, values[1] ?? priceRange.max])
+          }
           min={priceRange.min}
           max={priceRange.max}
           step={priceStep}
