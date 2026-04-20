@@ -2,11 +2,24 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { useUserContext } from "@/contexts/UserContext";
-import { isAdminRole, getDefaultRouteForRoles } from "@/lib/utils/roleNavigation";
+import { UserRole } from "@/graphql/generated/graphql";
+import { getDefaultRouteForRoles } from "@/lib/utils/roleNavigation";
 
-const FEATURES = [
+type Feature = {
+  icon: string;
+  title: string;
+  description: string;
+  tag: string;
+  href: string;
+  requiredRole: UserRole;
+  iconBg: string;
+  iconColor: string;
+};
+
+const FEATURES: Feature[] = [
   {
     icon: "map",
     title: "Station Finder",
@@ -14,6 +27,7 @@ const FEATURES = [
       "Discover available charging stations on the map. View real-time availability and book a session.",
     tag: "Map View",
     href: "/map",
+    requiredRole: UserRole.User,
     iconBg: "bg-emerald-100",
     iconColor: "text-emerald-600",
   },
@@ -24,6 +38,7 @@ const FEATURES = [
       "Track your charging sessions. Monitor status, energy delivered, and session history.",
     tag: "Sessions",
     href: "/sessions",
+    requiredRole: UserRole.User,
     iconBg: "bg-cyan-100",
     iconColor: "text-cyan-600",
   },
@@ -34,15 +49,27 @@ const FEATURES = [
       "Monitor network-wide operations, fleet utilization, telemetry trends, and incident management.",
     tag: "Dashboard",
     href: "/dashboard",
+    requiredRole: UserRole.Admin,
     iconBg: "bg-amber-100",
     iconColor: "text-amber-600",
   },
 ];
 
 export function HomeScreen() {
-  const { selectedUser } = useUserContext();
-  const isAdmin = isAdminRole(selectedUser?.roles);
+  const router = useRouter();
+  const { selectedUser, setRole } = useUserContext();
   const primaryHref = getDefaultRouteForRoles(selectedUser?.roles);
+
+  const handleFeatureClick = (feature: Feature) => (
+    event: React.MouseEvent<HTMLAnchorElement>
+  ) => {
+    const currentRoles = selectedUser?.roles ?? [];
+    if (!currentRoles.includes(feature.requiredRole)) {
+      event.preventDefault();
+      setRole(feature.requiredRole);
+      router.push(feature.href);
+    }
+  };
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
@@ -89,7 +116,7 @@ export function HomeScreen() {
             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-7 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-600"
           >
             <span className="material-symbols-outlined text-lg">bolt</span>
-            {isAdmin ? "Open Analytics Dashboard" : "Get Started"}
+            Get Started
           </Link>
         </div>
       </section>
@@ -99,6 +126,7 @@ export function HomeScreen() {
           <Link
             key={feature.title}
             href={feature.href}
+            onClick={handleFeatureClick(feature)}
             className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
           >
             <div className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl ${feature.iconBg}`}>
