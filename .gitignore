@@ -53,6 +53,7 @@ htmlcov/
 simulator/data
 simulator/scripts/
 simulator/scripts/output/
+docs/demo
 
 # Virtualenvs
 .venv/
