@@ -65,6 +65,13 @@
     padding: 0;
   }
 
+  [data-route="data-model"] main {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+  }
+
   button {
     margin-right: 0.5rem;
     padding: 0.5rem 0.75rem;
@@ -83,6 +90,188 @@
 @keyframes sim-blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
+}
+
+/* Data Model Explorer animations */
+@keyframes dm-flow-pulse {
+  0% { left: 0; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { left: calc(100% - 6px); opacity: 0; }
+}
+
+@keyframes dm-flow-pulse-rev {
+  0% { left: calc(100% - 6px); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { left: 0; opacity: 0; }
+}
+
+/* Horizontal bidirectional: travels right, then back left in a single loop. */
+@keyframes dm-flow-pulse-bi {
+  0%   { left: 0; opacity: 0; }
+  10%  { opacity: 1; }
+  45%  { left: calc(100% - 6px); opacity: 1; }
+  55%  { left: calc(100% - 6px); opacity: 1; }
+  90%  { opacity: 1; }
+  100% { left: 0; opacity: 0; }
+}
+
+/* Vertical: from bottom to top (reverse). */
+@keyframes dm-flow-pulse-v {
+  0% { top: calc(100% - 6px); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { top: 0; opacity: 0; }
+}
+
+/* Vertical: from top to bottom (forward). */
+@keyframes dm-flow-pulse-v-fwd {
+  0% { top: 0; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { top: calc(100% - 6px); opacity: 0; }
+}
+
+/* Vertical bidirectional: down, then back up in a single loop. */
+@keyframes dm-flow-pulse-v-bi {
+  0%   { top: 0; opacity: 0; }
+  10%  { opacity: 1; }
+  45%  { top: calc(100% - 6px); opacity: 1; }
+  55%  { top: calc(100% - 6px); opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 0; opacity: 0; }
+}
+
+@keyframes dm-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Diagonal fan dots — source is bottom-center (50%, 100%), target is one of 1/6, 3/6, 5/6 at top.
+   The dot travels from the source up to the target (backend → app), then back down to the source
+   (app → backend) within a single loop, so the flow is visibly bidirectional like the other
+   connectors. The dot is positioned with translate(-50%, -50%) so the percentages refer to the
+   dot's center. */
+@keyframes dm-fan-dot-left {
+  0%   { left: 50%;    top: 100%; opacity: 0; }
+  10%  { opacity: 1; }
+  45%  { left: 16.666%; top: 0%;   opacity: 1; }
+  55%  { left: 16.666%; top: 0%;   opacity: 1; }
+  90%  { opacity: 1; }
+  100% { left: 50%;    top: 100%; opacity: 0; }
+}
+
+@keyframes dm-fan-dot-mid {
+  0%   { left: 50%; top: 100%; opacity: 0; }
+  10%  { opacity: 1; }
+  45%  { left: 50%; top: 0%;   opacity: 1; }
+  55%  { left: 50%; top: 0%;   opacity: 1; }
+  90%  { opacity: 1; }
+  100% { left: 50%; top: 100%; opacity: 0; }
+}
+
+@keyframes dm-fan-dot-right {
+  0%   { left: 50%;    top: 100%; opacity: 0; }
+  10%  { opacity: 1; }
+  45%  { left: 83.333%; top: 0%;   opacity: 1; }
+  55%  { left: 83.333%; top: 0%;   opacity: 1; }
+  90%  { opacity: 1; }
+  100% { left: 50%;    top: 100%; opacity: 0; }
+}
+
+/* `animation-fill-mode: both` makes the element adopt the 0% keyframe state immediately
+   (before the animation-delay elapses), so the dots don't flash at the container's origin
+   on first render. `linear` timing keeps constant speed on both legs of the round-trip,
+   so the downward (apps → backend) travel reads as clearly as the upward one. */
+.dm-fan-dot-left {
+  animation: dm-fan-dot-left 3.4s linear infinite both;
+}
+.dm-fan-dot-mid {
+  animation: dm-fan-dot-mid 3.4s linear infinite both;
+  animation-delay: 0.5s;
+}
+.dm-fan-dot-right {
+  animation: dm-fan-dot-right 3.4s linear infinite both;
+  animation-delay: 1s;
+}
+
+
+.dm-flow-dot {
+  animation: dm-flow-pulse 2.6s ease-in-out infinite;
+}
+
+.dm-flow-dot-rev {
+  animation: dm-flow-pulse-rev 2.6s ease-in-out infinite;
+}
+
+.dm-flow-dot-bi {
+  animation: dm-flow-pulse-bi 3.2s ease-in-out infinite;
+}
+
+.dm-flow-dot-v {
+  animation: dm-flow-pulse-v 2.6s ease-in-out infinite;
+}
+
+.dm-flow-dot-v-fwd {
+  animation: dm-flow-pulse-v-fwd 2.6s ease-in-out infinite;
+}
+
+.dm-flow-dot-v-bi {
+  animation: dm-flow-pulse-v-bi 3.2s ease-in-out infinite;
+}
+
+.dm-fade-in {
+  animation: dm-fade-in 0.35s ease-out both;
+}
+
+/* Time slider */
+.dm-slider {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(
+    to right,
+    rgb(139 92 246) 0%,
+    rgb(56 189 248) 50%,
+    rgb(16 185 129) 100%
+  );
+  border-radius: 9999px;
+  outline: none;
+  cursor: pointer;
+}
+
+.dm-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid rgb(16 185 129);
+  box-shadow: 0 2px 6px rgb(15 23 42 / 0.15);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.dm-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.dm-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid rgb(16 185 129);
+  box-shadow: 0 2px 6px rgb(15 23 42 / 0.15);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.dm-slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
 }
 
 /* Map station pins */

@@ -100,6 +100,8 @@ To completely remove the services:
 
 If you prefer to run the services directly on your machine without Docker, first make sure `MONGODB_URI` in `.env` points to a running MongoDB deployment (like Atlas or a local instance).
 
+> The backend seeds an empty database automatically on first run, so it needs `mongorestore` (from [mongodb-database-tools](https://www.mongodb.com/docs/database-tools/installation/installation/)) on `PATH`. Docker users don't need to install anything — the image already bundles it.
+
 **Web Apps (Backend & Frontend)**
 
 Install dependencies and start both the backend and frontend in parallel using Turborepo:

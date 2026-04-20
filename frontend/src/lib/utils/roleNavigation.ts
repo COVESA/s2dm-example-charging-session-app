@@ -6,12 +6,16 @@ export const DRIVER_HOME_ROUTE = "/map";
 export const DRIVER_SESSIONS_ROUTE = "/sessions";
 export const ADMIN_DASHBOARD_ROUTE = "/dashboard";
 
+export const HOME_ROUTE = "/";
+
 export const DRIVER_NAV_LINKS = [
+  { href: HOME_ROUTE, label: "Home" },
   { href: DRIVER_HOME_ROUTE, label: "Station Finder" },
   { href: DRIVER_SESSIONS_ROUTE, label: "Session Activity" }
 ] as const;
 
 export const ADMIN_NAV_LINKS = [
+  { href: HOME_ROUTE, label: "Home" },
   { href: ADMIN_DASHBOARD_ROUTE, label: "Analytics Dashboard" }
 ] as const;
 

@@ -72,19 +72,25 @@ export function Navbar() {
       </div>
 
       <nav className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
-        {navLinks.map(({ href, label }) => (
-          <Link
-            key={href}
-            href={href}
-            className={`rounded-md px-4 py-2 text-[0.9375rem] font-medium no-underline transition-colors ${
-              pathname === href || pathname.startsWith(`${href}/`)
-                ? "bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-            }`}
-          >
-            {label}
-          </Link>
-        ))}
+        {navLinks.map(({ href, label }) => {
+          const isActive =
+            href === "/"
+              ? pathname === "/"
+              : pathname === href || pathname.startsWith(`${href}/`);
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`rounded-md px-4 py-2 text-[0.9375rem] font-medium no-underline transition-colors ${
+                isActive
+                  ? "bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              }`}
+            >
+              {label}
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="flex flex-shrink-0 items-center gap-6">

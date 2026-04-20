@@ -462,7 +462,7 @@ function SessionFooter({
   };
 
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex shrink-0 flex-col items-center gap-1">
       <div className="flex min-h-[52px] items-center justify-center">
         {isCompleted && (
           <div className="flex flex-col items-center gap-2">
@@ -609,7 +609,7 @@ export function SessionDetail({
       </div>
 
       {/* Minimap + Hero metrics side by side */}
-      <div className="flex min-h-[220px] flex-1 gap-4">
+      <div className="flex min-h-0 flex-1 basis-[220px] gap-4">
         <div className="w-1/2 shrink-0 overflow-hidden rounded-xl">
           <SessionMiniMap
             lat={session.stationSnapshot.location.lat}
@@ -626,7 +626,7 @@ export function SessionDetail({
       </div>
 
       {/* Info cards */}
-      <div className="flex flex-1 items-stretch gap-4">
+      <div className="flex min-h-0 flex-1 basis-[220px] items-stretch gap-4">
         <div className="w-1/2">
           <InfoCard icon="ev_station" title="Charging">
             <InfoItem label="Vehicle" value={vehicleLabel} />

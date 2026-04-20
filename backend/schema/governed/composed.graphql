@@ -1,0 +1,126 @@
+type Address {
+  street: String
+  city: String
+  postalCode: String
+  country: String
+}
+
+type ChargingDetails {
+  startedAt: String
+  endedAt: String
+  connectorUsed: SessionConnectorUsed
+  meterStartKwh: Float
+  meterStopKwh: Float
+  energyDeliveredKwh: Float
+  socStartPercent: Float
+  socStopPercent: Float
+}
+
+type ChargingPointInfo {
+  id: ID!
+  availableNow: Boolean!
+  outOfService: Boolean!
+  connectors: [ConnectorInfo!]!
+}
+
+type ChargingSession {
+  id: ID!
+  vehicleId: ID!
+  stationId: ID!
+  chargingPointId: ID!
+  status: SessionStatus!
+  booking: SessionBooking!
+  charging: ChargingDetails!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ChargingStation {
+  id: ID!
+  name: String!
+  operator: String!
+  stationCode: String!
+  location: GeoPoint!
+  address: Address
+  availability: StationAvailability!
+  chargingPoints: [ChargingPointInfo!]!
+}
+
+type ConnectorInfo {
+  type: ConnectorType!
+  powerKw: Float!
+  tethered: Boolean
+}
+
+type GeoPoint {
+  lat: Float!
+  lng: Float!
+}
+
+type SessionBooking {
+  bookedAt: String!
+  expiresAt: String!
+  canceledAt: String
+  cancelReason: String
+}
+
+type SessionConnectorUsed {
+  type: ConnectorType
+  power: Float
+  tethered: Boolean
+}
+
+type StationAvailability {
+  totalPoints: Int!
+  availableNowPoints: Int!
+  operationalPoints: Int!
+}
+
+type Vehicle {
+  id: ID!
+  vin: String!
+  make: String!
+  model: String!
+  year: Int!
+  batteryCapacityKwh: Float!
+  maxChargePowerKw: Float!
+  connectorTypes: [ConnectorType!]!
+}
+
+enum SessionStatus {
+  BOOKED
+  ACTIVE
+  COMPLETED
+  CANCELED
+  NO_SHOW
+  FAILED
+}
+
+enum ConnectorType {
+  CCS
+  CHAdeMO
+  SCHUKO
+  TYPE1
+  TYPE2
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum IncidentType {
+  USER_REPORT
+  NO_HEARTBEAT
+  CONNECTOR_FAULT
+  POWER_DERATE
+  MAINTENANCE
+}
