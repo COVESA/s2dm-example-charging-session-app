@@ -1,0 +1,60 @@
+diff --git a/playground/src/App.tsx b/playground/src/App.tsx
+index 00afcba..9e3a3b9 100644
+--- a/playground/src/App.tsx
++++ b/playground/src/App.tsx
+@@ -8,7 +8,9 @@ import { Heading } from "@/components/ui/heading";
+ import { appStartup } from "@/store/app/appSlice";
+ import { selectIsLoadingCapabilities } from "@/store/capabilities/capabilitiesSlice";
+ import { useAppDispatch, useAppSelector } from "@/store/hooks";
++import { setSourceFiles } from "@/store/schema/schemaSlice";
+ import { store } from "@/store/store";
++import type { ImportedFile } from "@/types/importedFile";
+ 
+ declare module "react" {
+ 	interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
+@@ -24,6 +26,45 @@ function AppContent() {
+ 		dispatch(appStartup());
+ 	}, [dispatch]);
+ 
++	useEffect(() => {
++		let cancelled = false;
++		(async () => {
++			try {
++				if (store.getState().schema.sourceFiles.length > 0) {
++					return;
++				}
++				const manifestRes = await fetch("/preload/manifest.json");
++				if (!manifestRes.ok) return;
++				const manifest = (await manifestRes.json()) as { files: string[] };
++				if (cancelled || manifest.files.length === 0) return;
++				const loaded: ImportedFile[] = await Promise.all(
++					manifest.files.map(async (name) => {
++						const res = await fetch(`/preload/${encodeURIComponent(name)}`);
++						const content = await res.text();
++						return {
++							name,
++							path: name,
++							type: "file" as const,
++							content,
++						};
++					}),
++				);
++				if (
++					!cancelled &&
++					loaded.length > 0 &&
++					store.getState().schema.sourceFiles.length === 0
++				) {
++					dispatch(setSourceFiles(loaded));
++				}
++			} catch {
++				// Preload is best-effort; ignore errors so the app still loads.
++			}
++		})();
++		return () => {
++			cancelled = true;
++		};
++	}, [dispatch]);
++
+ 	if (isLoadingCapabilities) {
+ 		return (
+ 			<div className="w-full h-screen flex flex-col items-center justify-center gap-4">

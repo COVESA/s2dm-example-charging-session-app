@@ -68,5 +68,14 @@ services:
     depends_on:
       - backend
 
+  playground:
+    build:
+      context: ./s2dm-playground
+      dockerfile: Dockerfile
+    container_name: ev-demo-s2dm-playground
+    ports:
+      - "51264:51264"
+      - "51265:51265"
+
 volumes:
   mongodb-data:
