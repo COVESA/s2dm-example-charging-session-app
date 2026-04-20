@@ -1,6 +1,0 @@
-type SessionBooking {
-  bookedAt: String!
-  expiresAt: String!
-  canceledAt: String
-  cancelReason: String
-}
