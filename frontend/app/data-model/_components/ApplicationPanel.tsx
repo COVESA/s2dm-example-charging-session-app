@@ -18,6 +18,8 @@ type Props = {
   initialView?: View;
 };
 
+const isGhPages = process.env.NEXT_PUBLIC_GITHUB_PAGES === "true";
+
 export function ApplicationPanel({ initialView = "compose" }: Props) {
   const [view, setView] = useState<View>(initialView);
   const [composed, setComposed] = useState(false);
@@ -38,18 +40,20 @@ export function ApplicationPanel({ initialView = "compose" }: Props) {
             }
           ]}
         />
-        <a
-          href={config.graphqlUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-2xl px-3 py-2.5 text-[13px] font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
-          style={{ margin: 0, border: "none", background: "transparent" }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-            travel_explore
-          </span>
-          Open GraphQL explorer
-        </a>
+        {!isGhPages && (
+          <a
+            href={config.graphqlUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-2xl px-3 py-2.5 text-[13px] font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600"
+            style={{ margin: 0, border: "none", background: "transparent" }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+              travel_explore
+            </span>
+            Open GraphQL explorer
+          </a>
+        )}
       </div>
 
       {view === "compose" ? (
