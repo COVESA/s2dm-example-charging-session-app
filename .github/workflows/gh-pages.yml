@@ -1,0 +1,83 @@
+name: Deploy Data Model Explorer to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Use GH Pages layout (no navbar)
+        run: cp frontend/app/layout.ghpages.tsx frontend/app/layout.tsx
+
+      - name: Build static export
+        run: cd frontend && npm run build
+        env:
+          GITHUB_PAGES: "true"
+          NEXT_PUBLIC_GITHUB_PAGES: "true"
+
+      - name: Add .nojekyll (allows _next/ assets to be served)
+        run: touch frontend/out/.nojekyll
+
+      - name: Remove non-data-model pages
+        run: rm -rf frontend/out/map frontend/out/sessions frontend/out/dashboard
+
+      - name: Add root and 404 redirects to /data-model/
+        run: |
+          cat > frontend/out/index.html <<'EOF'
+          <!doctype html>
+          <html>
+            <head>
+              <meta charset="utf-8" />
+              <meta http-equiv="refresh" content="0; url=data-model/" />
+              <title>Data Model Explorer — LeafyCharge</title>
+            </head>
+            <body></body>
+          </html>
+          EOF
+          cat > frontend/out/404.html <<'EOF'
+          <!doctype html>
+          <html>
+            <head>
+              <meta charset="utf-8" />
+              <meta http-equiv="refresh" content="0; url=/s2dm-example-charging-session-app/data-model/" />
+              <title>Data Model Explorer — LeafyCharge</title>
+            </head>
+            <body></body>
+          </html>
+          EOF
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/out
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment

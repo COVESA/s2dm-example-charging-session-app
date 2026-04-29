@@ -85,6 +85,8 @@ function nodeToModal(node: NodeKey): ModalKind | null {
   }
 }
 
+const isGhPages = process.env.NEXT_PUBLIC_GITHUB_PAGES === "true";
+
 export function DataModelExplorer() {
   const [step, setStep] = useState<StepKey>("conceptual");
   const [version, setVersion] = useState<VersionKey>("v4");
@@ -118,13 +120,15 @@ export function DataModelExplorer() {
               One conceptual model, two artifacts, many systems it keeps in sync.
             </p>
           </div>
-          <Link
-            href="/"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-600 no-underline transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
-          >
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-            Back to demo
-          </Link>
+          {!isGhPages && (
+            <Link
+              href="/"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-600 no-underline transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+            >
+              <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+              Back to demo
+            </Link>
+          )}
         </header>
 
         {/* Stepper */}
