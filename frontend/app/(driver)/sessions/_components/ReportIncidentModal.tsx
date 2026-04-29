@@ -67,10 +67,11 @@ export function ReportIncidentModal({
               type="button"
               onClick={onDismiss}
               disabled={isSubmitting}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
               aria-label="Close"
+              style={{ margin: 0, padding: 0, border: "none" }}
             >
-              <span className="material-symbols-outlined text-xl">close</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
             </button>
           </div>
           <div className="mt-1 flex flex-col items-center text-center">
