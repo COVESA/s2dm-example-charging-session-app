@@ -97,16 +97,15 @@ export function ValidationPlayground({
   const [level, setLevel] = useState<Level>("strict");
   const [action, setAction] = useState<Action>("error");
   const [activeIdx, setActiveIdx] = useState(0);
+  const [prevCollection, setPrevCollection] = useState(collection);
+  if (prevCollection !== collection) {
+    setPrevCollection(collection);
+    setActiveIdx(0);
+  }
 
   const cases = VALIDATION_EXAMPLES[collection];
   const safeIdx = Math.min(activeIdx, cases.length - 1);
   const activeCase = cases[safeIdx];
-
-  // Reset the per-collection index when the collection changes externally
-  // (e.g., user clicks a collection tab).
-  useEffect(() => {
-    setActiveIdx(0);
-  }, [collection]);
 
   const flatPos = useMemo(() => {
     const found = FLAT_SAMPLES.findIndex(
