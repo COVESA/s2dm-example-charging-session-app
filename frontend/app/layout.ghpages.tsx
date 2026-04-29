@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,9 +22,7 @@ export default function RootLayout({
         />
         <style>{`[data-route="data-model"] { height: 100vh !important; }`}</style>
       </head>
-      <body>
-        <Providers>{children}</Providers>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

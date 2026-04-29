@@ -31,6 +31,14 @@ jobs:
       - name: Use GH Pages layout (no navbar)
         run: cp frontend/app/layout.ghpages.tsx frontend/app/layout.tsx
 
+      - name: Stub non-data-model pages (avoids codegen dependency at build time)
+        run: |
+          stub='export default function Page() { return null; }'
+          echo "$stub" > 'frontend/app/(home)/page.tsx'
+          echo "$stub" > 'frontend/app/(admin)/dashboard/page.tsx'
+          echo "$stub" > 'frontend/app/(driver)/map/page.tsx'
+          echo "$stub" > 'frontend/app/(driver)/sessions/page.tsx'
+
       - name: Build static export
         run: cd frontend && npm run build
         env:
