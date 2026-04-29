@@ -29,6 +29,8 @@
     "use-supercluster": "^1.2.0"
   },
   "optionalDependencies": {
+    "@tailwindcss/oxide-linux-x64-gnu": "*",
+    "@unrs/resolver-binding-linux-x64-gnu": "*",
     "lightningcss-linux-x64-gnu": "*"
   },
   "devDependencies": {
