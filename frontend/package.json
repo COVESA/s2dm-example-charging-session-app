@@ -28,6 +28,9 @@
     "tailwindcss": "^4.1.18",
     "use-supercluster": "^1.2.0"
   },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "*"
+  },
   "devDependencies": {
     "@graphql-codegen/cli": "^6.0.1",
     "@graphql-codegen/client-preset": "^5.1.0",
