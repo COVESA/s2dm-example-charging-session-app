@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { RatingStars } from "./RatingStars";
 
@@ -29,16 +29,19 @@ export function SessionFeedbackPrompt({
   error,
   titleId
 }: SessionFeedbackPromptProps) {
+  const [prevInitialRating, setPrevInitialRating] = useState(initialRating);
   const [rating, setRating] = useState(initialRating);
-  const [comment, setComment] = useState(initialComment ?? "");
-
-  useEffect(() => {
+  if (prevInitialRating !== initialRating) {
+    setPrevInitialRating(initialRating);
     setRating(initialRating);
-  }, [initialRating]);
+  }
 
-  useEffect(() => {
+  const [prevInitialComment, setPrevInitialComment] = useState(initialComment);
+  const [comment, setComment] = useState(initialComment ?? "");
+  if (prevInitialComment !== initialComment) {
+    setPrevInitialComment(initialComment);
     setComment(initialComment ?? "");
-  }, [initialComment]);
+  }
 
   const handleSubmit = async () => {
     if (!rating || isSubmitting) {

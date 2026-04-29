@@ -81,19 +81,19 @@ function useLiveDuration(startIso: string | null | undefined, enabled: boolean):
 
 function InfoCard({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
   return (
-    <div className="flex h-full flex-col rounded-xl bg-slate-50 px-5 py-4 3xl:px-6 3xl:py-5">
-      <div className="mb-3 flex items-center gap-1.5 3xl:mb-4">
+    <div className="flex h-full flex-col rounded-xl bg-slate-50 px-4 py-3 2xl:px-5 2xl:py-4 3xl:px-6 3xl:py-5">
+      <div className="mb-2 flex items-center gap-1.5 2xl:mb-3 3xl:mb-4">
         <span className="material-symbols-outlined text-sm text-slate-400">{icon}</span>
         <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 3xl:text-[13px]">{title}</span>
       </div>
-      <div className="flex flex-1 flex-col justify-center gap-1.5 3xl:gap-2.5">{children}</div>
+      <div className="flex flex-1 flex-col justify-center gap-1 2xl:gap-1.5 3xl:gap-2.5">{children}</div>
     </div>
   );
 }
 
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between py-1.5 3xl:py-2">
+    <div className="flex items-center justify-between py-1 2xl:py-1.5 3xl:py-2">
       <span className="text-sm text-slate-500 3xl:text-[15px]">{label}</span>
       <span className="text-sm font-semibold text-slate-800 3xl:text-[15px]">{value}</span>
     </div>
@@ -109,7 +109,7 @@ function BatteryBar({ startPercent, stopPercent }: { startPercent: number | null
   const stop = stopPercent ?? startPercent ?? 0;
 
   return (
-    <div className="py-1.5 3xl:py-2">
+    <div className="py-1 2xl:py-1.5 3xl:py-2">
       <div className="flex items-center">
         <span className="shrink-0 text-sm text-slate-500 3xl:text-[15px]">Battery</span>
         <div className="ml-auto w-[55%]">
@@ -609,7 +609,7 @@ export function SessionDetail({
       </div>
 
       {/* Minimap + Hero metrics side by side */}
-      <div className="flex min-h-0 flex-1 basis-[220px] gap-4">
+      <div className="flex h-50 shrink-0 gap-4 2xl:h-auto 2xl:min-h-0 2xl:flex-1 2xl:basis-55">
         <div className="w-1/2 shrink-0 overflow-hidden rounded-xl">
           <SessionMiniMap
             lat={session.stationSnapshot.location.lat}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useMutation } from "@apollo/client/react";
 import { Modal } from "@/ui/Modal";
 import {
@@ -143,12 +143,6 @@ export function ReserveModal({
     return null;
   });
 
-  useEffect(() => {
-    if (initialChargingPointId) {
-      const index = station.chargingPoints.findIndex(cp => cp.id === initialChargingPointId);
-      if (index !== -1) setSelection({ pointIndex: index });
-    }
-  }, [initialChargingPointId, station.chargingPoints]);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [reservationError, setReservationError] = useState<string | null>(null);
 
@@ -157,16 +151,12 @@ export function ReserveModal({
     [selectedUser]
   );
   const [selectedVehicleId, setSelectedVehicleId] = useState("");
-  useEffect(() => {
-    if (vehicles.length === 0) {
-      setSelectedVehicleId("");
-      return;
-    }
-
-    if (!vehicles.some((v) => v.id === selectedVehicleId)) {
-      setSelectedVehicleId(vehicles[0].id);
-    }
-  }, [vehicles, selectedVehicleId]);
+  const currentVehicleId =
+    vehicles.length === 0
+      ? ""
+      : vehicles.some((v) => v.id === selectedVehicleId)
+        ? selectedVehicleId
+        : (vehicles[0]?.id ?? "");
 
   const [reserveMutation] = useMutation(ReserveChargingPointDocument, {
     refetchQueries: "active"
@@ -175,11 +165,11 @@ export function ReserveModal({
   const canConfirm =
     selection !== null &&
     !!selectedUser &&
-    !!selectedVehicleId &&
+    !!currentVehicleId &&
     !isProcessingPayment;
 
   const handleConfirmReservation = useCallback(async () => {
-    if (!canConfirm || !selectedUser || !selectedVehicleId || selection === null)
+    if (!canConfirm || !selectedUser || !currentVehicleId || selection === null)
       return;
 
     setIsProcessingPayment(true);
@@ -199,7 +189,7 @@ export function ReserveModal({
         variables: {
           input: {
             userId: selectedUser.id,
-            vehicleId: selectedVehicleId,
+            vehicleId: currentVehicleId,
             stationId: station.id,
             chargingPointId: chargingPoint.id
           }
@@ -225,7 +215,7 @@ export function ReserveModal({
   }, [
     canConfirm,
     selectedUser,
-    selectedVehicleId,
+    currentVehicleId,
     selection,
     station,
     reserveMutation,
@@ -262,10 +252,11 @@ export function ReserveModal({
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
                 aria-label="Close"
+                style={{ margin: 0, padding: 0, border: "none" }}
               >
-                <span className="material-symbols-outlined text-xl">close</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
               </button>
             </div>
           </div>
@@ -344,7 +335,7 @@ export function ReserveModal({
                   directions_car
                 </span>
                 <select
-                  value={selectedVehicleId}
+                  value={currentVehicleId}
                   onChange={(e) => setSelectedVehicleId(e.target.value)}
                   disabled={!selectedUser || vehicles.length === 0}
                   className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm text-slate-800 transition-colors hover:border-slate-300 focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400/30"
