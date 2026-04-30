@@ -3,11 +3,12 @@ FROM node:24-bookworm-slim AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
+COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm install
 
-COPY . .
-RUN npm run build
+COPY frontend/ .
+COPY backend/schema /backend/schema
+RUN npm run codegen && npm run build
 
 # Production stage
 FROM node:24-bookworm-slim AS runner
