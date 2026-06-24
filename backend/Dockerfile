@@ -38,7 +38,7 @@ ENV NODE_ENV=production
 # are all that's pulled in to keep the final image lean.
 COPY --from=tools /usr/local/bin/mongorestore /usr/local/bin/mongorestore
 RUN apt-get update \
- && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+ && apt-get install -y --no-install-recommends ca-certificates libgssapi-krb5-2 \
  && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json* ./
