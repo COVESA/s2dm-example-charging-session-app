@@ -57,7 +57,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: ./frontend/Dockerfile
+      dockerfile: frontend/Dockerfile
     container_name: ev-demo-frontend
     env_file:
       - .env

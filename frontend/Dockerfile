@@ -6,7 +6,7 @@ WORKDIR /app
 COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm install
 
-COPY frontend/ .
+COPY frontend/ ./
 COPY backend/schema /backend/schema
 RUN npm run codegen && npm run build
 
