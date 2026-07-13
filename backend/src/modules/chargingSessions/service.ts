@@ -104,7 +104,6 @@ export async function getChargingSessionsByUser(db: Db, input: GetChargingSessio
 
   return {
     edges: result.docs.map((doc) => {
-      const [lng, lat] = doc.stationSnapshot.location.coordinates;
       return {
         id: String(doc._id),
         userId: String(doc.userId),
@@ -113,7 +112,7 @@ export async function getChargingSessionsByUser(db: Db, input: GetChargingSessio
         chargingPointId: String(doc.chargingPointId),
         stationSnapshot: {
           name: doc.stationSnapshot.name,
-          location: { lat, lng },
+          location: doc.stationSnapshot.location,
           addressShort: doc.stationSnapshot.addressShort,
           chargingPointLabel: doc.stationSnapshot.chargingPointLabel
         },
@@ -229,7 +228,6 @@ export async function createBooking(db: Db, input: ReserveChargingPointInput) {
   const now = new Date();
   const expiresAt = new Date(now.getTime() + 30 * 60 * 1000);
 
-  const [lng, lat] = station.location.coordinates;
   const chargingPointLabel = `Bay ${pointIndex + 1}`;
 
   const sessionDoc = {
@@ -285,7 +283,6 @@ export async function createBooking(db: Db, input: ReserveChargingPointInput) {
 }
 
 function mapSessionDocToGraphQL(doc: ChargingSessionDoc) {
-  const [lng, lat] = doc.stationSnapshot.location.coordinates;
   return {
     id: String(doc._id),
     userId: String(doc.userId),
@@ -294,7 +291,7 @@ function mapSessionDocToGraphQL(doc: ChargingSessionDoc) {
     chargingPointId: String(doc.chargingPointId),
     stationSnapshot: {
       name: doc.stationSnapshot.name,
-      location: { lat, lng },
+      location: doc.stationSnapshot.location,
       addressShort: doc.stationSnapshot.addressShort,
       chargingPointLabel: doc.stationSnapshot.chargingPointLabel
     },

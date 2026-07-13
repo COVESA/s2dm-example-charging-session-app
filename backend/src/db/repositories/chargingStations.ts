@@ -183,7 +183,10 @@ export async function findChargingStationFacets(
 export type ClusterValues = {
   id: string;
   count: number;
-  location: { lat: number; lng: number };
+  location: {
+    type: "Point";
+    coordinates: [number, number];
+  };
 };
 
 function getStableGridStepForZoom(zoom: number): number {
@@ -340,8 +343,8 @@ export async function findStationClustersInBounds(
           },
           count: 1,
           location: {
-            lat: "$avgLat",
-            lng: "$avgLng"
+            type: { $literal: "Point" },
+            coordinates: ["$avgLng", "$avgLat"]
           }
         }
       }

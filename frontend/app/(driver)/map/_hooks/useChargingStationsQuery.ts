@@ -3,6 +3,7 @@
 import { useQuery } from "@apollo/client/react";
 import { ChargingStationsInBoundsDocument } from "@/graphql/generated/graphql";
 import type { ChargingStationFiltersInput, ConnectorType } from "@/graphql/generated/graphql";
+import { geoJsonPointToLatLng } from "@/graphql/geoJson";
 import type { MapBounds } from "./useMapBounds";
 
 export type MapStation = {
@@ -70,7 +71,7 @@ function getSnappedBounds(
 function apiStationToMapStation(
   s: {
     id: string;
-    location: { lat: number; lng: number };
+    location: unknown;
     name: string;
     operator: string;
     address?: { street?: string | null; city?: string | null; postalCode?: string | null; country?: string | null } | null;
@@ -91,10 +92,12 @@ function apiStationToMapStation(
     }[];
   }
 ): MapStation {
+  const location = geoJsonPointToLatLng(s.location);
+
   return {
     id: s.id,
-    lat: s.location.lat,
-    lng: s.location.lng,
+    lat: location.lat,
+    lng: location.lng,
     name: s.name,
     operator: s.operator,
     address: s.address ?? undefined,
@@ -147,12 +150,15 @@ export function useChargingStationsQuery(
         .filter((item): item is Extract<typeof item, { __typename: "StationCluster" }> =>
           item.__typename === "StationCluster"
         )
-        .map((c) => ({
-          id: c.id,
-          lat: c.location.lat,
-          lng: c.location.lng,
-          count: c.count,
-        }))
+        .map((c) => {
+          const location = geoJsonPointToLatLng(c.location);
+          return {
+            id: c.id,
+            lat: location.lat,
+            lng: location.lng,
+            count: c.count,
+          };
+        })
     : [];
 
   return {

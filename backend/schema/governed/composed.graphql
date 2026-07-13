@@ -1,19 +1,425 @@
-type Address {
-  street: String
-  city: String
-  postalCode: String
-  country: String
+directive @geoPoint(shape: GeoPointShape!) on FIELD_DEFINITION
+
+directive @reference(
+  uri: String!
+) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR | ENUM_VALUE
+
+directive @range(min: Float, max: Float) on FIELD_DEFINITION
+
+type ChargingStation {
+  id: ID!
+  name: String!
+  operator: String!
+  stationCode: String!
+  location: GeoJSON! @geoPoint(shape: POINT)
+  address: Address
+  availability: StationAvailability!
+  chargingPoints: [ChargingPointInfo!]!
 }
 
-type ChargingDetails {
-  startedAt: String
-  endedAt: String
-  connectorUsed: SessionConnectorUsed
-  meterStartKwh: Float
-  meterStopKwh: Float
-  energyDeliveredKwh: Float
-  socStartPercent: Float
-  socStopPercent: Float
+type StationAvailability {
+  totalPoints: Int!
+  availableNowPoints: Int!
+  operationalPoints: Int!
+}
+
+enum DimensionlessRatioUnit
+  @reference(uri: "http://qudt.org/vocab/quantitykind/DimensionlessRatio") {
+  """
+  Fraction | UCUM: {fraction}
+  """
+  FRACTION @reference(uri: "http://qudt.org/vocab/unit/FRACTION")
+
+  """
+  Grade
+  """
+  GR @reference(uri: "http://qudt.org/vocab/unit/GR")
+
+  """
+  Number | UCUM: {#}
+  """
+  NUM @reference(uri: "http://qudt.org/vocab/unit/NUM")
+
+  """
+  One per One
+  """
+  ONE_PER_ONE @reference(uri: "http://qudt.org/vocab/unit/ONE-PER-ONE")
+
+  """
+  Percent | UCUM: %
+  """
+  PERCENT @reference(uri: "http://qudt.org/vocab/unit/PERCENT")
+
+  """
+  Permille
+  """
+  PERMILLE @reference(uri: "http://qudt.org/vocab/unit/PERMILLE")
+
+  """
+  Relative Permittivity | UCUM: [eps_0]
+  """
+  PERMITTIVITY_REL
+    @reference(uri: "http://qudt.org/vocab/unit/PERMITTIVITY_REL")
+
+  """
+  Parts per Billion | UCUM: [ppb]
+  """
+  PPB @reference(uri: "http://qudt.org/vocab/unit/PPB")
+
+  """
+  Parts per Million | UCUM: [ppm]
+  """
+  PPM @reference(uri: "http://qudt.org/vocab/unit/PPM")
+
+  """
+  Part per Quadrillion | UCUM: [ppq]
+  """
+  PPQ @reference(uri: "http://qudt.org/vocab/unit/PPQ")
+
+  """
+  Part per Trillion | UCUM: [ppt]
+  """
+  PPT @reference(uri: "http://qudt.org/vocab/unit/PPT")
+
+  """
+  Parts per Thousand | UCUM: [ppth]
+  """
+  PPTH @reference(uri: "http://qudt.org/vocab/unit/PPTH")
+
+  """
+  Parts per Ten Million
+  """
+  PPTM @reference(uri: "http://qudt.org/vocab/unit/PPTM")
+
+  """
+  Practical Salinity Unit
+  """
+  PSU @reference(uri: "http://qudt.org/vocab/unit/PSU")
+
+  """
+  Unitless
+  """
+  UNITLESS @reference(uri: "http://qudt.org/vocab/unit/UNITLESS")
+}
+
+enum EnergyUnit @reference(uri: "http://qudt.org/vocab/quantitykind/Energy") {
+  """
+  Attojoule | UCUM: aJ
+  """
+  ATTOJ @reference(uri: "http://qudt.org/vocab/unit/AttoJ")
+
+  """
+  British Thermal Unit (international Definition) | UCUM: [Btu_IT]
+  """
+  BTU_IT @reference(uri: "http://qudt.org/vocab/unit/BTU_IT")
+
+  """
+  British Thermal Unit (thermochemical Definition) | UCUM: [Btu_th]
+  """
+  BTU_TH @reference(uri: "http://qudt.org/vocab/unit/BTU_TH")
+
+  """
+  International Table Calorie | UCUM: cal_IT
+  """
+  CAL_IT @reference(uri: "http://qudt.org/vocab/unit/CAL_IT")
+
+  """
+  Thermochemical Calorie | UCUM: cal_th
+  """
+  CAL_TH @reference(uri: "http://qudt.org/vocab/unit/CAL_TH")
+
+  """
+  Erg | UCUM: erg
+  """
+  ERG @reference(uri: "http://qudt.org/vocab/unit/ERG")
+
+  """
+  Electron Volt | UCUM: eV
+  """
+  EV @reference(uri: "http://qudt.org/vocab/unit/EV")
+
+  """
+  Exajoule | UCUM: EJ
+  """
+  EXAJ @reference(uri: "http://qudt.org/vocab/unit/ExaJ")
+
+  """
+  Hartree
+  """
+  E_H @reference(uri: "http://qudt.org/vocab/unit/E_h")
+
+  """
+  Femtojoule | UCUM: fJ
+  """
+  FEMTOJ @reference(uri: "http://qudt.org/vocab/unit/FemtoJ")
+
+  """
+  Foot Pound Force | UCUM: [ft_i].[lbf_av]
+  """
+  FT_LB_F @reference(uri: "http://qudt.org/vocab/unit/FT-LB_F")
+
+  """
+  Foot Poundal | UCUM: [ft_i].[lb_av].[ft_i].s-2
+  """
+  FT_PDL @reference(uri: "http://qudt.org/vocab/unit/FT-PDL")
+
+  """
+  Giga Electron Volt | UCUM: GeV
+  """
+  GIGAEV @reference(uri: "http://qudt.org/vocab/unit/GigaEV")
+
+  """
+  Gigajoule | UCUM: GJ
+  """
+  GIGAJ @reference(uri: "http://qudt.org/vocab/unit/GigaJ")
+
+  """
+  Gigawatt Hour | UCUM: GW.h
+  """
+  GIGAW_HR @reference(uri: "http://qudt.org/vocab/unit/GigaW-HR")
+
+  """
+  Joule | UCUM: J
+  """
+  J @reference(uri: "http://qudt.org/vocab/unit/J")
+
+  """
+  Kilo British Thermal Unit (international Definition) | UCUM: k[Btu_IT]
+  """
+  KILOBTU_IT @reference(uri: "http://qudt.org/vocab/unit/KiloBTU_IT")
+
+  """
+  Kilo British Thermal Unit (thermochemical Definition) | UCUM: k[Btu_th]
+  """
+  KILOBTU_TH @reference(uri: "http://qudt.org/vocab/unit/KiloBTU_TH")
+
+  """
+  Kilocalorie | UCUM: kcal
+  """
+  KILOCAL @reference(uri: "http://qudt.org/vocab/unit/KiloCAL")
+
+  """
+  Kilo Electron Volt | UCUM: keV
+  """
+  KILOEV @reference(uri: "http://qudt.org/vocab/unit/KiloEV")
+
+  """
+  Kilojoule | UCUM: kJ
+  """
+  KILOJ @reference(uri: "http://qudt.org/vocab/unit/KiloJ")
+
+  """
+  Kilo Volt Ampere Hour | UCUM: kVA.h
+  """
+  KILOVA_HR @reference(uri: "http://qudt.org/vocab/unit/KiloVA-HR")
+
+  """
+  Kilowatt Hour | UCUM: kW.h
+  """
+  KILOW_HR @reference(uri: "http://qudt.org/vocab/unit/KiloW-HR")
+
+  """
+  Mega British Thermal Unit (international Definition) | UCUM: M[Btu_IT]
+  """
+  MEGABTU_IT @reference(uri: "http://qudt.org/vocab/unit/MegaBTU_IT")
+
+  """
+  Mega Electron Volt | UCUM: MeV
+  """
+  MEGAEV @reference(uri: "http://qudt.org/vocab/unit/MegaEV")
+
+  """
+  Megajoule | UCUM: MJ
+  """
+  MEGAJ @reference(uri: "http://qudt.org/vocab/unit/MegaJ")
+
+  """
+  Mega Ton of Oil Equivalent
+  """
+  MEGATOE @reference(uri: "http://qudt.org/vocab/unit/MegaTOE")
+
+  """
+  Mega Volt Ampere Hour | UCUM: MVA.h
+  """
+  MEGAVA_HR @reference(uri: "http://qudt.org/vocab/unit/MegaVA-HR")
+
+  """
+  Megawatt Hour | UCUM: MW.h
+  """
+  MEGAW_HR @reference(uri: "http://qudt.org/vocab/unit/MegaW-HR")
+
+  """
+  Micro Joule | UCUM: uJ
+  """
+  MICROJ @reference(uri: "http://qudt.org/vocab/unit/MicroJ")
+
+  """
+  Millijoule | UCUM: mJ
+  """
+  MILLIJ @reference(uri: "http://qudt.org/vocab/unit/MilliJ")
+
+  """
+  Nanojoule | UCUM: nJ
+  """
+  NANOJ @reference(uri: "http://qudt.org/vocab/unit/NanoJ")
+
+  """
+  Petajoule | UCUM: PJ
+  """
+  PETAJ @reference(uri: "http://qudt.org/vocab/unit/PetaJ")
+
+  """
+  Picojoule | UCUM: pJ
+  """
+  PICOJ @reference(uri: "http://qudt.org/vocab/unit/PicoJ")
+
+  """
+  Planck Energy
+  """
+  PLANCKENERGY @reference(uri: "http://qudt.org/vocab/unit/PlanckEnergy")
+
+  """
+  Quad
+  """
+  QUAD @reference(uri: "http://qudt.org/vocab/unit/QUAD")
+
+  """
+  Terajoule | UCUM: TJ
+  """
+  TERAJ @reference(uri: "http://qudt.org/vocab/unit/TeraJ")
+
+  """
+  Terawatt Hour | UCUM: TW.h
+  """
+  TERAW_HR @reference(uri: "http://qudt.org/vocab/unit/TeraW-HR")
+
+  """
+  Therm (ec)
+  """
+  THERM_EC @reference(uri: "http://qudt.org/vocab/unit/THERM_EC")
+
+  """
+  Therm (u.s.)
+  """
+  THERM_US @reference(uri: "http://qudt.org/vocab/unit/THERM_US")
+
+  """
+  Thm_eec | UCUM: 100000.[Btu_IT]
+  """
+  THM_EEC @reference(uri: "http://qudt.org/vocab/unit/THM_EEC")
+
+  """
+  Therm Us | UCUM: 100000.[Btu_59]
+  """
+  THM_US @reference(uri: "http://qudt.org/vocab/unit/THM_US")
+
+  """
+  Ton of Oil Equivalent
+  """
+  TOE @reference(uri: "http://qudt.org/vocab/unit/TOE")
+
+  """
+  Ton Energy | UCUM: Gcal
+  """
+  TONENERGY @reference(uri: "http://qudt.org/vocab/unit/TonEnergy")
+
+  """
+  Volt Ampere Hour | UCUM: VA.h
+  """
+  VA_HR @reference(uri: "http://qudt.org/vocab/unit/VA-HR")
+
+  """
+  Watt Hour | UCUM: W.h
+  """
+  W_HR @reference(uri: "http://qudt.org/vocab/unit/W-HR")
+
+  """
+  Watt Second | UCUM: W.s
+  """
+  W_SEC @reference(uri: "http://qudt.org/vocab/unit/W-SEC")
+}
+
+type Vehicle {
+  id: ID!
+  vin: String!
+  make: String!
+  model: String!
+  year: Int! @range(min: 1886)
+  batteryCapacityKwh(unit: EnergyUnit = KILOW_HR): Float!
+  maxChargePowerKw(unit: ElectricPowerUnit = KILOW): Float!
+  connectorTypes: [ConnectorType!]!
+}
+
+enum GeoPointShape {
+  POINT
+  MULTIPOINT
+  LINESTRING
+  MULTILINESTRING
+  POLYGON
+  MULTIPOLYGON
+}
+
+enum ElectricPowerUnit
+  @reference(uri: "http://qudt.org/vocab/quantitykind/ElectricPower") {
+  """
+  Exawatt | UCUM: EW
+  """
+  EXAW @reference(uri: "http://qudt.org/vocab/unit/ExaW")
+
+  """
+  Gigawatt | UCUM: GW
+  """
+  GIGAW @reference(uri: "http://qudt.org/vocab/unit/GigaW")
+
+  """
+  Kilowatt | UCUM: kW
+  """
+  KILOW @reference(uri: "http://qudt.org/vocab/unit/KiloW")
+
+  """
+  Megawatt | UCUM: MW
+  """
+  MEGAW @reference(uri: "http://qudt.org/vocab/unit/MegaW")
+
+  """
+  Microwatt | UCUM: uW
+  """
+  MICROW @reference(uri: "http://qudt.org/vocab/unit/MicroW")
+
+  """
+  Milliwatt | UCUM: mW
+  """
+  MILLIW @reference(uri: "http://qudt.org/vocab/unit/MilliW")
+
+  """
+  Nanowatt | UCUM: nW
+  """
+  NANOW @reference(uri: "http://qudt.org/vocab/unit/NanoW")
+
+  """
+  Petawatt | UCUM: PW
+  """
+  PETAW @reference(uri: "http://qudt.org/vocab/unit/PetaW")
+
+  """
+  Picowatt | UCUM: pW
+  """
+  PICOW @reference(uri: "http://qudt.org/vocab/unit/PicoW")
+
+  """
+  Terajoule per Second | UCUM: TJ.s-1
+  """
+  TERAJ_PER_SEC @reference(uri: "http://qudt.org/vocab/unit/TeraJ-PER-SEC")
+
+  """
+  Terawatt | UCUM: TW
+  """
+  TERAW @reference(uri: "http://qudt.org/vocab/unit/TeraW")
+
+  """
+  Watt | UCUM: W
+  """
+  W @reference(uri: "http://qudt.org/vocab/unit/W")
 }
 
 type ChargingPointInfo {
@@ -35,27 +441,13 @@ type ChargingSession {
   updatedAt: String!
 }
 
-type ChargingStation {
-  id: ID!
-  name: String!
-  operator: String!
-  stationCode: String!
-  location: GeoPoint!
-  address: Address
-  availability: StationAvailability!
-  chargingPoints: [ChargingPointInfo!]!
-}
-
-type ConnectorInfo {
-  type: ConnectorType!
-  powerKw: Float!
-  tethered: Boolean
-}
-
-type GeoPoint {
-  lat: Float!
-  lng: Float!
-}
+"""
+A GeoJSON object as defined by RFC 7946.
+"""
+scalar GeoJSON
+  @specifiedBy(
+    url: "https://the-guild.dev/graphql/scalars/docs/scalars/geo-json"
+  )
 
 type SessionBooking {
   bookedAt: String!
@@ -68,23 +460,6 @@ type SessionConnectorUsed {
   type: ConnectorType
   power: Float
   tethered: Boolean
-}
-
-type StationAvailability {
-  totalPoints: Int!
-  availableNowPoints: Int!
-  operationalPoints: Int!
-}
-
-type Vehicle {
-  id: ID!
-  vin: String!
-  make: String!
-  model: String!
-  year: Int!
-  batteryCapacityKwh: Float!
-  maxChargePowerKw: Float!
-  connectorTypes: [ConnectorType!]!
 }
 
 enum SessionStatus {
@@ -123,4 +498,32 @@ enum IncidentType {
   CONNECTOR_FAULT
   POWER_DERATE
   MAINTENANCE
+}
+
+type Address {
+  street: String
+  city: String
+  postalCode: String
+  country: String
+}
+
+type ChargingDetails {
+  startedAt: String
+  endedAt: String
+  connectorUsed: SessionConnectorUsed
+  meterStartKwh(unit: EnergyUnit = KILOW_HR): Float
+  meterStopKwh(unit: EnergyUnit = KILOW_HR): Float
+  energyDeliveredKwh(unit: EnergyUnit = KILOW_HR): Float
+  socStartPercent(unit: DimensionlessRatioUnit = PERCENT): Float
+  socStopPercent(unit: DimensionlessRatioUnit = PERCENT): Float
+}
+
+type ConnectorInfo {
+  type: ConnectorType!
+  powerKw(unit: ElectricPowerUnit = KILOW): Float!
+  tethered: Boolean
+}
+
+type Query {
+  ping: String
 }

@@ -1,6 +1,6 @@
 type StationCluster {
   id: ID!
-  location: GeoPoint!
+  location: GeoJSON! @geoPoint(shape: POINT)
   count: Int!
 }
 

@@ -1,4 +1,4 @@
-export type VersionKey = "v3" | "v4" | "v5";
+export type VersionKey = "v3" | "v4" | "v5" | "v6";
 
 export type EvolutionVersion = {
   key: VersionKey;
@@ -231,6 +231,71 @@ enum PowerUnit @reference(uri: "http://qudt.org/vocab/quantitykind/Power") {
     ],
     highlightsAdded: ["PowerUnit (QUDT)", "@reference on fields", "vocabulary URIs"],
     highlightsDeprecated: []
+  },
+  {
+    key: "v6",
+    label: "v6",
+    title: "Unit-aware API contract",
+    tagline: "Canonical storage, with units selected explicitly at the API edge.",
+    appGraphql: `directive @range(min: Float, max: Float) on FIELD_DEFINITION
+
+type Vehicle {
+  id: ID!
+  year: Int! @range(min: 1886)
+  batteryCapacityKwh(unit: EnergyUnit = KILOW_HR): Float!
+  maxChargePowerKw(unit: ElectricPowerUnit = KILOW): Float!
+}
+
+type ChargingDetails {
+  meterStartKwh(unit: EnergyUnit = KILOW_HR): Float
+  meterStopKwh(unit: EnergyUnit = KILOW_HR): Float
+  energyDeliveredKwh(unit: EnergyUnit = KILOW_HR): Float
+  socStartPercent(unit: DimensionlessRatioUnit = PERCENT): Float
+  socStopPercent(unit: DimensionlessRatioUnit = PERCENT): Float
+}
+
+type ConnectorInfo {
+  type: ConnectorType!
+  powerKw(unit: ElectricPowerUnit = KILOW): Float!
+  tethered: Boolean
+}
+
+# EnergyUnit, ElectricPowerUnit and DimensionlessRatioUnit
+# are composed from the referenced QUDT vocabulary.`,
+    appNarrative: [
+      "Unit enums move from descriptive vocabulary to field arguments with defaults matching the existing kWh, kW and percent contract.",
+      "Existing clients omit the new arguments and keep receiving canonical values; supporting other units requires conversion at the resolver boundary.",
+      "The legacy GeoPoint type is removed. Governed and app-specific locations now use the same GeoJSON Point representation."
+    ],
+    dbJsonSchema: `{
+  "bsonType": "object",
+  "properties": {
+    "year": {
+      "bsonType": "int",
+      "minimum": 1886
+    },
+    "batteryCapacityKwh": {
+      "bsonType": "double",
+      "description": "Canonical storage unit: kWh"
+    },
+    "maxChargePowerKw": {
+      "bsonType": "double",
+      "description": "Canonical storage unit: kW"
+    }
+  }
+}`,
+    dbNarrative: [
+      "No unit discriminator is added to stored documents: existing values remain in canonical kWh, kW and percent units.",
+      "Charging-station and session-snapshot locations already use RFC 7946 GeoJSON Points, so no location backfill is required.",
+      "The year minimum can be introduced as a warning first, then enforced after existing documents have been checked."
+    ],
+    highlightsAdded: [
+      "EnergyUnit field arguments",
+      "ElectricPowerUnit field arguments",
+      "DimensionlessRatioUnit field arguments",
+      "@range(min: 1886)"
+    ],
+    highlightsDeprecated: ["GeoPoint removed"]
   }
 ];
 
