@@ -1,4 +1,5 @@
 import { GraphQLError } from "graphql";
+import { GeoJSONResolver } from "graphql-scalars";
 import type { GraphQLContext } from "../../server/context";
 import type { ConnectorType } from "../../types/connectorType";
 import { findVehiclesByUserId } from "../../db/repositories/vehicles";
@@ -37,8 +38,10 @@ import { getAdminDashboard } from "../../modules/adminDashboard/service";
 
 
 export const resolvers = {
+  GeoJSON: GeoJSONResolver,
   Query: {
-// Users are now handled client-side via guest identity.
+    ping: () => "pong",
+    // Users are now handled client-side via guest identity.
     // The users query is deprecated and will return an empty list.
     users: async () => {
       return [];

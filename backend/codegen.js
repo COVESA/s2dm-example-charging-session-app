@@ -7,7 +7,14 @@ module.exports = {
     "./src/generated/graphql.ts": {
       plugins: ["typescript", "typescript-resolvers"],
       config: {
-        contextType: "../server/context#GraphQLContext"
+        contextType: "../server/context#GraphQLContext",
+        strictScalars: true,
+        scalars: {
+          GeoJSON: {
+            input: "unknown",
+            output: "unknown"
+          }
+        }
       }
     }
   }

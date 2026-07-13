@@ -1,6 +1,6 @@
 type StationSnapshot {
   name: String!
-  location: GeoPoint!
+  location: GeoJSON! @geoPoint(shape: POINT)
   addressShort: String!
   chargingPointLabel: String!
 }

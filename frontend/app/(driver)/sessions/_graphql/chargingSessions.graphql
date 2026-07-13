@@ -18,10 +18,7 @@ query ChargingSessions(
       chargingPointId
       stationSnapshot {
         name
-        location {
-          lat
-          lng
-        }
+        location
         addressShort
         chargingPointLabel
       }

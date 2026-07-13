@@ -1,4 +1,4 @@
-type Query {
+extend type Query {
   users: [User!]!
   vehicles(userId: ID!): [Vehicle!]!
   adminDashboard: AdminDashboard!

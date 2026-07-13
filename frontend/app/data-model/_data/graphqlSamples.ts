@@ -34,7 +34,7 @@ export const SOURCE_MODULES: SourceModule[] = [
     path: "source/connector-info.graphql",
     body: `type ConnectorInfo {
   type: ConnectorType!
-  powerKw: Float!
+  powerKw(unit: ElectricPowerUnit = KILOW): Float!
   tethered: Boolean
 }`
   },
@@ -52,6 +52,8 @@ export const SOURCE_MODULES: SourceModule[] = [
 ];
 
 export const COMPOSED_PREVIEW = `directive @geoPoint(shape: GeoPointShape!) on FIELD_DEFINITION
+directive @reference(uri: String!) on FIELD_DEFINITION | OBJECT | ENUM | ENUM_VALUE | SCALAR
+directive @range(min: Float, max: Float) on FIELD_DEFINITION
 
 """A GeoJSON object as defined by RFC 7946."""
 scalar GeoJSON @specifiedBy(url: "https://the-guild.dev/graphql/scalars/docs/scalars/geo-json")
@@ -76,11 +78,12 @@ type ChargingPointInfo {
 
 type ConnectorInfo {
   type: ConnectorType!
-  powerKw: Float!
+  powerKw(unit: ElectricPowerUnit = KILOW): Float!
   tethered: Boolean
 }
 
 enum ConnectorType { CCS CHAdeMO SCHUKO TYPE1 TYPE2 }
+enum ElectricPowerUnit { W KILOW MEGAW }
 
 # ... plus Address, StationAvailability, Vehicle, ChargingSession, ...`;
 

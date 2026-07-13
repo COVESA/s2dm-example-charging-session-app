@@ -10,10 +10,7 @@ query ChargingStationsInBounds(
       name
       operator
       stationCode
-      location {
-        lat
-        lng
-      }
+      location
       address {
         street
         city
@@ -43,10 +40,7 @@ query ChargingStationsInBounds(
     ... on StationCluster {
       __typename
       id
-      location {
-        lat
-        lng
-      }
+      location
       count
     }
   }

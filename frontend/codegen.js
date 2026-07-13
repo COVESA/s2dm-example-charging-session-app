@@ -11,7 +11,16 @@ module.exports = {
   generates: {
     "./src/graphql/generated/": {
       preset: "client",
-      plugins: []
+      plugins: [],
+      config: {
+        strictScalars: true,
+        scalars: {
+          GeoJSON: {
+            input: "unknown",
+            output: "unknown"
+          }
+        }
+      }
     }
   }
 };

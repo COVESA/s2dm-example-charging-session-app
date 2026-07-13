@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import type { ChargingSessionsQuery } from "@/graphql/generated/graphql";
 import { IncidentSeverity } from "@/graphql/generated/graphql";
+import { geoJsonPointToLatLng } from "@/graphql/geoJson";
 import { useSessionFeedback } from "@/hooks/useSessionFeedback";
 import {
   RatingStars,
@@ -589,6 +590,7 @@ export function SessionDetail({
   const liveDuration = useLiveDuration(session.charging.startedAt, isActive);
 
   const vehicleLabel = `${session.vehicleSnapshot.make} ${session.vehicleSnapshot.model}`;
+  const stationLocation = geoJsonPointToLatLng(session.stationSnapshot.location);
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm 3xl:gap-9 3xl:p-8">
@@ -612,8 +614,8 @@ export function SessionDetail({
       <div className="flex h-50 shrink-0 gap-4 2xl:h-auto 2xl:min-h-0 2xl:flex-1 2xl:basis-55">
         <div className="w-1/2 shrink-0 overflow-hidden rounded-xl">
           <SessionMiniMap
-            lat={session.stationSnapshot.location.lat}
-            lng={session.stationSnapshot.location.lng}
+            lat={stationLocation.lat}
+            lng={stationLocation.lng}
             sessionId={session.id}
           />
         </div>
