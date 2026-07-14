@@ -170,6 +170,11 @@ numeric narrowing. The bundled seed contains legacy and current fixtures, and
 backend startup idempotently installs the validator and canonical view on both
 new and existing databases.
 
+The repository includes the
+[executable MQL pipeline](docs/data-model/evolution/charging-sessions-v6-to-v7.pipeline.json)
+and sample [v6](docs/data-model/evolution/samples/charging-session-v6.json) and
+[v7](docs/data-model/evolution/samples/charging-session-v7.json) payloads.
+
 Run the compatibility acceptance checks from the repository root:
 
 ```bash

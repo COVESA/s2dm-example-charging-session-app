@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 7,
+  "charging": {
+    "meterStart": 20851100,
+    "meterStop": 20874200,
+    "energyDeliveredKwh": 23.1,
+    "socStartPercent": 31,
+    "socStopPercent": 76
+  }
+}

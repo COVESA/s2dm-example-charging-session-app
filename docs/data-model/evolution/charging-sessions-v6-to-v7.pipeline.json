@@ -1,0 +1,73 @@
+[
+  {
+    "$set": {
+      "schemaVersion": 7,
+      "charging": {
+        "$cond": [
+          {
+            "$eq": [
+              {
+                "$ifNull": ["$schemaVersion", 6]
+              },
+              7
+            ]
+          },
+          "$charging",
+          {
+            "startedAt": "$charging.startedAt",
+            "endedAt": "$charging.endedAt",
+            "connectorUsed": "$charging.connectorUsed",
+            "meterStart": {
+              "$cond": [
+                {
+                  "$isNumber": "$charging.meterStartKwh"
+                },
+                {
+                  "$multiply": ["$charging.meterStartKwh", 1000]
+                },
+                null
+              ]
+            },
+            "meterStop": {
+              "$cond": [
+                {
+                  "$isNumber": "$charging.meterStopKwh"
+                },
+                {
+                  "$multiply": ["$charging.meterStopKwh", 1000]
+                },
+                null
+              ]
+            },
+            "energyDeliveredKwh": "$charging.energyDeliveredKwh",
+            "socStartPercent": {
+              "$cond": [
+                {
+                  "$isNumber": "$charging.socStartPercent"
+                },
+                {
+                  "$round": ["$charging.socStartPercent", 0]
+                },
+                null
+              ]
+            },
+            "socStopPercent": {
+              "$cond": [
+                {
+                  "$isNumber": "$charging.socStopPercent"
+                },
+                {
+                  "$round": ["$charging.socStopPercent", 0]
+                },
+                null
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "$unset": ["charging.meterStartKwh", "charging.meterStopKwh"]
+  }
+]

@@ -694,7 +694,11 @@ same pattern can support other governed model changes by replacing the
 version-specific validator branches and projection stages.
 
 Backend startup installs or updates the validator and view after seed restoration,
-so clean and existing databases converge on the same setup. Run the executable
+so clean and existing databases converge on the same setup. The standalone
+artifacts are the
+[executable MQL pipeline](evolution/charging-sessions-v6-to-v7.pipeline.json)
+and the sample [v6](evolution/samples/charging-session-v6.json) and
+[v7](evolution/samples/charging-session-v7.json) payloads. Run the executable
 checks with:
 
 ```bash

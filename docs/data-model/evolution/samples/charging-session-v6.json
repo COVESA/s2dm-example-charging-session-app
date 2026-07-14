@@ -1,0 +1,9 @@
+{
+  "charging": {
+    "meterStartKwh": 10421.31,
+    "meterStopKwh": 10440.03,
+    "energyDeliveredKwh": 18.72,
+    "socStartPercent": 19.6,
+    "socStopPercent": 80.2
+  }
+}
