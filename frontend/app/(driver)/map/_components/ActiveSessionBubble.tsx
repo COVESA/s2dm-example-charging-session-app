@@ -152,8 +152,8 @@ export function ActiveSessionBubble({ session, onClick }: ActiveSessionBubblePro
 
   const energyKwh =
     session.charging.energyDeliveredKwh ??
-    (session.charging.meterStopKwh != null && session.charging.meterStartKwh != null
-      ? Math.max(0, session.charging.meterStopKwh - session.charging.meterStartKwh)
+    (session.charging.meterStop != null && session.charging.meterStart != null
+      ? Math.max(0, session.charging.meterStop - session.charging.meterStart) / 1000
       : null);
   const energyDisplay = energyKwh != null ? `${energyKwh.toFixed(1)} kWh` : "0.0 kWh";
 

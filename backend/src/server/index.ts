@@ -13,6 +13,7 @@ import cors from "cors";
 import express from "express";
 
 import { ensureDatabaseSeeded } from "../db/bootstrap";
+import { ensureChargingSessionEvolutionArtifacts } from "../db/schemaEvolution";
 import { connectMongo } from "../db/mongo";
 import { resolvers } from "../graphql/resolvers/index";
 import { createGraphQLContext } from "./context";
@@ -57,6 +58,7 @@ const startServer = async (): Promise<void> => {
 
   const mongodbUri = process.env.MONGODB_URI ?? "mongodb://localhost:27017/?directConnection=true";
   await ensureDatabaseSeeded(db, mongodbUri);
+  await ensureChargingSessionEvolutionArtifacts(db);
 
   // Safety net: ensure the geo index exists even if the database was populated
   // through a different path than the bundled seed dump. No-op if already present.

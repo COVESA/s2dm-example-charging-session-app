@@ -511,11 +511,11 @@ type ChargingDetails {
   startedAt: String
   endedAt: String
   connectorUsed: SessionConnectorUsed
-  meterStartKwh(unit: EnergyUnit = KILOW_HR): Float
-  meterStopKwh(unit: EnergyUnit = KILOW_HR): Float
+  meterStart(unit: EnergyUnit = W_HR): Float
+  meterStop(unit: EnergyUnit = W_HR): Float
   energyDeliveredKwh(unit: EnergyUnit = KILOW_HR): Float
-  socStartPercent(unit: DimensionlessRatioUnit = PERCENT): Float
-  socStopPercent(unit: DimensionlessRatioUnit = PERCENT): Float
+  socStartPercent(unit: DimensionlessRatioUnit = PERCENT): Int
+  socStopPercent(unit: DimensionlessRatioUnit = PERCENT): Int
 }
 
 type ConnectorInfo {

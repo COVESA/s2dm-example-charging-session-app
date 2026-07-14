@@ -1,4 +1,6 @@
-export type VersionKey = "v3" | "v4" | "v5" | "v6";
+import { CHARGING_SESSION_VALIDATORS } from "./chargingSessionEvolution";
+
+export type VersionKey = "v3" | "v4" | "v5" | "v6" | "v7";
 
 export type EvolutionVersion = {
   key: VersionKey;
@@ -8,6 +10,7 @@ export type EvolutionVersion = {
   appGraphql: string;
   appNarrative: string[];
   dbJsonSchema: string;
+  dbFilename: string;
   dbNarrative: string[];
   highlightsAdded: string[];
   highlightsDeprecated: string[];
@@ -70,6 +73,7 @@ type ConnectorInfo {
     }
   }
 }`,
+    dbFilename: "chargingStations.json",
     dbNarrative: [
       "Validator starts permissive: additionalProperties allowed so we can grow without breaking writes.",
       "Applied at validationLevel: moderate + validationAction: warn while data is still shifting."
@@ -151,6 +155,7 @@ type GeoPoint {
     "chargingPoints": { "bsonType": "array" }
   }
 }`,
+    dbFilename: "chargingStations.json",
     dbNarrative: [
       "New required fields added at the validator level. Raise them in two steps so existing docs aren\u2019t rejected mid-rollout.",
       "Step 1 \u2014 add fields as optional, start writing v4 docs. Step 2 \u2014 backfill v3 docs, then add the new names to required.",
@@ -224,6 +229,7 @@ enum PowerUnit @reference(uri: "http://qudt.org/vocab/quantitykind/Power") {
     }
   }
 }`,
+    dbFilename: "chargingStations.json",
     dbNarrative: [
       "Storage stays lean: we don\u2019t materialise thousands of unit enums in Mongo.",
       "Descriptions on the validator carry the reference URIs so operators can see the authoritative units.",
@@ -267,27 +273,12 @@ type ConnectorInfo {
       "Existing clients omit the new arguments and keep receiving canonical values; supporting other units requires conversion at the resolver boundary.",
       "The legacy GeoPoint type is removed. Governed and app-specific locations now use the same GeoJSON Point representation."
     ],
-    dbJsonSchema: `{
-  "bsonType": "object",
-  "properties": {
-    "year": {
-      "bsonType": "int",
-      "minimum": 1886
-    },
-    "batteryCapacityKwh": {
-      "bsonType": "double",
-      "description": "Canonical storage unit: kWh"
-    },
-    "maxChargePowerKw": {
-      "bsonType": "double",
-      "description": "Canonical storage unit: kW"
-    }
-  }
-}`,
+    dbJsonSchema: CHARGING_SESSION_VALIDATORS.v6,
+    dbFilename: "chargingSessions.v6.json",
     dbNarrative: [
-      "No unit discriminator is added to stored documents: existing values remain in canonical kWh, kW and percent units.",
-      "Charging-station and session-snapshot locations already use RFC 7946 GeoJSON Points, so no location backfill is required.",
-      "The year minimum can be introduced as a warning first, then enforced after existing documents have been checked."
+      "The full v6 validator preserves meterStartKwh and meterStopKwh as nullable doubles stored in kWh.",
+      "State of charge remains a nullable double, so fractional percentages are accepted.",
+      "Snapshots, booking, pricing, cost, feedback, timestamps, and all top-level references are represented instead of being elided."
     ],
     highlightsAdded: [
       "EnergyUnit field arguments",
@@ -296,6 +287,46 @@ type ConnectorInfo {
       "@range(min: 1886)"
     ],
     highlightsDeprecated: ["GeoPoint removed"]
+  },
+  {
+    key: "v7",
+    label: "v7",
+    title: "Ledger-backed contract adaptation",
+    tagline: "Stable concepts make renames, unit changes, and narrowing explicit.",
+    appGraphql: `type ChargingDetails {
+  startedAt: String
+  endedAt: String
+  connectorUsed: SessionConnectorUsed
+
+  # Same meter concepts, renamed and now exposed in Wh by default.
+  meterStart(unit: EnergyUnit = W_HR): Float
+  meterStop(unit: EnergyUnit = W_HR): Float
+
+  energyDeliveredKwh(unit: EnergyUnit = KILOW_HR): Float
+
+  # A narrowing contract change: fractional percentages need a policy.
+  socStartPercent(unit: DimensionlessRatioUnit = PERCENT): Int
+  socStopPercent(unit: DimensionlessRatioUnit = PERCENT): Int
+}`,
+    appNarrative: [
+      "meterStartKwh and meterStopKwh keep their stable ModL concept identities while their contract names and default units change.",
+      "The meter transformation is deterministic: rename and scale kWh to Wh. ModL classifies it as lossless.",
+      "State of charge narrows from Float to Int. ModL marks this policy-required and potentially lossy instead of silently coercing it."
+    ],
+    dbJsonSchema: CHARGING_SESSION_VALIDATORS.v7,
+    dbFilename: "chargingSessions.v7.json",
+    dbNarrative: [
+      "The complete v7 validator accepts meterStart and meterStop in canonical Wh and rejects the removed Kwh-suffixed fields.",
+      "State-of-charge fields are bounded integer percentages from 0 through 100.",
+      "The adapted payload is accepted only after the generated rename, scale, and rounding steps have run."
+    ],
+    highlightsAdded: [
+      "meterStart (Wh)",
+      "meterStop (Wh)",
+      "SOC integer bounds",
+      "ModL adaptation report"
+    ],
+    highlightsDeprecated: ["meterStartKwh", "meterStopKwh", "SOC Float contract"]
   }
 ];
 

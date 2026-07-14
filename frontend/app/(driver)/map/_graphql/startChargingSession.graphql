@@ -17,8 +17,8 @@ mutation StartChargingSession($input: StartChargingSessionInput!) {
           power
           tethered
         }
-        meterStartKwh
-        meterStopKwh
+        meterStart
+        meterStop
         energyDeliveredKwh
         socStartPercent
         socStopPercent

@@ -14,4 +14,5 @@ extend type Query {
     cursor: String
     fromDate: String
   ): SessionConnection!
+  modelEvolutionValidation: ModelEvolutionValidation!
 }

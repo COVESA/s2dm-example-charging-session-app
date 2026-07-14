@@ -101,55 +101,156 @@ export const VALIDATION_EXAMPLES: Record<CollectionKey, ValidationCase[]> = {
   ],
   chargingSessions: [
     {
-      label: "Valid document",
+      label: "Valid v7 canonical document",
+      valid: true,
+      document: `{
+  "schemaVersion": 7,
+  "userId": "aaaaaaaa...",
+  "vehicleId": "bbbbbbbb...",
+  "stationId": "cccccccc...",
+  "chargingPointId": "dddddddd...",
+  "stationSnapshot": {
+    "name": "Alexanderplatz Hub",
+    "location": { "type": "Point", "coordinates": [13.4132, 52.5219] },
+    "addressShort": "Alexanderplatz 1, Berlin",
+    "chargingPointLabel": "Bay 2"
+  },
+  "vehicleSnapshot": {
+    "vinLast6": "123456",
+    "make": "BMW",
+    "model": "i5"
+  },
+  "status": "COMPLETED",
+  "booking": {
+    "bookedAt": "2026-04-12T09:00:00Z",
+    "expiresAt": "2026-04-12T09:30:00Z",
+    "canceledAt": null,
+    "cancelReason": null
+  },
+  "charging": {
+    "startedAt": "2026-04-12T09:05:00Z",
+    "endedAt": "2026-04-12T09:42:00Z",
+    "connectorUsed": { "type": "CCS", "power": 150.0, "tethered": true },
+    "meterStart": 10421310.0,
+    "meterStop": 10440030.0,
+    "energyDeliveredKwh": 18.4,
+    "socStartPercent": 22,
+    "socStopPercent": 67
+  },
+  "pricingSnapshot": {
+    "currency": "EUR",
+    "priceCentsPerKwh": 55,
+    "idleFee": { "priceCentsPerMinute": 20, "afterMinutes": 5 }
+  },
+  "cost": { "totalCents": 1012, "energyCents": 1012, "idleCents": 0 },
+  "createdAt": "2026-04-12T09:00:00Z",
+  "updatedAt": "2026-04-12T09:42:00Z"
+}`,
+      explanation:
+        "This is the canonical v7 shape: meter readings are stored in Wh, state of charge is an integer percentage, and every required snapshot and billing object is present."
+    },
+    {
+      label: "Valid legacy v6 document (version absent)",
       valid: true,
       document: `{
   "userId": "aaaaaaaa...",
   "vehicleId": "bbbbbbbb...",
   "stationId": "cccccccc...",
   "chargingPointId": "dddddddd...",
-  "status": "ACTIVE",
+  "stationSnapshot": {
+    "name": "Alexanderplatz Hub",
+    "location": { "type": "Point", "coordinates": [13.4132, 52.5219] },
+    "addressShort": "Alexanderplatz 1, Berlin",
+    "chargingPointLabel": "Bay 2"
+  },
+  "vehicleSnapshot": {
+    "vinLast6": "123456",
+    "make": "BMW",
+    "model": "i5"
+  },
+  "status": "COMPLETED",
   "booking": {
     "bookedAt": "2026-04-12T09:00:00Z",
-    "expiresAt": "2026-04-12T09:30:00Z"
+    "expiresAt": "2026-04-12T09:30:00Z",
+    "canceledAt": null,
+    "cancelReason": null
   },
   "charging": {
     "startedAt": "2026-04-12T09:05:00Z",
-    "energyDeliveredKwh": 18.4,
-    "socStartPercent": 22.0,
-    "socStopPercent": null
+    "endedAt": "2026-04-12T09:42:00Z",
+    "connectorUsed": { "type": "CCS", "power": 150.0, "tethered": true },
+    "meterStartKwh": 10421.31,
+    "meterStopKwh": 10440.03,
+    "energyDeliveredKwh": 18.72,
+    "socStartPercent": 19.6,
+    "socStopPercent": 80.2
   },
+  "pricingSnapshot": {
+    "currency": "EUR",
+    "priceCentsPerKwh": 55,
+    "idleFee": { "priceCentsPerMinute": 20, "afterMinutes": 5 }
+  },
+  "cost": { "totalCents": 1030, "energyCents": 1030, "idleCents": 0 },
   "createdAt": "2026-04-12T09:00:00Z",
-  "updatedAt": "2026-04-12T09:05:30Z"
+  "updatedAt": "2026-04-12T09:42:00Z"
 }`,
       explanation:
-        "Optional fields use null explicitly; status is part of the enum; the session is mid-charge."
+        "A missing schemaVersion is the explicit legacy policy for v6. The raw fractional SoC remains auditable and is rounded only by the canonical view."
     },
     {
-      label: "Invalid: type mismatch",
+      label: "Invalid hybrid v7 document",
       valid: false,
       document: `{
+  "schemaVersion": 7,
   "userId": "aaaaaaaa...",
   "vehicleId": "bbbbbbbb...",
   "stationId": "cccccccc...",
   "chargingPointId": "dddddddd...",
-  "status": "completed",
+  "stationSnapshot": {
+    "name": "Alexanderplatz Hub",
+    "location": { "type": "Point", "coordinates": [13.4132, 52.5219] },
+    "addressShort": "Alexanderplatz 1, Berlin",
+    "chargingPointLabel": "Bay 2"
+  },
+  "vehicleSnapshot": {
+    "vinLast6": "123456",
+    "make": "BMW",
+    "model": "i5"
+  },
+  "status": "COMPLETED",
   "booking": {
     "bookedAt": "2026-04-12T09:00:00Z",
-    "expiresAt": "2026-04-12T09:30:00Z"
+    "expiresAt": "2026-04-12T09:30:00Z",
+    "canceledAt": null,
+    "cancelReason": null
   },
   "charging": {
-    "energyDeliveredKwh": "12.3"
+    "startedAt": "2026-04-12T09:05:00Z",
+    "endedAt": "2026-04-12T09:42:00Z",
+    "connectorUsed": { "type": "CCS", "power": 150.0, "tethered": true },
+    "meterStartKwh": 10421.31,
+    "meterStopKwh": 10440.03,
+    "energyDeliveredKwh": 18.72,
+    "socStartPercent": 19.6,
+    "socStopPercent": 101
   },
+  "pricingSnapshot": {
+    "currency": "EUR",
+    "priceCentsPerKwh": 55,
+    "idleFee": { "priceCentsPerMinute": 20, "afterMinutes": 5 }
+  },
+  "cost": { "totalCents": 1030, "energyCents": 1030, "idleCents": 0 },
   "createdAt": "2026-04-12T09:00:00Z",
-  "updatedAt": "2026-04-12T09:05:30Z"
+  "updatedAt": "2026-04-12T09:42:00Z"
 }`,
       errors: [
-        'Property "status": "completed" (lowercase) is not in the allowed enum.',
-        'Property "charging.energyDeliveredKwh": string provided, expected double.'
+        'Missing required fields: "charging.meterStart" and "charging.meterStop".',
+        'Properties "charging.meterStartKwh" and "charging.meterStopKwh" are not allowed in v7.',
+        'Property "charging.socStartPercent": double provided, expected int.',
+        'Property "charging.socStopPercent": 101 exceeds maximum 100.'
       ],
       explanation:
-        "Type coercion is an application bug, not a MongoDB feature \u2014 the validator rejects the write so the session never lands in a wrong shape."
+        "This raw v6 payload must pass through the ModL recipe first: rename and scale both meter values, then apply the declared rounding policy to state of charge."
     }
   ],
   vehicles: [

@@ -1,6 +1,7 @@
 "use client";
 
 import { CodeBlock } from "./CodeBlock";
+import { AdaptationWalkthrough } from "./AdaptationWalkthrough";
 import {
   ROLLOUT_STEPS,
   VERSIONS,
@@ -167,7 +168,7 @@ export function EvolutionPanel({ active, onChange }: Props) {
           <CodeBlock
             code={version.dbJsonSchema}
             language="json"
-            filename={`schemas/${version.key}/chargingStations.json`}
+            filename={`schemas/${version.key}/${version.dbFilename}`}
             maxHeight="260px"
           />
           <ul className="mt-3 space-y-1.5">
@@ -183,6 +184,8 @@ export function EvolutionPanel({ active, onChange }: Props) {
           </ul>
         </div>
       </div>
+
+      {version.key === "v7" ? <AdaptationWalkthrough /> : null}
 
       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
         <h4 className="text-[13px] font-bold text-slate-900">

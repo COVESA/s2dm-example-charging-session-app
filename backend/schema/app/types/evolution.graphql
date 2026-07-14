@@ -1,0 +1,11 @@
+type EvolutionVersionCount {
+  version: Int!
+  count: Int!
+}
+
+type ModelEvolutionValidation {
+  versionCounts: [EvolutionVersionCount!]!
+  rawV6Json: String
+  rawV7Json: String
+  projectedV7Json: String
+}

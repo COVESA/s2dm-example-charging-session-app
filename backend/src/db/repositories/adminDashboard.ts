@@ -1,6 +1,7 @@
 import type { Db } from "mongodb";
 
 import type { ChargingSessionDoc } from "./chargingSessions";
+import { CHARGING_SESSIONS_CANONICAL_VIEW } from "../schemaEvolution";
 
 const RECENT_ACTIVITY_DAYS = 7;
 const RECENT_TELEMETRY_HOURS = 12;
@@ -266,7 +267,7 @@ async function getSessionMetrics(database: Db): Promise<{
   const recentCutoff = getRecentActivityCutoff();
 
   const [doc] = await database
-    .collection<ChargingSessionDoc>("chargingSessions")
+    .collection<ChargingSessionDoc>(CHARGING_SESSIONS_CANONICAL_VIEW)
     .aggregate<{
       sessionStatusBreakdown: Array<{ label: string; value: number }>;
       summary: Array<{
@@ -474,7 +475,7 @@ async function getRecentSessions(
   database: Db
 ): Promise<AdminRecentSessionSnapshot[]> {
   const docs = await database
-    .collection<ChargingSessionDoc>("chargingSessions")
+    .collection<ChargingSessionDoc>(CHARGING_SESSIONS_CANONICAL_VIEW)
     .find(
       {},
       {
