@@ -8,6 +8,7 @@
     "start": "node dist/server/index.js",
     "codegen": "graphql-codegen --config codegen.js",
     "typecheck": "tsc --noEmit",
+    "validate:evolution": "tsx src/scripts/validateEvolution.ts",
     "lint": "echo \"No backend lint configured yet\""
   },
   "dependencies": {

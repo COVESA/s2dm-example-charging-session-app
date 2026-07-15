@@ -674,6 +674,37 @@ Example `chargingPoints` validation rule:
 }
 ```
 
+### 9.4 Schema evolution strategy
+
+Collections whose contracts evolve use an explicit `schemaVersion` and a
+MongoDB `$jsonSchema.oneOf` validator. Each branch describes one complete
+supported shape, preventing accidental hybrids. Documents without a discriminator
+are treated as the legacy version so existing data remains readable.
+
+Application reads use a canonical MongoDB view. Its aggregation selects the
+source version, applies the required rename, scale, lookup, or rounding policies,
+and returns the current contract. Writes and operational state transitions remain
+on the source collection; mutation responses are re-read from the view. This
+keeps compatibility logic in one place and preserves raw values for auditability.
+
+The charging-session example demonstrates this strategy with renamed meter
+fields, kWh-to-Wh scaling, and Float-to-Int state-of-charge narrowing. Explicit
+nulls remain null, and potentially lossy rounding uses a declared policy. The
+same pattern can support other governed model changes by replacing the
+version-specific validator branches and projection stages.
+
+Backend startup installs or updates the validator and view after seed restoration,
+so clean and existing databases converge on the same setup. The standalone
+artifacts are the
+[executable MQL pipeline](evolution/charging-sessions-v6-to-v7.pipeline.json)
+and the sample [v6](evolution/samples/charging-session-v6.json) and
+[v7](evolution/samples/charging-session-v7.json) payloads. Run the executable
+checks with:
+
+```bash
+npm run validate:evolution
+```
+
 ---
 
 ## 10. Trade-offs & rationale

@@ -12,7 +12,8 @@
     "build": "turbo run build",
     "codegen": "npm run codegen -w backend && npm run codegen -w frontend",
     "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "validate:evolution": "npm run validate:evolution -w backend"
   },
   "overrides": {
     "uuid": "^14.0.0",

@@ -35,7 +35,7 @@ import {
   InvalidIncidentDescriptionError
 } from "../../modules/incidents/service";
 import { getAdminDashboard } from "../../modules/adminDashboard/service";
-
+import { getModelEvolutionValidation } from "../../modules/modelEvolution/service";
 
 export const resolvers = {
   GeoJSON: GeoJSONResolver,
@@ -87,6 +87,13 @@ export const resolvers = {
       context: GraphQLContext
     ) => {
       return getChargingSessionsByUser(context.db, args);
+    },
+    modelEvolutionValidation: async (
+      _parent: unknown,
+      _args: unknown,
+      context: GraphQLContext
+    ) => {
+      return getModelEvolutionValidation(context.db);
     },
     vehicles: async (
       _parent: unknown,

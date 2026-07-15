@@ -164,8 +164,8 @@ export function SessionSummaryModal({
 
   const energyKwh =
     currentSession.charging.energyDeliveredKwh ??
-    (currentSession.charging.meterStopKwh != null && currentSession.charging.meterStartKwh != null
-      ? Math.max(0, currentSession.charging.meterStopKwh - currentSession.charging.meterStartKwh)
+    (currentSession.charging.meterStop != null && currentSession.charging.meterStart != null
+      ? Math.max(0, currentSession.charging.meterStop - currentSession.charging.meterStart) / 1000
       : null);
   const energyDisplay = energyKwh != null ? `${energyKwh.toFixed(2)} kWh` : "0.00 kWh";
 

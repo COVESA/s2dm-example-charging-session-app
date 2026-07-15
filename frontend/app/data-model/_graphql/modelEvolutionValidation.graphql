@@ -1,0 +1,11 @@
+query ModelEvolutionValidation {
+  modelEvolutionValidation {
+    versionCounts {
+      version
+      count
+    }
+    rawV6Json
+    rawV7Json
+    projectedV7Json
+  }
+}

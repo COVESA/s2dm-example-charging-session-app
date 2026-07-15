@@ -155,6 +155,37 @@ Once the containers are up and running, you can access the different parts of th
 └── .env.example        # Template for environment variables
 ```
 
+## Schema evolution and compatibility
+
+The demo also shows how a governed model can evolve without requiring an immediate
+rewrite of every stored document or producer:
+
+- MongoDB schema versioning and `$jsonSchema.oneOf` allow supported document versions to coexist.
+- A missing `schemaVersion` identifies the legacy shape, preserving existing data.
+- A read-only aggregation view projects supported versions into the current application contract.
+- Writes remain in their producer-native shape, while application reads use the canonical view.
+
+The included charging-session example combines field renaming, unit scaling, and
+numeric narrowing. The bundled seed contains legacy and current fixtures, and
+backend startup idempotently installs the validator and canonical view on both
+new and existing databases.
+
+The repository includes the
+[executable MQL pipeline](docs/data-model/evolution/charging-sessions-v6-to-v7.pipeline.json)
+and sample [v6](docs/data-model/evolution/samples/charging-session-v6.json) and
+[v7](docs/data-model/evolution/samples/charging-session-v7.json) payloads.
+
+Run the compatibility acceptance checks from the repository root:
+
+```bash
+npm run validate:evolution
+```
+
+The checks cover validation, canonical projection, null and rounding policies,
+raw-data preservation, and statistics across mixed versions. A stream processor
+could materialize the same transformations on write, but that path is not part of
+this demo.
+
 ## Troubleshooting & Notes
 
 - **Schema-first GraphQL**: The SDL source files live under `backend/schema/governed` and `backend/schema/app`. If you modify them, remember to re-run `npm run codegen` in the respective folders to update the generated types.

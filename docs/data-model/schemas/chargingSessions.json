@@ -20,6 +20,11 @@
     "_id": {
       "bsonType": "objectId"
     },
+    "schemaVersion": {
+      "bsonType": "int",
+      "enum": [6, 7],
+      "description": "Physical charging-session schema version. Missing means legacy v6."
+    },
     "userId": {
       "bsonType": "objectId"
     },
@@ -80,28 +85,7 @@
         "cancelReason": { "bsonType": ["string", "null"] }
       }
     },
-    "charging": {
-      "bsonType": "object",
-      "additionalProperties": false,
-      "properties": {
-        "startedAt": { "bsonType": ["date", "null"] },
-        "endedAt": { "bsonType": ["date", "null"] },
-        "connectorUsed": {
-          "bsonType": ["object", "null"],
-          "additionalProperties": false,
-          "properties": {
-            "type": { "bsonType": ["string", "null"] },
-            "power": { "bsonType": ["double", "null"] },
-            "tethered": { "bsonType": ["bool", "null"] }
-          }
-        },
-        "meterStartKwh": { "bsonType": ["double", "null"] },
-        "meterStopKwh": { "bsonType": ["double", "null"] },
-        "energyDeliveredKwh": { "bsonType": ["double", "null"] },
-        "socStartPercent": { "bsonType": ["double", "null"] },
-        "socStopPercent": { "bsonType": ["double", "null"] }
-      }
-    },
+    "charging": { "bsonType": "object" },
     "feedback": {
       "bsonType": ["object", "null"],
       "additionalProperties": false,
@@ -139,5 +123,80 @@
     },
     "createdAt": { "bsonType": "date" },
     "updatedAt": { "bsonType": "date" }
-  }
+  },
+  "oneOf": [
+    {
+      "title": "ChargingSession v6 (schemaVersion absent or 6)",
+      "properties": {
+        "schemaVersion": { "bsonType": "int", "enum": [6] },
+        "charging": {
+          "bsonType": "object",
+          "additionalProperties": false,
+          "properties": {
+            "startedAt": { "bsonType": ["date", "null"] },
+            "endedAt": { "bsonType": ["date", "null"] },
+            "connectorUsed": {
+              "bsonType": ["object", "null"],
+              "additionalProperties": false,
+              "properties": {
+                "type": { "bsonType": ["string", "null"] },
+                "power": { "bsonType": ["double", "int", "long", "decimal", "null"] },
+                "tethered": { "bsonType": ["bool", "null"] }
+              }
+            },
+            "meterStartKwh": { "bsonType": ["double", "int", "long", "decimal", "null"] },
+            "meterStopKwh": { "bsonType": ["double", "int", "long", "decimal", "null"] },
+            "energyDeliveredKwh": { "bsonType": ["double", "int", "long", "decimal", "null"] },
+            "socStartPercent": {
+              "bsonType": ["double", "int", "long", "decimal", "null"],
+              "minimum": 0,
+              "maximum": 100
+            },
+            "socStopPercent": {
+              "bsonType": ["double", "int", "long", "decimal", "null"],
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "ChargingSession v7",
+      "required": ["schemaVersion"],
+      "properties": {
+        "schemaVersion": { "bsonType": "int", "enum": [7] },
+        "charging": {
+          "bsonType": "object",
+          "additionalProperties": false,
+          "properties": {
+            "startedAt": { "bsonType": ["date", "null"] },
+            "endedAt": { "bsonType": ["date", "null"] },
+            "connectorUsed": {
+              "bsonType": ["object", "null"],
+              "additionalProperties": false,
+              "properties": {
+                "type": { "bsonType": ["string", "null"] },
+                "power": { "bsonType": ["double", "int", "long", "decimal", "null"] },
+                "tethered": { "bsonType": ["bool", "null"] }
+              }
+            },
+            "meterStart": { "bsonType": ["double", "int", "long", "decimal", "null"] },
+            "meterStop": { "bsonType": ["double", "int", "long", "decimal", "null"] },
+            "energyDeliveredKwh": { "bsonType": ["double", "int", "long", "decimal", "null"] },
+            "socStartPercent": {
+              "bsonType": ["int", "null"],
+              "minimum": 0,
+              "maximum": 100
+            },
+            "socStopPercent": {
+              "bsonType": ["int", "null"],
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        }
+      }
+    }
+  ]
 }

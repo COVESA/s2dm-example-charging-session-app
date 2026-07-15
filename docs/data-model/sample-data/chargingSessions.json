@@ -49,6 +49,7 @@
   },
   {
     "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9d002" },
+    "schemaVersion": 6,
     "userId": { "$oid": "65c8f2e2d2f4c3a9b3b9a111" },
     "vehicleId": { "$oid": "65c8f2e2d2f4c3a9b3b9a221" },
     "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b002" },
@@ -97,6 +98,7 @@
   },
   {
     "_id": { "$oid": "65c8f2e2d2f4c3a9b3b9d003" },
+    "schemaVersion": 7,
     "userId": { "$oid": "65c8f2e2d2f4c3a9b3b9a111" },
     "vehicleId": { "$oid": "65c8f2e2d2f4c3a9b3b9a221" },
     "stationId": { "$oid": "65c8f2e2d2f4c3a9b3b9b001" },
@@ -123,11 +125,11 @@
       "startedAt": { "$date": "2026-02-10T17:32:04Z" },
       "endedAt": { "$date": "2026-02-10T18:48:31Z" },
       "connectorUsed": { "type": "TYPE2", "power": 22.0, "tethered": false },
-      "meterStartKwh": 9951.12,
-      "meterStopKwh": 9970.84,
+      "meterStart": 9951120.0,
+      "meterStop": 9970840.0,
       "energyDeliveredKwh": 19.72,
-      "socStartPercent": 20.0,
-      "socStopPercent": 80.0
+      "socStartPercent": 20,
+      "socStopPercent": 80
     },
     "pricingSnapshot": {
       "currency": "EUR",

@@ -89,7 +89,7 @@ const isGhPages = process.env.NEXT_PUBLIC_GITHUB_PAGES === "true";
 
 export function DataModelExplorer() {
   const [step, setStep] = useState<StepKey>("conceptual");
-  const [version, setVersion] = useState<VersionKey>("v4");
+  const [version, setVersion] = useState<VersionKey>("v7");
   const [modal, setModal] = useState<ModalKind | null>(null);
 
   const activeStep = STEPS.find((s) => s.key === step) ?? STEPS[0];

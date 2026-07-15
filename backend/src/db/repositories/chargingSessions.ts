@@ -1,6 +1,7 @@
 import type { Db } from "mongodb";
 import { ObjectId } from "mongodb";
 import type { ConnectorType } from "../../types/connectorType";
+import { CHARGING_SESSIONS_CANONICAL_VIEW } from "../schemaEvolution";
 
 type ConnectorUsedDoc = {
   type?: ConnectorType | null;
@@ -14,6 +15,8 @@ type ChargingDoc = {
   connectorUsed?: ConnectorUsedDoc | null;
   meterStartKwh?: number | null;
   meterStopKwh?: number | null;
+  meterStart?: number | null;
+  meterStop?: number | null;
   energyDeliveredKwh?: number | null;
   socStartPercent?: number | null;
   socStopPercent?: number | null;
@@ -72,6 +75,7 @@ type VehicleSnapshotDoc = {
 
 export type ChargingSessionDoc = {
   _id: ObjectId;
+  schemaVersion?: 6 | 7;
   userId: ObjectId;
   vehicleId: ObjectId;
   stationId: ObjectId;
@@ -207,7 +211,7 @@ export async function findChargingSessionsByUser(
   const filter = buildFilter(input);
 
   const docs = await database
-    .collection<ChargingSessionDoc>("chargingSessions")
+    .collection<ChargingSessionDoc>(CHARGING_SESSIONS_CANONICAL_VIEW)
     .find(filter)
     .sort({ createdAt: -1, _id: -1 })
     .limit(limit + 1)
@@ -288,6 +292,15 @@ export async function findChargingSessionById(
   sessionId: string
 ): Promise<ChargingSessionDoc | null> {
   return database.collection<ChargingSessionDoc>("chargingSessions").findOne({
+    _id: new ObjectId(sessionId)
+  });
+}
+
+export async function findCanonicalChargingSessionById(
+  database: Db,
+  sessionId: string
+): Promise<ChargingSessionDoc | null> {
+  return database.collection<ChargingSessionDoc>(CHARGING_SESSIONS_CANONICAL_VIEW).findOne({
     _id: new ObjectId(sessionId)
   });
 }

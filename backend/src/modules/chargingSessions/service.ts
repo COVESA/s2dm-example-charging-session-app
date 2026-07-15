@@ -8,6 +8,7 @@ import {
   insertChargingSession,
   getVehicleSnapshotFromSession,
   findChargingSessionById,
+  findCanonicalChargingSessionById,
   markSessionActive,
   markSessionCanceled,
   markSessionCompleted,
@@ -138,8 +139,8 @@ export async function getChargingSessionsByUser(db: Db, input: GetChargingSessio
                 tethered: doc.charging.connectorUsed.tethered ?? null
               }
             : null,
-          meterStartKwh: doc.charging.meterStartKwh ?? null,
-          meterStopKwh: doc.charging.meterStopKwh ?? null,
+          meterStart: doc.charging.meterStart ?? null,
+          meterStop: doc.charging.meterStop ?? null,
           energyDeliveredKwh: doc.charging.energyDeliveredKwh ?? null,
           socStartPercent: doc.charging.socStartPercent ?? null,
           socStopPercent: doc.charging.socStopPercent ?? null
@@ -184,6 +185,12 @@ function formatAddressShort(address: { street?: string; city?: string; postalCod
 
 function isValidObjectId(value: string): boolean {
   return ObjectId.isValid(value);
+}
+
+async function getCanonicalSession(db: Db, sessionId: string) {
+  const canonical = await findCanonicalChargingSessionById(db, sessionId);
+  if (!canonical) throw new ChargingSessionNotFoundError();
+  return canonical;
 }
 
 export async function createBooking(db: Db, input: ReserveChargingPointInput) {
@@ -231,6 +238,7 @@ export async function createBooking(db: Db, input: ReserveChargingPointInput) {
   const chargingPointLabel = `Bay ${pointIndex + 1}`;
 
   const sessionDoc = {
+    schemaVersion: 6 as const,
     userId: userObjectId,
     vehicleId: new ObjectId(input.vehicleId),
     stationId: stationObjectId,
@@ -279,7 +287,7 @@ export async function createBooking(db: Db, input: ReserveChargingPointInput) {
     throw new ChargingPointUnavailableError();
   }
 
-  return inserted;
+  return getCanonicalSession(db, String(inserted._id));
 }
 
 function mapSessionDocToGraphQL(doc: ChargingSessionDoc) {
@@ -313,8 +321,8 @@ function mapSessionDocToGraphQL(doc: ChargingSessionDoc) {
             tethered: doc.charging.connectorUsed.tethered ?? null
           }
         : null,
-      meterStartKwh: doc.charging.meterStartKwh ?? null,
-      meterStopKwh: doc.charging.meterStopKwh ?? null,
+      meterStart: doc.charging.meterStart ?? null,
+      meterStop: doc.charging.meterStop ?? null,
       energyDeliveredKwh: doc.charging.energyDeliveredKwh ?? null,
       socStartPercent: doc.charging.socStartPercent ?? null,
       socStopPercent: doc.charging.socStopPercent ?? null
@@ -374,7 +382,7 @@ export async function startChargingSession(db: Db, input: StartChargingSessionIn
   if (!updated) {
     throw new InvalidSessionTransitionError();
   }
-  return updated;
+  return getCanonicalSession(db, input.sessionId);
 }
 
 type CancelChargingSessionInput = {
@@ -401,7 +409,7 @@ export async function cancelChargingSession(db: Db, input: CancelChargingSession
   }
 
   await markChargingPointAvailable(db, updated.stationId, updated.chargingPointId);
-  return updated;
+  return getCanonicalSession(db, input.sessionId);
 }
 
 type CompleteChargingSessionInput = {
@@ -427,7 +435,7 @@ export async function completeChargingSession(db: Db, input: CompleteChargingSes
   }
 
   await markChargingPointAvailable(db, updated.stationId, updated.chargingPointId);
-  return updated;
+  return getCanonicalSession(db, input.sessionId);
 }
 
 type AddSessionFeedbackInput = {
@@ -479,7 +487,7 @@ export async function addSessionFeedback(db: Db, input: AddSessionFeedbackInput)
     throw new InvalidSessionTransitionError();
   }
 
-  return updated;
+  return getCanonicalSession(db, input.sessionId);
 }
 
 export function createStartChargingSessionResponse(

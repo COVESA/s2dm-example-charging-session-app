@@ -1,3 +1,5 @@
+import { CHARGING_SESSION_VALIDATORS } from "./chargingSessionEvolution";
+
 export type CollectionKey =
   | "chargingStations"
   | "chargingPoints"
@@ -213,50 +215,7 @@ export const COLLECTION_SCHEMAS: Record<CollectionKey, string> = {
     "updatedAt": { "bsonType": "date" }
   }
 }`,
-  chargingSessions: `{
-  "bsonType": "object",
-  "required": [
-    "userId", "vehicleId", "stationId", "chargingPointId",
-    "stationSnapshot", "vehicleSnapshot", "status", "booking",
-    "charging", "pricingSnapshot", "cost", "createdAt", "updatedAt"
-  ],
-  "additionalProperties": false,
-  "properties": {
-    "_id": { "bsonType": "objectId" },
-    "userId": { "bsonType": "objectId" },
-    "vehicleId": { "bsonType": "objectId" },
-    "stationId": { "bsonType": "objectId" },
-    "chargingPointId": { "bsonType": "objectId" },
-    "status": {
-      "bsonType": "string",
-      "enum": ["BOOKED", "ACTIVE", "COMPLETED", "CANCELED", "NO_SHOW", "FAILED"]
-    },
-    "booking": {
-      "bsonType": "object",
-      "required": ["bookedAt", "expiresAt"],
-      "additionalProperties": false,
-      "properties": {
-        "bookedAt": { "bsonType": "date" },
-        "expiresAt": { "bsonType": "date" },
-        "canceledAt": { "bsonType": ["date", "null"] },
-        "cancelReason": { "bsonType": ["string", "null"] }
-      }
-    },
-    "charging": {
-      "bsonType": "object",
-      "additionalProperties": false,
-      "properties": {
-        "startedAt": { "bsonType": ["date", "null"] },
-        "endedAt": { "bsonType": ["date", "null"] },
-        "energyDeliveredKwh": { "bsonType": ["double", "null"] },
-        "socStartPercent": { "bsonType": ["double", "null"] },
-        "socStopPercent": { "bsonType": ["double", "null"] }
-      }
-    },
-    "createdAt": { "bsonType": "date" },
-    "updatedAt": { "bsonType": "date" }
-  }
-}`,
+  chargingSessions: CHARGING_SESSION_VALIDATORS.combined,
   vehicles: `{
   "bsonType": "object",
   "required": [
