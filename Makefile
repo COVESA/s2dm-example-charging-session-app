@@ -43,6 +43,7 @@ GHPAGES_PAGES := frontend/app/layout.tsx \
 	frontend/app/\(driver\)/sessions/page.tsx
 
 preview-ghpages:
+	npm run codegen -w frontend
 	cp frontend/app/layout.ghpages.tsx frontend/app/layout.tsx
 	printf '%s\n' 'export default function Page() { return null; }' \
 	  | tee frontend/app/\(home\)/page.tsx \

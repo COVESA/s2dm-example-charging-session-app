@@ -28,10 +28,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Generate frontend GraphQL client
+        run: npm run codegen -w frontend
+
       - name: Use GH Pages layout (no navbar)
         run: cp frontend/app/layout.ghpages.tsx frontend/app/layout.tsx
 
-      - name: Stub non-data-model pages (avoids codegen dependency at build time)
+      - name: Stub non-data-model pages
         run: |
           stub='export default function Page() { return null; }'
           echo "$stub" > 'frontend/app/(home)/page.tsx'
