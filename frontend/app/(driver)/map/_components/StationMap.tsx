@@ -12,6 +12,7 @@ import { ClusterMarker } from "./ClusterMarker";
 import { LocationPin } from "./LocationPin";
 import { ReserveModal } from "./ReserveModal";
 import type { ChargingStationFiltersInput } from "@/graphql/generated/graphql";
+import { cartoTileUrl } from "@/lib/map/cartoTiles";
 
 const MARIENPLATZ: [number, number] = [48.1374, 11.5755];
 const DEFAULT_ZOOM = 16;
@@ -280,7 +281,7 @@ export function StationMap({
           <>
             <TileLayer
               attribution='&copy; OpenStreetMap contributors &copy; CARTO'
-              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+              url={cartoTileUrl()}
               subdomains="abcd"
               maxZoom={MAP_MAX_ZOOM}
             />

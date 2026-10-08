@@ -22,6 +22,7 @@ cp .env frontend/.env
 Key vars used by the frontend (URLs include the port when needed):
 
 - `NEXT_PUBLIC_GRAPHQL_URL` (default `http://localhost:4000/graphql`)
+- `CARTO_API_KEY` — CARTO basemap key, appended to raster map tile URLs
 
 ## Install
 

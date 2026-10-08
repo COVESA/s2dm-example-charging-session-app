@@ -2,8 +2,9 @@
 
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import { divIcon } from "leaflet";
+import { cartoTileUrl } from "@/lib/map/cartoTiles";
 
-const TILE_URL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+const TILE_URL = cartoTileUrl();
 const TILE_ATTRIBUTION = '&copy; OpenStreetMap contributors &copy; CARTO';
 const ZOOM = 17;
 

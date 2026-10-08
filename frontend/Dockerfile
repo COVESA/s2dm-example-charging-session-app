@@ -8,6 +8,11 @@ RUN npm install
 
 COPY frontend/ ./
 COPY backend/schema /backend/schema
+
+# Inlined into map tile URLs at build time (next.config.ts `env`).
+ARG CARTO_API_KEY
+ENV CARTO_API_KEY=$CARTO_API_KEY
+
 RUN npm run codegen && npm run build
 
 # Production stage

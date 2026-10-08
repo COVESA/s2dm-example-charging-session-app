@@ -69,6 +69,8 @@ Copy the example environment file to set up your configuration:
 cp .env.example .env
 ```
 
+Set `CARTO_API_KEY` in `.env` to your CARTO basemap key so map tiles load. With Docker, rebuild the frontend after changing it (`make build` or `make build-atlas`).
+
 ### 2. Run the Application
 
 #### With Docker (Recommended)

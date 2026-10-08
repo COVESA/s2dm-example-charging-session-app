@@ -58,6 +58,8 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      args:
+        CARTO_API_KEY: ${CARTO_API_KEY:-}
     container_name: ev-demo-frontend
     env_file:
       - .env
