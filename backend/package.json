@@ -21,6 +21,13 @@
     "graphql-scalars": "^1.25.0",
     "mongodb": "^7.1.0"
   },
+  "overrides": {
+    "proxy-addr": "^2.0.8",
+    "qs": "^6.16.0",
+    "body-parser": "^2.3.0",
+    "@graphql-tools/utils": "^12.0.3",
+    "braces": "npm:@dieub/braces-depth-guard@3.0.3-pn.3"
+  },
   "devDependencies": {
     "@graphql-codegen/cli": "^6.0.1",
     "@graphql-codegen/typescript": "^5.0.5",
